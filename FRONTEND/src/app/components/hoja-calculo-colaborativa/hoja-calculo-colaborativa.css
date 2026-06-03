@@ -1,0 +1,341 @@
+/* ViewEncapsulation.None */
+
+/* ── Modal ─────────────────────────────────────────────────────────────────── */
+.wsheet-modal {
+  position: fixed; inset: 0; z-index: 50;
+  display: flex; flex-direction: column;
+  background: #fff;
+  animation: wsheetFadeIn .12s ease;
+}
+@keyframes wsheetFadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+/* ── Barra de título ─────────────────────────────────────────────────────────── */
+.wsheet-titlebar {
+  display: flex; align-items: center; justify-content: space-between;
+  height: 40px; padding: 0 12px; gap: 12px;
+  background: #1D6F42; color: #fff; flex-shrink: 0;
+}
+.wsheet-titlebar-left  { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.wsheet-titlebar-right { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.wsheet-docname {
+  font-size: 13px; font-weight: 600;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 280px;
+}
+.wsheet-saved-badge {
+  font-size: 11px; color: #b7dfca;
+  display: flex; align-items: center; gap: 4px; white-space: nowrap;
+}
+.wsheet-saved-badge .wsheet-spin {
+  width: 10px; height: 10px; border-radius: 50%;
+  border: 2px solid rgba(255,255,255,.3); border-top-color: #fff;
+  animation: wsheetSpin .6s linear infinite; display: inline-block;
+}
+@keyframes wsheetSpin { to { transform: rotate(360deg); } }
+.wsheet-title-btn {
+  display: flex; align-items: center; gap: 5px; padding: 4px 10px;
+  border: 1px solid rgba(255,255,255,.35); background: #175f38; color: #fff;
+  font-size: 12px; font-weight: 500; border-radius: 3px; cursor: pointer;
+  white-space: nowrap; transition: background .12s;
+}
+.wsheet-title-btn:hover { background: #1a6840; }
+.wsheet-title-btn svg  { width: 14px; height: 14px; }
+
+/* Avatares presencia */
+.wsheet-presencia { display: flex; align-items: center; gap: 2px; }
+.wsheet-avatar {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 26px; height: 26px; border-radius: 50%; color: #fff;
+  font-size: 10px; font-weight: 700; border: 2px solid #1D6F42;
+  cursor: default; transition: transform .12s; position: relative;
+}
+.wsheet-avatar:hover { transform: scale(1.15); z-index: 1; }
+
+/* ── Ribbon ──────────────────────────────────────────────────────────────────── */
+.wsheet-ribbon {
+  flex-shrink: 0;
+  background: #fff;
+  border-bottom: 1px solid #d1d5db;
+  user-select: none;
+}
+
+/* Tabs */
+.wsheet-ribbon-tabs {
+  display: flex;
+  padding: 0 8px;
+  border-bottom: 1px solid #e5e7eb;
+  background: #f9fafb;
+}
+.wsr-tab {
+  padding: 6px 14px;
+  font-size: 12px; font-weight: 500; color: #6b7280;
+  border: none; background: transparent; cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: color .12s, border-color .12s;
+}
+.wsr-tab:hover { color: #1D6F42; }
+.wsr-tab.wsr-tab-active {
+  color: #1D6F42; border-bottom-color: #1D6F42; font-weight: 700;
+}
+
+/* Panel del tab activo */
+.wsr-panel {
+  display: flex; align-items: flex-start;
+  padding: 4px 8px 2px;
+  gap: 0;
+  overflow-x: auto;
+  min-height: 68px;
+}
+.wsr-panel::-webkit-scrollbar { height: 4px; }
+.wsr-panel::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 2px; }
+
+/* Separador de grupos */
+.wsr-sep {
+  width: 1px; background: #e5e7eb;
+  margin: 2px 8px; align-self: stretch;
+}
+
+/* Grupo */
+.wsr-group {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 2px; padding: 2px 4px;
+}
+.wsr-group-btns {
+  display: flex; align-items: center; gap: 2px; flex-wrap: nowrap;
+}
+.wsr-group-btns.wsr-group-col {
+  flex-direction: column; align-items: stretch; gap: 2px;
+}
+.wsr-group-label {
+  font-size: 10px; color: #9ca3af; white-space: nowrap; margin-top: auto;
+}
+
+/* Botón estándar del ribbon */
+.wsr-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px; border-radius: 4px;
+  border: 1px solid transparent; background: transparent;
+  color: #374151; cursor: pointer; transition: background .1s, border-color .1s;
+  flex-shrink: 0;
+}
+.wsr-btn svg { width: 16px; height: 16px; }
+.wsr-btn:hover  { background: #f3f4f6; border-color: #d1d5db; }
+.wsr-btn.wsr-active { background: #dcfce7; border-color: #1D6F42; color: #1D6F42; }
+
+/* Botones de texto especial */
+.wsr-btn-b { font-weight: 900; font-size: 14px; font-family: serif; }
+.wsr-btn-i { font-style: italic; font-size: 14px; font-family: serif; }
+.wsr-btn-u { text-decoration: underline; font-size: 13px; font-family: serif; }
+.wsr-btn-s { text-decoration: line-through; font-size: 13px; }
+.wsr-btn-text { font-size: 16px; font-weight: 700; }
+
+/* Select en ribbon */
+.wsr-select {
+  height: 26px; padding: 0 4px; border-radius: 4px;
+  border: 1px solid #d1d5db; background: #fff;
+  font-size: 12px; color: #374151; cursor: pointer;
+  outline: none;
+}
+.wsr-select:hover { border-color: #1D6F42; }
+.wsr-select-wide { width: 100px; }
+
+/* Botón de función rápida */
+.wsr-fn-btn { width: auto; padding: 0 8px; font-size: 11px; font-weight: 600; font-family: monospace; }
+
+/* Botón fila (Insertar/Eliminar con icono + texto) */
+.wsr-btn-row {
+  display: flex; align-items: center; gap: 6px;
+  padding: 4px 10px; height: 26px; border-radius: 4px;
+  border: 1px solid #d1d5db; background: #fff;
+  color: #374151; font-size: 11px; font-weight: 500; cursor: pointer;
+  white-space: nowrap; transition: background .1s;
+}
+.wsr-btn-row svg { width: 16px; height: 16px; flex-shrink: 0; }
+.wsr-btn-row:hover  { background: #f3f4f6; border-color: #9ca3af; }
+.wsr-btn-danger { color: #dc2626; border-color: #fca5a5; }
+.wsr-btn-danger:hover { background: #fef2f2; border-color: #f87171; }
+
+/* Color picker */
+.wsr-color-wrap { position: relative; }
+.wsr-color-btn  { flex-direction: column; gap: 1px; padding: 2px; height: 30px; }
+.wsr-color-btn svg { width: 18px; height: 14px; }
+.wsr-color-bar  {
+  display: block; width: 18px; height: 4px; border-radius: 1px;
+  border: 1px solid rgba(0,0,0,.15);
+}
+.wsr-color-picker {
+  position: absolute; top: calc(100% + 2px); left: 0; z-index: 200;
+  background: #fff; border: 1px solid #d1d5db; border-radius: 6px;
+  padding: 8px; box-shadow: 0 4px 12px rgba(0,0,0,.15);
+  min-width: 170px;
+}
+.wsr-color-none {
+  display: block; width: 100%; text-align: left; padding: 3px 4px;
+  font-size: 11px; color: #374151; background: none; border: none;
+  cursor: pointer; border-radius: 3px; margin-bottom: 6px;
+}
+.wsr-color-none:hover { background: #f3f4f6; }
+.wsr-color-grid { display: grid; grid-template-columns: repeat(8, 18px); gap: 2px; }
+.wsr-swatch {
+  width: 18px; height: 18px; border-radius: 2px;
+  border: 1px solid rgba(0,0,0,.2); cursor: pointer;
+  transition: transform .1s; flex-shrink: 0;
+}
+.wsr-swatch:hover { transform: scale(1.3); z-index: 1; }
+
+/* Texto de referencia de fórmulas */
+.wsr-formula-hint {
+  font-size: 10px; color: #6b7280;
+  white-space: nowrap; line-height: 1.6;
+}
+
+/* ── Barra de fórmula ────────────────────────────────────────────────────────── */
+.wsheet-formulabar {
+  display: flex; align-items: center;
+  height: 28px; border-bottom: 1px solid #c8c6c4;
+  background: #fff; flex-shrink: 0;
+}
+.wsheet-cell-ref-box {
+  width: 70px; height: 100%; padding: 0 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700; color: #323130;
+  border-right: 1px solid #c8c6c4; flex-shrink: 0;
+  font-family: Calibri, Arial, sans-serif;
+}
+.wsheet-fx-label {
+  padding: 0 8px; font-size: 13px; color: #605e5c; font-style: italic;
+  border-right: 1px solid #c8c6c4; height: 100%;
+  display: flex; align-items: center; flex-shrink: 0;
+}
+.wsheet-formula-input {
+  flex: 1; height: 100%; padding: 0 8px; font-size: 12px;
+  border: none; outline: none; color: #323130;
+  font-family: Calibri, Arial, sans-serif; background: transparent;
+}
+.wsheet-formula-input:focus { background: #fffce5; }
+
+/* ── Área de la grilla ──────────────────────────────────────────────────────── */
+.wsheet-grid-area {
+  flex: 1; overflow: auto; background: #fff; position: relative;
+}
+.wsheet-grid-area::-webkit-scrollbar { width: 10px; height: 10px; }
+.wsheet-grid-area::-webkit-scrollbar-track { background: #f3f2f1; }
+.wsheet-grid-area::-webkit-scrollbar-thumb { background: #c8c6c4; border-radius: 4px; border: 2px solid #f3f2f1; }
+
+/* ── Tabla ──────────────────────────────────────────────────────────────────── */
+.wsheet-table { border-collapse: collapse; table-layout: fixed; min-width: 100%; }
+
+/* Thead sticky */
+.wsheet-table thead { position: sticky; top: 0; z-index: 3; }
+
+.wsheet-corner {
+  width: 48px; height: 22px;
+  border-right: 1px solid #c8c6c4; border-bottom: 1px solid #c8c6c4;
+  background: #f8f9fa; position: sticky; top: 0; left: 0; z-index: 4;
+}
+
+.wsheet-col-hdr {
+  height: 22px; padding: 0;
+  border-right: 1px solid #c8c6c4; border-bottom: 1px solid #c8c6c4;
+  text-align: center; vertical-align: middle;
+  font-size: 11px; font-weight: 600; color: #605e5c;
+  cursor: default; background: #f8f9fa; user-select: none;
+  position: relative;
+}
+.wsheet-col-hdr.wsheet-col-active { background: #d0e8f8; color: #0052a3; }
+
+/* Handle de redimensionado de columna */
+.wsheet-resize-handle {
+  position: absolute; right: 0; top: 0; width: 4px; height: 100%;
+  cursor: col-resize; z-index: 5;
+}
+.wsheet-resize-handle:hover { background: #1D6F42; }
+
+.wsheet-row-hdr {
+  width: 48px; height: 22px; padding: 0;
+  border-right: 1px solid #c8c6c4; border-bottom: 1px solid #e1dfdd;
+  text-align: center; vertical-align: middle;
+  font-size: 11px; font-weight: normal; color: #605e5c;
+  cursor: default; background: #f8f9fa;
+  position: sticky; left: 0; z-index: 1; user-select: none;
+}
+.wsheet-row-hdr.wsheet-row-active { background: #d0e8f8; color: #0052a3; font-weight: 700; }
+
+/* ── Celdas ──────────────────────────────────────────────────────────────────── */
+.wsheet-cell {
+  height: 22px; padding: 0;
+  border-right: 1px solid #e1dfdd; border-bottom: 1px solid #e1dfdd;
+  position: relative; cursor: cell; overflow: visible;
+  background: #fff; vertical-align: middle;
+}
+.wsheet-cell.wsheet-selected {
+  box-shadow: inset 0 0 0 2px #106ebe; z-index: 2;
+}
+.wsheet-cell.wsheet-remote-cursor {
+  box-shadow: inset 0 0 0 2px var(--rc-color, #ea4335); z-index: 2;
+}
+
+/* Texto de celda */
+.wsheet-cell-text {
+  display: block; width: 100%; height: 100%;
+  padding: 0 4px; font-size: 11px; line-height: 22px;
+  color: #323130; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  font-family: Calibri, Arial, sans-serif; user-select: none;
+}
+.wsheet-cell-text.wsheet-wrap {
+  white-space: normal; line-height: 1.4; overflow: visible;
+  word-break: break-word; padding: 2px 4px;
+}
+
+/* Input de edición de celda */
+.wsheet-cell-input {
+  position: absolute; inset: -1px;
+  width: calc(100% + 2px); height: calc(100% + 2px);
+  padding: 0 4px; font-size: 11px;
+  font-family: Calibri, Arial, sans-serif;
+  border: 2px solid #106ebe;
+  box-shadow: 0 2px 8px rgba(16,110,190,.25);
+  outline: none; background: #fff; color: #323130; z-index: 5;
+}
+
+/* Cursor remoto */
+.wsheet-rc-label {
+  position: absolute; top: -22px; left: -1px;
+  display: flex; align-items: center; gap: 3px;
+  padding: 2px 7px 2px 3px; border-radius: 8px 8px 8px 0;
+  color: #fff; font-size: 10px; font-family: system-ui, sans-serif;
+  font-weight: 600; white-space: nowrap; pointer-events: none;
+  z-index: 10; box-shadow: 0 1px 4px rgba(0,0,0,.25);
+}
+.wsheet-rc-avatar {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 16px; height: 16px; border-radius: 50%;
+  background: #fff; color: #1a1a1a;
+  font-size: 8px; font-weight: 800;
+  border: 1px solid rgba(255,255,255,.4); flex-shrink: 0;
+}
+
+/* ── Barra de estado ────────────────────────────────────────────────────────── */
+.wsheet-statusbar {
+  display: flex; align-items: center; gap: 20px;
+  padding: 0 16px; height: 22px; flex-shrink: 0;
+  background: #1D6F42; color: rgba(255,255,255,.85); font-size: 11px;
+}
+.wsheet-statusbar-hint { opacity: .7; }
+.wsheet-statusbar-right { margin-left: auto; display: flex; align-items: center; gap: 16px; }
+
+/* ── Presencia compacta (fuera del modal) ───────────────────────────────────── */
+.wsheet-presencia-card { display: flex; align-items: center; gap: 2px; }
+.wsheet-presencia-pill {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 22px; height: 22px; border-radius: 50%;
+  color: #fff; font-size: 9px; font-weight: 700;
+  border: 2px solid #fff; box-shadow: 0 0 0 1px rgba(0,0,0,.15);
+  cursor: default; flex-shrink: 0;
+}
+
+/* ── Print ──────────────────────────────────────────────────────────────────── */
+@media print {
+  .wsheet-titlebar, .wsheet-ribbon, .wsheet-formulabar, .wsheet-statusbar { display: none !important; }
+  .wsheet-grid-area { overflow: visible; }
+}

@@ -1,0 +1,470 @@
+<div class="relative w-full h-full bg-white overflow-hidden flex">
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       SIDEBAR DE PALETA UML 2.5
+  ════════════════════════════════════════════════════════════════════════ -->
+  @if (!soloLectura) {
+  <div class="paleta-sidebar flex flex-col bg-white border-r border-slate-200 shadow-sm z-40 shrink-0">
+
+    <!-- Herramientas de navegación -->
+    <div class="px-1.5 py-2 border-b border-slate-100">
+      <div class="flex flex-col gap-0.5">
+        <button (click)="cancelarHerramienta()"
+          [class]="herramientaActiva() === null ? 'paleta-btn paleta-btn--activo' : 'paleta-btn'"
+          title="Seleccionar / Mover (Esc)">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M4 4l7 18 3-7 7-3L4 4z" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+        <button (click)="activarConexion()"
+          [class]="herramientaActiva() === 'connect' ? 'paleta-btn paleta-btn--activo' : 'paleta-btn'"
+          title="Conectar elementos (flujo de control)">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+        <button (click)="agregarParticion()"
+          class="paleta-btn"
+          title="Agregar partición (swimlane / carril)">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <rect x="3" y="3" width="18" height="18" rx="2" stroke-linecap="round"/>
+            <line x1="12" y1="3" x2="12" y2="21" stroke-linecap="round"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Elementos UML — solo iconos con tooltip -->
+    <div class="px-1.5 py-2 border-b border-slate-100 flex-1 overflow-y-auto">
+
+      <!-- Nodos -->
+      @for (entrada of entradasPaleta; track entrada.tipo) {
+        @if (entrada.grupo === 'nodos' || entrada.grupo === 'especiales') {
+          <button (click)="activarInsercion(entrada.tipo)"
+            [class]="herramientaActiva() === entrada.tipo ? 'paleta-btn paleta-btn--activo' : 'paleta-btn'"
+            [title]="entrada.titulo + ' — ' + entrada.descripcion">
+            <span class="paleta-icono" [attr.data-tipo]="entrada.tipo">
+              <ng-container [ngSwitch]="entrada.tipo">
+                <ng-container *ngSwitchCase="'InitialNode'">
+                  <svg viewBox="0 0 20 20" class="w-5 h-5"><circle cx="10" cy="10" r="7" fill="#000"/></svg>
+                </ng-container>
+                <ng-container *ngSwitchCase="'OpaqueAction'">
+                  <svg viewBox="0 0 20 20" class="w-5 h-5"><rect x="2" y="5" width="16" height="10" rx="3" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.5"/></svg>
+                </ng-container>
+                <ng-container *ngSwitchCase="'AcceptEventAction'">
+                  <svg viewBox="0 0 20 20" class="w-5 h-5">
+                    <path d="M2 3h16v14H2l4.5-7L2 3z" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5"/>
+                  </svg>
+                </ng-container>
+                <ng-container *ngSwitchCase="'Note'">
+                  <svg viewBox="0 0 20 20" class="w-5 h-5">
+                    <path d="M3 3h11l3 3v11H3V3z" fill="#fef9c3" stroke="#a16207" stroke-width="1.5"/>
+                    <path d="M14 3v3h3" fill="none" stroke="#a16207" stroke-width="1.5"/>
+                  </svg>
+                </ng-container>
+                <ng-container *ngSwitchDefault>
+                  <svg viewBox="0 0 20 20" class="w-5 h-5"><rect x="2" y="5" width="16" height="10" rx="2" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1.5"/></svg>
+                </ng-container>
+              </ng-container>
+            </span>
+          </button>
+        }
+      }
+
+      <!-- Separador control de flujo -->
+      <div class="h-px bg-slate-100 my-1.5 mx-1"></div>
+
+      @for (entrada of entradasPaleta; track entrada.tipo) {
+        @if (entrada.grupo === 'control') {
+          <button (click)="activarInsercion(entrada.tipo)"
+            [class]="herramientaActiva() === entrada.tipo ? 'paleta-btn paleta-btn--activo' : 'paleta-btn'"
+            [title]="entrada.titulo + ' — ' + entrada.descripcion">
+            <span class="paleta-icono" [attr.data-tipo]="entrada.tipo">
+              <ng-container [ngSwitch]="entrada.tipo">
+                <ng-container *ngSwitchCase="'DecisionNode'">
+                  <svg viewBox="0 0 20 20" class="w-5 h-5"><polygon points="10,2 18,10 10,18 2,10" fill="#fef9c3" stroke="#ca8a04" stroke-width="1.5"/></svg>
+                </ng-container>
+                <ng-container *ngSwitchCase="'MergeNode'">
+                  <svg viewBox="0 0 20 20" class="w-5 h-5"><polygon points="10,2 18,10 10,18 2,10" fill="#fef9c3" stroke="#ca8a04" stroke-width="1.5" stroke-dasharray="2,1"/></svg>
+                </ng-container>
+                <ng-container *ngSwitchCase="'ForkNode'">
+                  <svg viewBox="0 0 20 20" class="w-5 h-5"><rect x="2" y="9" width="16" height="3" fill="#000"/></svg>
+                </ng-container>
+                <ng-container *ngSwitchCase="'JoinNode'">
+                  <svg viewBox="0 0 20 20" class="w-5 h-5">
+                    <rect x="2" y="9" width="16" height="3" fill="#000"/>
+                    <line x1="6" y1="3" x2="6" y2="9" stroke="#000" stroke-width="1.5"/>
+                    <line x1="14" y1="3" x2="14" y2="9" stroke="#000" stroke-width="1.5"/>
+                    <line x1="10" y1="12" x2="10" y2="17" stroke="#000" stroke-width="1.5"/>
+                  </svg>
+                </ng-container>
+                <ng-container *ngSwitchDefault>
+                  <svg viewBox="0 0 20 20" class="w-5 h-5"><polygon points="10,2 18,10 10,18 2,10" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1.5"/></svg>
+                </ng-container>
+              </ng-container>
+            </span>
+          </button>
+        }
+      }
+
+      <!-- Separador terminadores -->
+      <div class="h-px bg-slate-100 my-1.5 mx-1"></div>
+
+      @for (entrada of entradasPaleta; track entrada.tipo) {
+        @if (entrada.grupo === 'terminadores') {
+          <button (click)="activarInsercion(entrada.tipo)"
+            [class]="herramientaActiva() === entrada.tipo ? 'paleta-btn paleta-btn--activo' : 'paleta-btn'"
+            [title]="entrada.titulo + ' — ' + entrada.descripcion">
+            <span class="paleta-icono" [attr.data-tipo]="entrada.tipo">
+              <ng-container [ngSwitch]="entrada.tipo">
+                <ng-container *ngSwitchCase="'ActivityFinalNode'">
+                  <svg viewBox="0 0 20 20" class="w-5 h-5">
+                    <circle cx="10" cy="10" r="8" fill="#fff" stroke="#000" stroke-width="1.5"/>
+                    <circle cx="10" cy="10" r="5" fill="#000"/>
+                  </svg>
+                </ng-container>
+                <ng-container *ngSwitchCase="'FlowFinalNode'">
+                  <svg viewBox="0 0 20 20" class="w-5 h-5">
+                    <circle cx="10" cy="10" r="8" fill="#fff" stroke="#000" stroke-width="1.5"/>
+                    <line x1="5" y1="5" x2="15" y2="15" stroke="#000" stroke-width="2"/>
+                    <line x1="15" y1="5" x2="5" y2="15" stroke="#000" stroke-width="2"/>
+                  </svg>
+                </ng-container>
+                <ng-container *ngSwitchDefault>
+                  <svg viewBox="0 0 20 20" class="w-5 h-5"><circle cx="10" cy="10" r="8" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1.5"/></svg>
+                </ng-container>
+              </ng-container>
+            </span>
+          </button>
+        }
+      }
+    </div>
+
+    <!-- Auto-organizar -->
+    <div class="px-1.5 py-2 border-t border-slate-100">
+      <button (click)="autoOrganizar()"
+        class="paleta-btn w-full text-indigo-600 hover:bg-indigo-50"
+        title="Auto-organizar diagrama">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+  }
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       ÁREA DEL CANVAS
+  ════════════════════════════════════════════════════════════════════════ -->
+  <div class="relative flex-1 overflow-hidden">
+
+    <!-- Barra de herramientas superior derecha -->
+    @if (!soloLectura) {
+    <div class="absolute top-4 right-4 z-50 flex items-center gap-1.5 bg-white/90 backdrop-blur-sm border border-slate-200 rounded-xl shadow-sm p-1.5">
+      <button (click)="undo()" [disabled]="!canUndo()"
+        class="w-8 h-8 flex items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+        title="Deshacer (Ctrl+Z)">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/>
+        </svg>
+      </button>
+      <button (click)="redo()" [disabled]="!canRedo()"
+        class="w-8 h-8 flex items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+        title="Rehacer (Ctrl+Y)">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M21 10H11a8 8 0 00-8 8v2m18-10l-6 6m6-6l-6-6"/>
+        </svg>
+      </button>
+      <div class="w-px h-5 bg-slate-200 mx-0.5"></div>
+      <button (click)="zoomOut()"
+        class="w-8 h-8 flex items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 transition-colors focus:outline-none" title="Alejar (Ctrl+Scroll ↓)">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM13 10H7"/>
+        </svg>
+      </button>
+      <button (click)="zoomReset()"
+        class="h-8 px-2 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors text-[10px] font-bold min-w-[44px] focus:outline-none"
+        title="Ajustar diagrama a pantalla">{{ zoomActual() }}%</button>
+      <button (click)="zoomIn()"
+        class="w-8 h-8 flex items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 transition-colors focus:outline-none" title="Acercar (Ctrl+Scroll ↑)">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m-3-3h6"/>
+        </svg>
+      </button>
+      <div class="w-px h-5 bg-slate-200 mx-0.5"></div>
+      <button (click)="toggleLeyenda()"
+        [class]="mostrarLeyenda() ? 'w-8 h-8 flex items-center justify-center rounded-lg bg-slate-800 text-white shadow-sm' : 'w-8 h-8 flex items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100'"
+        title="Leyenda">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+      </button>
+      <button (click)="toggleAtajos()"
+        [class]="mostrarAtajos() ? 'w-8 h-8 flex items-center justify-center rounded-lg bg-slate-800 text-white shadow-sm' : 'w-8 h-8 flex items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100'"
+        title="Atajos de teclado">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M7 8h10M7 12h6m-6 4h10M5 3h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2z"/>
+        </svg>
+      </button>
+      <div class="w-px h-5 bg-slate-200 mx-0.5"></div>
+      <button (click)="validarDiagrama()"
+        [class]="mostrarValidacion() ? 'w-8 h-8 flex items-center justify-center rounded-lg bg-emerald-600 text-white shadow-sm' : 'w-8 h-8 flex items-center justify-center rounded-lg text-slate-500 hover:bg-emerald-50 hover:text-emerald-600'"
+        title="Validar diagrama">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.955 11.955 0 003 10c0 5.592 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"/>
+        </svg>
+      </button>
+      <button (click)="descargarPNG()"
+        class="w-8 h-8 flex items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-700 transition-colors"
+        title="Exportar PNG">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"/>
+        </svg>
+      </button>
+    </div>
+    }
+
+    <!-- Barra Flotante de Acciones (Elemento Seleccionado) -->
+    @if (!soloLectura && elementoSeleccionado(); as sel) {
+    <div class="absolute z-50 bg-white/95 border border-slate-200 shadow-lg rounded-lg p-1 flex flex-col gap-0.5 animate-in fade-in zoom-in-95 duration-150 -translate-y-1/2"
+         [style.left.px]="posicionFlotante()?.x ?? 200"
+         [style.top.px]="posicionFlotante()?.y ?? 60">
+
+      <!-- Botón Conectar (visible solo en nodos, no en aristas) -->
+      @if (!sel.esConexion) {
+        <button (click)="activarConexion()"
+          class="w-7 h-7 flex items-center justify-center rounded-md text-slate-500 hover:bg-indigo-50 hover:text-indigo-600 transition-colors"
+          title="Conectar hacia otro nodo">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+          </svg>
+        </button>
+      }
+
+      <!-- Botón Formulario (solo tareas) -->
+      @if (sel.esTarea) {
+        <button (click)="emitirEdicionFormulario()"
+          class="w-7 h-7 flex items-center justify-center rounded-md text-slate-500 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+          title="Diseñar Formulario">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+          </svg>
+        </button>
+      }
+
+      <!-- Separador -->
+      <div class="h-px bg-slate-100 my-0.5"></div>
+
+      <!-- Botón Eliminar -->
+      <button (click)="eliminarSeleccionados()"
+        class="w-7 h-7 flex items-center justify-center rounded-md text-slate-400 hover:bg-red-50 hover:text-red-500 transition-colors"
+        title="Eliminar (Supr)">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M1 7h22M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3"/>
+        </svg>
+      </button>
+    </div>
+    }
+
+    <!-- Leyenda UML 2.5 -->
+    @if (!soloLectura && mostrarLeyenda()) {
+    <div class="absolute bottom-4 right-4 z-40 bg-white/90 backdrop-blur-md border border-slate-200 rounded-xl shadow-sm p-4 w-64 animate-in fade-in slide-in-from-bottom-2 duration-200">
+      <div class="flex items-center justify-between mb-3 border-b border-slate-100 pb-2">
+        <h4 class="text-[10px] font-bold uppercase tracking-widest text-slate-500">Leyenda UML 2.5</h4>
+        <button (click)="toggleLeyenda()" class="text-slate-400 hover:text-slate-700">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <ul class="space-y-2.5">
+        <li class="flex items-center gap-3 text-xs">
+          <svg viewBox="0 0 24 24" class="w-5 h-5 shrink-0"><circle cx="12" cy="12" r="9" fill="#000"/></svg>
+          <span class="text-slate-700">Nodo Inicial</span>
+        </li>
+        <li class="flex items-center gap-3 text-xs">
+          <svg viewBox="0 0 24 24" class="w-5 h-5 shrink-0"><rect x="2" y="6" width="20" height="12" rx="3" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.5"/></svg>
+          <span class="text-slate-700">Acción (OpaqueAction)</span>
+        </li>
+        <li class="flex items-center gap-3 text-xs">
+          <svg viewBox="0 0 24 24" class="w-5 h-5 shrink-0"><polygon points="12,2 22,12 12,22 2,12" fill="#fef9c3" stroke="#ca8a04" stroke-width="1.5"/></svg>
+          <span class="text-slate-700">Decisión / Convergencia</span>
+        </li>
+        <li class="flex items-center gap-3 text-xs">
+          <svg viewBox="0 0 24 24" class="w-5 h-5 shrink-0"><rect x="2" y="11" width="20" height="3" fill="#000"/></svg>
+          <span class="text-slate-700">Fork / Join paralelo</span>
+        </li>
+        <li class="flex items-center gap-3 text-xs">
+          <svg viewBox="0 0 24 24" class="w-5 h-5 shrink-0">
+            <circle cx="12" cy="12" r="9" fill="#fff" stroke="#000" stroke-width="1.5"/>
+            <circle cx="12" cy="12" r="5" fill="#000"/>
+          </svg>
+          <span class="text-slate-700">Fin de Actividad</span>
+        </li>
+        <li class="flex items-center gap-3 text-xs">
+          <svg viewBox="0 0 24 24" class="w-5 h-5 shrink-0">
+            <circle cx="12" cy="12" r="9" fill="#fff" stroke="#000" stroke-width="1.5"/>
+            <line x1="6" y1="6" x2="18" y2="18" stroke="#000" stroke-width="2"/>
+            <line x1="18" y1="6" x2="6" y2="18" stroke="#000" stroke-width="2"/>
+          </svg>
+          <span class="text-slate-700">Fin de Flujo</span>
+        </li>
+      </ul>
+    </div>
+    }
+
+    <!-- Panel de validación -->
+    @if (!soloLectura && mostrarValidacion()) {
+    <div class="absolute bottom-4 left-20 z-40 bg-white border border-slate-200 rounded-xl shadow-xl p-4 w-72 animate-in fade-in slide-in-from-bottom-2 duration-200">
+      <div class="flex items-center justify-between mb-3">
+        <h4 class="text-[10px] font-bold uppercase tracking-widest text-slate-500">Validación del diagrama</h4>
+        <button (click)="toggleValidacion()" class="text-slate-400 hover:text-slate-700">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <ul class="space-y-2">
+        @for (aviso of validacionAvisos(); track aviso) {
+          <li class="flex items-start gap-2 text-xs"
+              [class.text-emerald-700]="aviso.startsWith('✓')"
+              [class.text-amber-700]="!aviso.startsWith('✓')">
+            @if (aviso.startsWith('✓')) {
+              <svg class="w-3.5 h-3.5 mt-0.5 shrink-0 text-emerald-500" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+              <span>{{ aviso.slice(2) }}</span>
+            } @else {
+              <svg class="w-3.5 h-3.5 mt-0.5 shrink-0 text-amber-500" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/></svg>
+              <span>{{ aviso }}</span>
+            }
+          </li>
+        }
+      </ul>
+    </div>
+    }
+
+    <!-- Panel de atajos -->
+    @if (!soloLectura && mostrarAtajos()) {
+    <div class="absolute bottom-4 left-4 z-40 bg-slate-900 border border-slate-800 rounded-xl shadow-xl p-4 w-52 animate-in fade-in slide-in-from-bottom-2 duration-200">
+      <div class="flex items-center justify-between mb-3">
+        <h4 class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Atajos</h4>
+        <button (click)="toggleAtajos()" class="text-slate-400 hover:text-white">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <ul class="space-y-2 text-[11px] text-slate-300 font-medium">
+        <li class="flex items-center justify-between gap-3"><span>Zoom en cursor</span><kbd class="px-1.5 py-0.5 bg-slate-800 border border-slate-700 rounded font-mono">Ctrl+↕</kbd></li>
+        <li class="flex items-center justify-between gap-3"><span>Panear vertical</span><kbd class="px-1.5 py-0.5 bg-slate-800 border border-slate-700 rounded font-mono">Scroll</kbd></li>
+        <li class="flex items-center justify-between gap-3"><span>Panear horizontal</span><kbd class="px-1.5 py-0.5 bg-slate-800 border border-slate-700 rounded font-mono">Shift+↕</kbd></li>
+        <li class="flex items-center justify-between gap-3"><span>Ajustar vista</span><kbd class="px-1.5 py-0.5 bg-slate-800 border border-slate-700 rounded font-mono">clic %</kbd></li>
+        <li class="flex items-center justify-between gap-3"><span>Deshacer</span><kbd class="px-1.5 py-0.5 bg-slate-800 border border-slate-700 rounded font-mono">Ctrl+Z</kbd></li>
+        <li class="flex items-center justify-between gap-3"><span>Rehacer</span><kbd class="px-1.5 py-0.5 bg-slate-800 border border-slate-700 rounded font-mono">Ctrl+Y</kbd></li>
+        <li class="flex items-center justify-between gap-3"><span>Eliminar</span><kbd class="px-1.5 py-0.5 bg-slate-800 border border-slate-700 rounded font-mono">Del</kbd></li>
+        <li class="flex items-center justify-between gap-3"><span>Cancelar</span><kbd class="px-1.5 py-0.5 bg-slate-800 border border-slate-700 rounded font-mono">Esc</kbd></li>
+      </ul>
+    </div>
+    }
+
+    <!-- Canvas maxGraph -->
+    <div #canvas class="canvas-uml w-full h-full"></div>
+
+    <!-- Cursor remoto colaboración -->
+    @if (modoColaborativo && modelerRef()) {
+      <app-cursor-remoto [modeler]="modelerRef()"></app-cursor-remoto>
+    }
+
+    <!-- Diálogo de condición para ramas de DecisionNode -->
+    @if (!soloLectura && condicionPendiente()) {
+      <div class="absolute inset-0 z-[60] bg-black/20" (click)="cancelarCondicion()" (keydown.escape)="cancelarCondicion()" role="button" tabindex="-1"></div>
+      <div class="absolute z-[61] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-xl shadow-xl border border-slate-200 p-4 w-72 animate-in fade-in zoom-in-95 duration-150">
+        <div class="flex items-center gap-2 mb-3">
+          <svg class="w-4 h-4 text-amber-500 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="12,2 22,12 12,22 2,12" fill="#fef9c3" stroke="#ca8a04" stroke-width="1.5"/>
+          </svg>
+          <h4 class="text-sm font-bold text-slate-700">Condición de la rama</h4>
+        </div>
+        <p class="text-[11px] text-slate-400 mb-2.5">Elige un preset o escribe la condición:</p>
+        <div class="flex flex-wrap gap-1.5 mb-3">
+          @for (preset of ['Sí', 'No', 'Aprobar', 'Rechazar', 'Válido', 'Inválido']; track preset) {
+            <button (click)="aplicarCondicion(preset)"
+              class="px-2.5 py-1 bg-slate-50 hover:bg-indigo-50 hover:text-indigo-700 text-slate-600 text-xs font-semibold rounded-lg border border-slate-200 hover:border-indigo-300 transition-colors">
+              {{ preset }}
+            </button>
+          }
+        </div>
+        <div class="flex gap-2">
+          <input #condInput type="text" placeholder="Condición personalizada..."
+            class="flex-1 px-2.5 py-1.5 border border-slate-200 rounded-lg text-xs text-slate-900 focus:outline-none focus:border-indigo-400 focus:ring-1 focus:ring-indigo-200"
+            (keydown.enter)="aplicarCondicion(condInput.value); condInput.value = ''">
+          <button (click)="aplicarCondicion(condInput.value); condInput.value = ''"
+            class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-lg transition-colors">
+            OK
+          </button>
+        </div>
+        <button (click)="cancelarCondicion()" class="mt-2.5 w-full text-[10px] text-slate-400 hover:text-slate-600 transition-colors">
+          Omitir etiqueta
+        </button>
+      </div>
+    }
+
+    <!-- Dropdown asignación de departamento a partición -->
+    @if (dropdownLane(); as drop) {
+      <div class="absolute inset-0 z-[55]" (click)="cerrarDropdownLane()"></div>
+      <div class="absolute z-[56] bg-white border border-slate-200 rounded-xl shadow-xl w-72 animate-in fade-in zoom-in-95 duration-150"
+           [style.left.px]="drop.x" [style.top.px]="drop.y" (click)="$event.stopPropagation()">
+        <div class="px-4 py-3 border-b border-slate-100 bg-slate-50 rounded-t-xl">
+          <div class="flex items-center gap-2 mb-1">
+            <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+            </svg>
+            <p class="text-[10px] font-bold uppercase tracking-wider text-slate-600">Asignar área / partición</p>
+          </div>
+          @if (drop.nombreActual) {
+            <p class="text-xs text-slate-500 truncate">Actual: <strong class="text-slate-900">{{ drop.nombreActual }}</strong></p>
+          } @else {
+            <p class="text-xs text-slate-400 italic">Sin área asignada</p>
+          }
+        </div>
+
+        @if (departamentosDisponibles.length > 5) {
+          <div class="p-2 border-b border-slate-100">
+            <div class="relative">
+              <svg class="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+              <input type="text" [value]="busquedaDropdown()" (input)="busquedaDropdown.set($any($event.target).value)"
+                     placeholder="Buscar área..."
+                     class="w-full pl-8 pr-2 py-1.5 bg-slate-50 border border-slate-200 text-slate-900 rounded-lg text-xs placeholder:text-slate-400 focus:outline-none focus:border-indigo-500">
+            </div>
+          </div>
+        }
+
+        <div class="max-h-56 overflow-y-auto p-1">
+          @if (departamentosNoUsados().length === 0) {
+            <div class="px-3 py-6 text-center">
+              <p class="text-xs text-slate-500 italic">
+                @if (busquedaDropdown()) { Ningún área coincide. }
+                @else if (departamentosDisponibles.length === 0) { No hay áreas disponibles. }
+                @else { Todas las áreas ya están en uso. }
+              </p>
+            </div>
+          } @else {
+            @for (depto of departamentosNoUsados(); track depto) {
+              <button type="button" (click)="asignarDepartamentoALane(depto)"
+                      class="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-left hover:bg-slate-50 transition-colors group">
+                <svg class="w-4 h-4 text-slate-400 group-hover:text-indigo-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5"/>
+                </svg>
+                <span class="text-xs font-semibold text-slate-700 group-hover:text-slate-900 truncate">{{ depto }}</span>
+              </button>
+            }
+          }
+        </div>
+
+        <div class="p-2 border-t border-slate-100 bg-slate-50 rounded-b-xl flex gap-2">
+          <button type="button" (click)="cerrarDropdownLane()"
+            class="flex-1 py-1.5 px-2 bg-white hover:bg-slate-100 text-slate-600 text-[10px] font-bold uppercase tracking-wider rounded-md border border-slate-200 transition-colors">
+            Cancelar
+          </button>
+          <button type="button" (click)="quitarLaneDesdeDropdown()"
+            class="flex-1 py-1.5 px-2 bg-red-50 hover:bg-red-500 hover:text-white text-red-600 text-[10px] font-bold uppercase tracking-wider rounded-md border border-red-200 transition-colors">
+            Quitar carril
+          </button>
+        </div>
+      </div>
+    }
+  </div>
+</div>

@@ -1,0 +1,110 @@
+@if (esCliente()) {
+<div class="af-wrapper">
+
+  <!-- Burbuja de mensaje + texto transcrito -->
+  @if (mensajeIA()) {
+  <div class="af-bubble">
+    @if (transcrito()) {
+      <p class="af-transcript">{{ transcrito() }}</p>
+    }
+    <p class="af-msg">{{ mensajeIA() }}</p>
+  </div>
+  }
+
+  <!-- Panel de texto manual -->
+  @if (mostrarInput()) {
+  <div class="af-input-panel">
+    <textarea
+      class="af-input-field"
+      [ngModel]="textoManual()"
+      (ngModelChange)="textoManual.set($event)"
+      (keydown)="onInputKeydown($event)"
+      placeholder="Escribe tu solicitud… (Enter para enviar)"
+      rows="2"
+      maxlength="300"
+      autofocus>
+    </textarea>
+    <button
+      class="af-input-send"
+      (click)="enviarTextoManual()"
+      [disabled]="!textoManual().trim() || cargando()"
+      title="Enviar">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+      </svg>
+    </button>
+  </div>
+  }
+
+  <!-- Barra de nivel de audio (solo mientras graba) -->
+  @if (grabando()) {
+  <div class="af-nivel-wrap">
+    <div class="af-nivel-bar" [style.width.%]="nivelAudio()"></div>
+  </div>
+  }
+
+  <!-- Fila de botones -->
+  <div class="af-btn-row">
+
+    <!-- Botón de texto (solo si voz no es soportada, o siempre visible) -->
+    <button
+      class="af-btn-text"
+      (click)="toggleInput()"
+      [class.af-btn-text--activo]="mostrarInput()"
+      [disabled]="grabando() || cargando()"
+      title="Escribir solicitud">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+      </svg>
+    </button>
+
+    <!-- Botón principal del micrófono -->
+    @if (vozSoportada) {
+    <button
+      (mousedown)="iniciarEscucha($event)"
+      (mouseup)="detenerEscucha($event)"
+      (mouseleave)="cancelarSiSale($event)"
+      (touchstart)="iniciarEscucha($event)"
+      (touchend)="detenerEscucha($event)"
+      [disabled]="cargando() || mostrarInput()"
+      class="af-btn"
+      [class.af-btn--grabando]="grabando()"
+      [class.af-btn--cargando]="cargando()"
+      [title]="grabando() ? 'Suelta para enviar' : 'Mantén presionado y habla'">
+
+      @if (cargando()) {
+        <svg class="w-7 h-7 animate-spin" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+          <path class="opacity-75" fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+        </svg>
+      } @else if (grabando()) {
+        <svg class="w-7 h-7" fill="currentColor" viewBox="0 0 24 24">
+          <rect x="3"  y="8"  width="2" height="8" rx="1"/>
+          <rect x="7"  y="5"  width="2" height="14" rx="1"/>
+          <rect x="11" y="3"  width="2" height="18" rx="1"/>
+          <rect x="15" y="5"  width="2" height="14" rx="1"/>
+          <rect x="19" y="8"  width="2" height="8" rx="1"/>
+        </svg>
+      } @else {
+        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/>
+        </svg>
+      }
+    </button>
+    }
+
+  </div>
+
+  <!-- Tooltip de instrucción (solo en reposo) -->
+  @if (!grabando() && !cargando() && !mensajeIA() && !mostrarInput()) {
+  <p class="af-hint">
+    {{ vozSoportada ? 'Mantén presionado o escribe' : 'Escribe tu solicitud' }}
+  </p>
+  }
+
+</div>
+}

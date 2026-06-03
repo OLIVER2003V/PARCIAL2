@@ -1,0 +1,27 @@
+@if (visible) {
+<div class="cursor-overlay">
+  @for (c of cursoresEnPantalla(); track c.username) {
+  <div
+    class="cursor-flotante"
+    [style.transform]="'translate(' + c.pantallaX + 'px, ' + c.pantallaY + 'px)'">
+
+    <!-- Flecha del cursor -->
+    <svg width="22" height="22" viewBox="0 0 22 22" xmlns="http://www.w3.org/2000/svg">
+      <path
+        d="M3 3 L3 16 L7 12 L10 19 L13 18 L10 11 L16 11 Z"
+        [attr.fill]="c.color"
+        stroke="white"
+        stroke-width="1.5"
+        stroke-linejoin="round" />
+    </svg>
+
+    <!-- Etiqueta con nombre -->
+    <div
+      class="cursor-label"
+      [style.background-color]="c.color">
+      {{ c.nombreCompleto }}
+    </div>
+  </div>
+  }
+</div>
+}

@@ -1,0 +1,160 @@
+<div class="h-screen flex flex-col bg-slate-50 text-slate-900 font-sans overflow-hidden">
+  
+  <header class="bg-white border-b border-slate-200 px-6 py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shrink-0 shadow-sm z-10">
+    <div class="flex items-center gap-4">
+      <div class="w-12 h-12 bg-orange-50 text-orange-600 border border-orange-100 rounded-2xl flex items-center justify-center shrink-0 shadow-sm">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+        </svg>
+      </div>
+      <div>
+        <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Minería de Procesos</h1>
+        <p class="text-sm font-medium text-slate-500 mt-0.5">Detección de cuellos de botella mediante mapas de calor</p>
+      </div>
+    </div>
+
+    <div class="w-full sm:w-80">
+      <label for="proceso-select" class="sr-only">Seleccionar política</label>
+      <div class="relative">
+        <select id="proceso-select"
+          (change)="onSeleccionarProceso($event)"
+          [value]="procesoId()"
+          class="w-full appearance-none bg-slate-50 border border-slate-200 text-slate-800 text-sm font-bold rounded-xl focus:ring-4 focus:ring-orange-500/20 focus:border-orange-500 block px-4 py-3 outline-none transition-all shadow-sm cursor-pointer truncate pr-10">
+          <option value="" class="font-medium text-slate-500">-- Selecciona una Política para analizar --</option>
+          <option *ngFor="let p of listaProcesos()" [value]="p.id" class="font-medium">
+            {{ p.codigo }} - {{ p.nombre }}
+          </option>
+        </select>
+        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-400">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div *ngIf="isLoading()" class="flex-1 flex flex-col items-center justify-center bg-slate-50/50 backdrop-blur-sm z-50">
+    <div class="w-12 h-12 border-4 border-slate-200 border-t-orange-500 rounded-full animate-spin shadow-sm"></div>
+    <p class="mt-4 text-sm font-bold text-slate-600 uppercase tracking-wider animate-pulse">Analizando métricas...</p>
+  </div>
+
+  <div *ngIf="error()" class="p-6 m-6 max-w-2xl mx-auto bg-red-50 text-red-700 rounded-2xl border border-red-200 shadow-sm flex items-start gap-3">
+    <svg class="w-6 h-6 shrink-0 mt-0.5 text-red-500" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+    <div>
+      <h3 class="font-bold text-lg mb-1">Análisis fallido</h3>
+      <p class="font-medium opacity-90">{{ error() }}</p>
+    </div>
+  </div>
+
+  <div *ngIf="!isLoading() && analisis() && proceso()" class="flex-1 flex overflow-hidden bg-slate-100">
+    
+    <div class="flex-1 relative bg-white flex flex-col rounded-tl-2xl shadow-inner border-t border-l border-slate-200 m-4 mr-2 overflow-hidden">
+      
+      <div *ngIf="analisis()?.datosInsuficientes" 
+           class="absolute top-6 left-1/2 -translate-x-1/2 z-50 bg-amber-50 border border-amber-200 text-amber-800 px-5 py-3.5 rounded-xl shadow-lg flex items-start gap-3 max-w-2xl animate-in slide-in-from-top-5 fade-in duration-300">
+        <svg class="w-5 h-5 shrink-0 mt-0.5 text-amber-500" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+        <div>
+          <p class="text-sm font-bold uppercase tracking-wider mb-0.5 text-amber-700">Muestra estadística baja</p>
+          <p class="text-sm font-medium">{{ analisis()?.mensajeAdvertencia }}</p>
+        </div>
+      </div>
+
+      <app-diagramador-bpmn
+        class="flex-1 w-full h-full"
+        [xmlInicial]="proceso()?.bpmnXml || ''"
+        [soloLectura]="true">
+      </app-diagramador-bpmn>
+
+      <div class="absolute bottom-6 left-6 bg-white/90 backdrop-blur-md border border-slate-200 p-3 rounded-xl shadow-sm flex items-center gap-4">
+        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Leyenda Térmica:</span>
+        <div class="flex items-center gap-1.5 text-xs font-semibold text-slate-700">
+          <div class="w-3 h-3 rounded-full bg-emerald-400 shadow-sm border border-emerald-500"></div> Óptimo
+        </div>
+        <div class="flex items-center gap-1.5 text-xs font-semibold text-slate-700">
+          <div class="w-3 h-3 rounded-full bg-amber-400 shadow-sm border border-amber-500"></div> Precaución
+        </div>
+        <div class="flex items-center gap-1.5 text-xs font-semibold text-slate-700">
+          <div class="w-3 h-3 rounded-full bg-red-500 shadow-sm border border-red-600"></div> Cuello de Botella
+        </div>
+      </div>
+    </div>
+
+    <div class="w-[420px] shrink-0 bg-white border border-slate-200 rounded-2xl m-4 ml-2 flex flex-col shadow-sm overflow-hidden z-10">
+      
+      <div class="p-6 border-b border-slate-100 bg-slate-50/50">
+        <div class="flex items-center gap-3 mb-2">
+          <div class="w-8 h-8 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center border border-blue-100 shadow-sm">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+          </div>
+          <h2 class="font-black text-slate-900 text-xl tracking-tight">Rendimiento por Nodos</h2>
+        </div>
+        <p class="text-sm text-slate-500 font-medium leading-relaxed">
+          Desviación de tiempo real frente al SLA objetivo. <br>
+          Muestra basada en <span class="bg-slate-200 text-slate-800 px-2 py-0.5 rounded-md font-bold mx-1">{{ analisis()?.totalTramitesAnalizados }}</span> trámites históricos.
+        </p>
+      </div>
+
+      <div class="flex-1 overflow-y-auto p-5 space-y-4 bg-slate-50/30 custom-scrollbar">
+        
+        <div *ngFor="let metrica of analisis()?.metricasPorPaso" 
+             class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm transition-all hover:shadow-md hover:border-slate-300 relative overflow-hidden group">
+          
+          <div class="absolute left-0 top-0 bottom-0 w-1.5 transition-colors duration-300"
+               [ngClass]="{'bg-emerald-500': metrica.colorSemaforo === 'VERDE', 
+                           'bg-amber-400': metrica.colorSemaforo === 'AMARILLO', 
+                           'bg-red-500': metrica.colorSemaforo === 'ROJO'}">
+          </div>
+
+          <div class="flex justify-between items-start mb-4 pl-2">
+            <h3 class="font-bold text-slate-900 text-base leading-tight pr-3">{{ metrica.nombrePaso }}</h3>
+            <span [class]="getBadgeClass(metrica.colorSemaforo)" class="text-[10px] px-2.5 py-1 rounded-md font-black uppercase tracking-wider shrink-0 shadow-sm">
+              {{ metrica.colorSemaforo }}
+            </span>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3 mb-4 pl-2">
+            <div class="bg-slate-50 p-3 rounded-xl border border-slate-100 flex flex-col justify-center">
+              <p class="text-[10px] uppercase tracking-widest text-slate-500 font-bold mb-1">Promedio Real</p>
+              <p class="text-2xl font-black text-slate-900 flex items-baseline gap-1">
+                {{ metrica.tiempoPromedioHoras }} <span class="text-xs font-bold text-slate-400 uppercase">hrs</span>
+              </p>
+            </div>
+
+            <div class="bg-slate-50 p-3 rounded-xl border border-slate-100 flex flex-col justify-center relative">
+              <div class="flex items-center justify-between mb-1">
+                <p class="text-[10px] uppercase tracking-widest text-slate-500 font-bold">SLA Objetivo</p>
+                <div *ngIf="metrica.slaAutoCalculado" class="group/tooltip relative">
+                  <svg class="w-3.5 h-3.5 text-indigo-500 cursor-help" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                  <span class="absolute bottom-full right-0 mb-2 w-48 p-2 bg-slate-800 text-white text-[10px] font-medium rounded-lg opacity-0 group-hover/tooltip:opacity-100 transition-opacity pointer-events-none shadow-xl text-center z-10">
+                    SLA calculado automáticamente usando la mediana histórica (No configurado en el flujo)
+                  </span>
+                </div>
+              </div>
+              <p class="text-2xl font-bold text-slate-700 flex items-baseline gap-1">
+                {{ metrica.slaObjetivoHoras }} <span class="text-xs font-bold text-slate-400 uppercase">hrs</span>
+              </p>
+            </div>
+          </div>
+
+          <div class="flex justify-between items-center text-xs font-medium pl-2 pt-3 border-t border-slate-100">
+            <div class="flex items-center gap-1.5 text-slate-500">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12"/></svg>
+              Mediana: <span class="font-bold text-slate-700">{{ metrica.tiempoMedianaHoras }}h</span>
+            </div>
+            
+            <div class="flex items-center gap-1.5 text-slate-500 bg-slate-50 px-2 py-1 rounded-md border border-slate-100">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/></svg>
+              Desviación: 
+              <span class="font-black px-1 rounded-sm" 
+                    [ngClass]="metrica.desviacionHoras > 0 ? 'text-red-600 bg-red-50' : 'text-emerald-600 bg-emerald-50'">
+                {{ metrica.desviacionHoras > 0 ? '+' : '' }}{{ metrica.desviacionHoras }}h
+              </span>
+            </div>
+          </div>
+          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

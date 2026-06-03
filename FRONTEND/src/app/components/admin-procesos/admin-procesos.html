@@ -1,0 +1,1532 @@
+﻿<div class="h-screen flex flex-col bg-slate-50 text-slate-900 font-sans overflow-hidden">
+
+  @if (vistaActual() === 'lista') {
+  <div class="flex-1 overflow-y-auto">
+    <div class="max-w-7xl mx-auto p-4 md:p-8 space-y-6">
+
+      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div class="flex items-center gap-4">
+          <div class="w-12 h-12 bg-slate-100 border border-slate-200 rounded-2xl flex items-center justify-center shadow-sm">
+            <svg class="w-6 h-6 text-brand-primary" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+              <path stroke-linecap="round" stroke-linejoin="round" d="M7 4v16M12 4v16M17 4v16" />
+            </svg>
+          </div>
+          <div>
+            <h2 class="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Arquitecto de Procesos</h2>
+            <p class="text-slate-500 text-sm mt-0.5 font-medium">Diseña, edita y gestiona políticas de negocio con BPMN 2.0</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <button (click)="abrirCreador()"
+            class="flex items-center gap-2 px-5 py-2.5 bg-brand-primary hover:bg-brand-primary-hover text-white font-bold rounded-xl shadow-md shadow-brand-primary/20 transition-all duration-200 active:scale-[0.98] focus:outline-none focus:ring-4 focus:ring-brand-primary/20 ring-offset-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+            </svg>
+            <span>Nueva Política</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-white border border-slate-200 rounded-2xl p-5 hover:border-slate-300 shadow-sm transition-all duration-200">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-[11px] text-slate-500 font-bold uppercase tracking-wider">Políticas</span>
+            <div class="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center">
+              <svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+              </svg>
+            </div>
+          </div>
+          <p class="text-3xl font-black text-slate-900">{{ totalesLista().total }}</p>
+        </div>
+
+        <div class="bg-emerald-50 border border-emerald-100 rounded-2xl p-5 hover:border-emerald-200 shadow-sm transition-all duration-200">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-[11px] text-emerald-600 font-bold uppercase tracking-wider">Activas</span>
+            <div class="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center">
+              <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+          </div>
+          <p class="text-3xl font-black text-emerald-800">{{ totalesLista().activos }}</p>
+        </div>
+
+        <div class="bg-slate-50 border border-slate-200 rounded-2xl p-5 hover:border-slate-300 shadow-sm transition-all duration-200">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-[11px] text-slate-500 font-bold uppercase tracking-wider">Inactivas</span>
+            <div class="w-8 h-8 bg-slate-200 rounded-lg flex items-center justify-center">
+              <svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+          </div>
+          <p class="text-3xl font-black text-slate-700">{{ totalesLista().inactivos }}</p>
+        </div>
+
+        <div class="bg-blue-50 border border-blue-100 rounded-2xl p-5 hover:border-blue-200 shadow-sm transition-all duration-200">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-[11px] text-blue-600 font-bold uppercase tracking-wider">Pasos totales</span>
+            <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+              <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+              </svg>
+            </div>
+          </div>
+          <p class="text-3xl font-black text-blue-800">{{ totalesLista().totalPasos }}</p>
+        </div>
+      </div>
+
+      <div class="bg-white p-4 md:p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+        <div class="flex flex-col sm:flex-row gap-4">
+          <div class="relative flex-1">
+            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+              <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
+            <input type="text" [ngModel]="terminoBusqueda()" (ngModelChange)="terminoBusqueda.set($event)"
+              placeholder="Buscar por código, nombre o descripción..."
+              class="w-full pl-11 pr-10 py-3 bg-slate-50 border border-slate-200 text-slate-900 rounded-xl focus:outline-none focus:border-brand-primary focus:ring-4 focus:ring-brand-primary/10 hover:border-slate-300 transition-all duration-200 text-sm placeholder:text-slate-400">
+            @if (terminoBusqueda()) {
+            <button type="button" (click)="limpiarBusqueda()"
+              class="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-600 transition-colors"
+              aria-label="Limpiar búsqueda">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            }
+          </div>
+
+          <div class="inline-flex items-center bg-slate-100 border border-slate-200 rounded-xl p-1 gap-1 self-start sm:self-auto" role="tablist">
+            <button type="button" (click)="cambiarVistaLista('tarjetas')"
+              class="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-brand-primary/40"
+              [class]="vistaLista() === 'tarjetas' ? 'bg-white text-brand-primary shadow-sm border border-slate-200/50' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+              </svg>
+              <span>Tarjetas</span>
+            </button>
+            <button type="button" (click)="cambiarVistaLista('tabla')"
+              class="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-brand-primary/40"
+              [class]="vistaLista() === 'tabla' ? 'bg-white text-brand-primary shadow-sm border border-slate-200/50' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+              <span>Tabla</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="flex flex-wrap gap-2 pt-2 border-t border-slate-100">
+          <button (click)="aplicarFiltroEstado('TODOS')"
+            [class]="filtroEstado() === 'TODOS' ? 'bg-slate-800 text-white border-slate-800 shadow-sm' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'"
+            class="px-4 py-2 rounded-lg text-xs font-semibold transition-all duration-200 border focus:outline-none">
+            Todos
+          </button>
+          <button (click)="aplicarFiltroEstado('BORRADOR')"
+            [class]="filtroEstado() === 'BORRADOR' ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'"
+            class="px-4 py-2 rounded-lg text-xs font-semibold transition-all duration-200 border focus:outline-none flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full" [class.bg-amber-500]="filtroEstado() === 'BORRADOR'" [class.bg-slate-300]="filtroEstado() !== 'BORRADOR'"></span>
+            Borradores
+          </button>
+          <button (click)="aplicarFiltroEstado('ACTIVA')"
+            [class]="filtroEstado() === 'ACTIVA' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'"
+            class="px-4 py-2 rounded-lg text-xs font-semibold transition-all duration-200 border focus:outline-none flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full" [class.bg-emerald-500]="filtroEstado() === 'ACTIVA'" [class.bg-slate-300]="filtroEstado() !== 'ACTIVA'"></span>
+            Activas
+          </button>
+          <button (click)="aplicarFiltroEstado('OBSOLETA')"
+            [class]="filtroEstado() === 'OBSOLETA' ? 'bg-slate-100 text-slate-700 border-slate-300' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'"
+            class="px-4 py-2 rounded-lg text-xs font-semibold transition-all duration-200 border focus:outline-none flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full" [class.bg-slate-500]="filtroEstado() === 'OBSOLETA'" [class.bg-slate-300]="filtroEstado() !== 'OBSOLETA'"></span>
+            Obsoletas
+          </button>
+        </div>
+      </div>
+
+      @if (isLoading()) {
+      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+        @for (n of [1,2,3,4,5,6]; track n) {
+        <div class="h-64 bg-white animate-pulse rounded-2xl border border-slate-200 shadow-sm"></div>
+        }
+      </div>
+      } @else if (procesosFiltrados().length === 0) {
+      <div class="flex flex-col items-center justify-center py-20 bg-white rounded-2xl border-2 border-dashed border-slate-200 shadow-sm">
+        <div class="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center mb-4 border border-slate-100">
+          <svg class="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+          </svg>
+        </div>
+        <h4 class="text-lg font-bold text-slate-900">
+          {{ hayFiltrosActivos() ? 'Sin resultados' : 'Comienza creando tu primera política' }}
+        </h4>
+        <p class="text-slate-500 text-sm mt-1 max-w-md text-center">
+          {{ hayFiltrosActivos() ? 'Ninguna política coincide con los filtros actuales.' : 'Diseña el flujo de tus trámites con BPMN de forma visual e intuitiva.' }}
+        </p>
+        @if (hayFiltrosActivos()) {
+        <button (click)="limpiarFiltros()"
+          class="mt-6 px-5 py-2.5 bg-white hover:bg-slate-50 text-slate-700 text-sm font-semibold rounded-xl border border-slate-200 shadow-sm transition-all duration-200">
+          Limpiar filtros
+        </button>
+        } @else {
+        <button (click)="abrirCreador()"
+          class="mt-6 px-5 py-2.5 bg-brand-primary hover:bg-brand-primary-hover text-white text-sm font-semibold rounded-xl shadow-md shadow-brand-primary/20 transition-all duration-200">
+          + Nueva política
+        </button>
+        }
+      </div>
+      } @else {
+
+      @if (vistaLista() === 'tarjetas') {
+      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 animate-in fade-in duration-200">
+        @for (p of procesosFiltrados(); track p.id) {
+        <div (click)="intentarAbrirEditor(p)"
+          class="group bg-white rounded-2xl border border-slate-200 hover:border-brand-primary/30 overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-slate-200/50 cursor-pointer flex flex-col">
+
+          <div class="h-40 bg-gradient-to-br from-slate-50 to-slate-100 border-b border-slate-100 overflow-hidden flex items-center justify-center relative p-3">
+            @if (p.svgPreview) {
+            <div [innerHTML]="svgSeguro(p.svgPreview)" class="w-full h-full flex items-center justify-center [&_svg]:max-h-full [&_svg]:max-w-full [&_svg]:w-auto [&_svg]:h-auto opacity-80 group-hover:opacity-100 transition-opacity duration-300"></div>
+            } @else if (p.bpmnXml) {
+            <app-bpmn-thumbnail
+              class="w-full h-full block"
+              [xml]="p.bpmnXml"
+              (svgReady)="guardarPreviewLocal(p, $event)">
+            </app-bpmn-thumbnail>
+            } @else {
+            <div class="flex flex-col items-center gap-2 text-slate-300">
+              <svg class="w-10 h-10" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4 5a1 1 0 011-1h3l2 2h9a1 1 0 011 1v10a2 2 0 01-2 2H5a1 1 0 01-1-1V5z" />
+              </svg>
+              <span class="text-xs font-medium">Sin diagrama</span>
+            </div>
+            }
+            <div class="absolute top-3 right-3 flex flex-col gap-1.5 items-end">
+              <span class="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider border shadow-sm backdrop-blur-md"
+                [class]="p.estado === 'ACTIVA' ? 'bg-emerald-50/90 text-emerald-700 border-emerald-200' :
+                         p.estado === 'BORRADOR' ? 'bg-amber-50/90 text-amber-700 border-amber-200' :
+                         p.estado === 'OBSOLETA' ? 'bg-slate-100/90 text-slate-600 border-slate-200' :
+                         'bg-red-50/90 text-red-700 border-red-200'">
+                @switch (p.estado) {
+                @case ('ACTIVA') { ✓ Activa }
+                @case ('BORRADOR') { ✏️ Borrador }
+                @case ('OBSOLETA') { Obsoleta }
+                @case ('ARCHIVADA') { Archivada }
+                @default { {{ p.activo ? 'Activa' : 'Inactiva' }} }
+                }
+              </span>
+              @if (p.version) {
+              <span class="px-2 py-0.5 bg-white/90 text-brand-primary text-[10px] font-mono font-bold rounded-md border border-slate-200 shadow-sm backdrop-blur-md">
+                {{ p.version }}
+              </span>
+              }
+            </div>
+          </div>
+
+          <div class="p-5 flex-1 flex flex-col">
+            <div class="flex items-center gap-2 mb-3">
+              <span class="text-[10px] font-mono font-bold text-slate-600 bg-slate-100 px-2 py-1 rounded-md border border-slate-200 uppercase tracking-wider">
+                {{ p.codigo }}
+              </span>
+            </div>
+            <h4 class="font-bold text-slate-900 text-lg group-hover:text-brand-primary transition-colors mb-1.5 line-clamp-1">{{ p.nombre }}</h4>
+            <p class="text-sm text-slate-500 line-clamp-2 flex-1 leading-relaxed">{{ p.descripcion || 'Sin descripción' }}</p>
+
+            <div class="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between text-xs">
+              <span class="text-slate-500 font-semibold flex items-center gap-1.5">
+                <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+                {{ p.pasos?.length ?? 0 }} pasos
+              </span>
+              <div class="flex items-center gap-2" (click)="$event.stopPropagation()">
+                @if (p.estado === 'BORRADOR') {
+                <button (click)="publicarPolitica(p); $event.stopPropagation()"
+                  class="text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-lg border border-emerald-200 transition-colors focus:ring-2 focus:ring-emerald-200">
+                  📤 Publicar
+                </button>
+                } @else if (p.estado === 'ACTIVA') {
+                <button (click)="crearNuevaVersion(p); $event.stopPropagation()"
+                  class="text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg border border-blue-200 transition-colors focus:ring-2 focus:ring-blue-200">
+                  📝 Nueva versión
+                </button>
+                }
+                <button (click)="verVersiones(p, $event)"
+                  class="text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 bg-violet-50 hover:bg-violet-100 text-violet-700 rounded-lg border border-violet-200 transition-colors focus:ring-2 focus:ring-violet-200"
+                  title="Ver historial de versiones">
+                  <svg class="w-3.5 h-3.5 inline -mt-0.5 mr-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                  Historial
+                </button>
+                <span class="text-brand-primary font-bold inline-flex items-center gap-1 text-[11px] hover:underline px-1">
+                  Editar
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                  </svg>
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+        }
+      </div>
+      }
+
+      @if (vistaLista() === 'tabla') {
+      <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm animate-in fade-in duration-200">
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm text-left">
+            <thead class="bg-slate-50 border-b border-slate-200">
+              <tr>
+                <th class="px-6 py-4 font-bold text-slate-500 text-[11px] uppercase tracking-wider">Código</th>
+                <th class="px-6 py-4 font-bold text-slate-500 text-[11px] uppercase tracking-wider">Política</th>
+                <th class="px-6 py-4 font-bold text-slate-500 text-[11px] uppercase tracking-wider hidden lg:table-cell">Pasos</th>
+                <th class="px-6 py-4 font-bold text-slate-500 text-[11px] uppercase tracking-wider">Estado</th>
+                <th class="text-right px-6 py-4 font-bold text-slate-500 text-[11px] uppercase tracking-wider">Acciones</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+              @for (p of procesosFiltrados(); track p.id) {
+              <tr (click)="intentarAbrirEditor(p)" class="hover:bg-slate-50 transition-colors cursor-pointer group">
+                <td class="px-6 py-4">
+                  <span class="text-[11px] font-mono font-bold text-slate-600 bg-slate-100 px-2 py-1 rounded-md border border-slate-200 uppercase">
+                    {{ p.codigo }}
+                  </span>
+                </td>
+                <td class="px-6 py-4">
+                  <p class="font-bold text-slate-900 text-sm group-hover:text-brand-primary transition-colors">{{ p.nombre }}</p>
+                  <p class="text-xs text-slate-500 line-clamp-1 mt-0.5">{{ p.descripcion || 'Sin descripción' }}</p>
+                </td>
+                <td class="px-6 py-4 hidden lg:table-cell">
+                  <span class="text-slate-600 font-semibold">{{ p.pasos?.length ?? 0 }} pasos</span>
+                </td>
+                <td class="px-6 py-4">
+                  <span class="inline-flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider rounded-md border"
+                    [class]="p.estado === 'ACTIVA' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                             p.estado === 'BORRADOR' ? 'bg-amber-50 text-amber-700 border-amber-200' :
+                             p.estado === 'OBSOLETA' ? 'bg-slate-100 text-slate-600 border-slate-200' :
+                             'bg-red-50 text-red-700 border-red-200'">
+                    @switch (p.estado) {
+                    @case ('ACTIVA') { <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Activa }
+                    @case ('BORRADOR') { <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> Borrador }
+                    @case ('OBSOLETA') { <span class="w-1.5 h-1.5 rounded-full bg-slate-500"></span> Obsoleta }
+                    @case ('ARCHIVADA') { <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span> Archivada }
+                    @default { <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span> {{ p.activo ? 'Activa' : 'Inactiva' }} }
+                    }
+                  </span>
+                </td>
+                <td class="px-6 py-4">
+                  <div class="flex items-center justify-end gap-2">
+                    @if (p.estado === 'BORRADOR') {
+                    <button (click)="publicarPolitica(p); $event.stopPropagation()"
+                      class="px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 transition-colors focus:ring-2 focus:ring-emerald-200"
+                      title="Publicar esta política">
+                      📤 Publicar
+                    </button>
+                    } @else if (p.estado === 'ACTIVA') {
+                    <button (click)="crearNuevaVersion(p); $event.stopPropagation()"
+                      class="px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 transition-colors focus:ring-2 focus:ring-blue-200"
+                      title="Crear nueva versión editable">
+                      📝 Nueva versión
+                    </button>
+                    }
+                    <button (click)="verVersiones(p, $event)"
+                      class="p-2 rounded-lg text-slate-400 hover:text-violet-600 hover:bg-violet-50 transition-colors focus:ring-2 focus:ring-violet-200"
+                      title="Ver historial de versiones">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                      </svg>
+                    </button>
+                    <button (click)="intentarAbrirEditor(p); $event.stopPropagation()"
+                      [disabled]="p.estado !== 'BORRADOR'"
+                      [title]="p.estado === 'BORRADOR' ? 'Editar borrador' : 'Solo los borradores son editables — usa Nueva Versión'"
+                      [class]="p.estado === 'BORRADOR'
+                        ? 'p-2 rounded-lg text-slate-400 hover:text-brand-primary hover:bg-indigo-50 transition-colors focus:ring-2 focus:ring-brand-primary/20'
+                        : 'p-2 rounded-lg text-slate-200 cursor-not-allowed'">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+      }
+      }
+    </div>
+  </div>
+  }
+
+  @if (vistaActual() === 'creador') {
+
+  <header class="h-14 bg-white border-b border-slate-200 px-4 sm:px-6 flex items-center justify-between shrink-0 z-20 shadow-sm relative gap-3">
+
+    <!-- Izquierda: volver + título -->
+    <div class="flex items-center gap-3 min-w-0 flex-1">
+      <button (click)="solicitarCerrarCreador()"
+        class="flex items-center justify-center w-9 h-9 bg-white hover:bg-slate-50 text-slate-500 hover:text-slate-800 rounded-xl border border-slate-200 shadow-sm transition-all duration-200 shrink-0"
+        title="Volver a la lista" aria-label="Volver">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+      </button>
+      <div class="min-w-0 hidden sm:block">
+        <h1 class="text-sm font-bold text-slate-900 truncate leading-tight">{{ tituloEditor() }}</h1>
+        <p class="text-[11px] text-slate-400 font-medium leading-tight">
+          {{ codigoPolitica() || '—' }}
+          @if (procesoEditando()?.estado) {
+            · <span [class]="procesoEditando()?.estado === 'ACTIVA' ? 'text-emerald-600' : 'text-amber-600'">{{ procesoEditando()?.estado }}</span>
+          }
+        </p>
+      </div>
+    </div>
+
+    <!-- Centro: barra de progreso del wizard -->
+    <div class="absolute left-1/2 -translate-x-1/2 hidden md:flex items-center gap-0">
+      @for (paso of [
+        { n:1, label:'Info'       },
+        { n:2, label:'Diagrama'   },
+        { n:3, label:'Áreas'      },
+        { n:4, label:'Formularios'},
+        { n:5, label:'Publicar'   }
+      ]; track paso.n) {
+        @if (paso.n > 1) {
+        <div class="w-6 h-px transition-colors duration-300"
+          [class]="paso.n <= pasoActual() ? 'bg-brand-primary' : 'bg-slate-200'"></div>
+        }
+        <button (click)="irAlPaso(paso.n)"
+          class="flex flex-col items-center gap-0.5 group focus:outline-none"
+          [title]="paso.label">
+          <div class="w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-black transition-all duration-300 border-2"
+            [class]="pasoActual() === paso.n
+              ? 'bg-brand-primary border-brand-primary text-white shadow-md shadow-brand-primary/30 scale-110'
+              : paso.n < pasoActual()
+                ? 'bg-emerald-50 border-emerald-400 text-emerald-600'
+                : 'bg-white border-slate-200 text-slate-400 group-hover:border-slate-400'">
+            @if (paso.n < pasoActual()) {
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+            } @else {
+              {{ paso.n }}
+            }
+          </div>
+          <span class="text-[9px] font-bold uppercase tracking-wider transition-colors duration-200"
+            [class]="pasoActual() === paso.n ? 'text-brand-primary' : 'text-slate-400'">
+            {{ paso.label }}
+          </span>
+        </button>
+      }
+    </div>
+
+    <!-- Derecha: acciones -->
+    <div class="flex items-center gap-2 shrink-0">
+      @if (modoColaborativo()) {
+      <button (click)="salirCoEdicion()" title="Salir de la sala colaborativa"
+        class="flex items-center justify-center w-9 h-9 bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 rounded-xl shadow-sm transition-all duration-200"
+        aria-label="Salir de sala">
+        <span>🚪</span>
+      </button>
+      }
+      @if (procesoEditando() && !modoColaborativo()) {
+      <button (click)="iniciarCoEdicion()" title="Co-editar en tiempo real"
+        class="hidden md:flex items-center gap-1.5 px-3 py-2 bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 text-xs font-bold rounded-xl shadow-sm transition-all duration-200">
+        <span>🤝</span> Co-editar
+      </button>
+      }
+      <button (click)="toggleModoFoco()"
+        [hidden]="pasoActual() !== 2"
+        [title]="modoFoco() ? 'Salir del modo foco (F)' : 'Modo foco — solo lienzo (F)'"
+        class="flex items-center justify-center w-9 h-9 rounded-xl border shadow-sm transition-all duration-200"
+        [class]="modoFoco() ? 'bg-slate-900 hover:bg-slate-800 text-white border-slate-900' : 'bg-white hover:bg-slate-50 text-slate-600 border-slate-200'">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          @if (modoFoco()) {
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 9l-5-5m0 0v4m0-4h4m11 5l5-5m0 0v4m0-4h-4M9 15l-5 5m0 0v-4m0 4h4m11-5l5 5m0 0v-4m0 4h-4"/>
+          } @else {
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4m0 0h4M4 4l5 5m11-5h-4m4 0v4m0-4l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/>
+          }
+        </svg>
+      </button>
+      <button (click)="guardarDesdeBoton()" [disabled]="!puedeGuardar()"
+        class="flex items-center gap-2 px-5 py-2 bg-brand-primary hover:bg-brand-primary-hover text-white text-sm font-bold rounded-xl shadow-md shadow-brand-primary/20 transition-all duration-200 active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none">
+        @if (isSaving()) {
+          <span class="text-xs">Guardando...</span>
+        } @else {
+          @if (hayCambiosPendientes()) {
+            <span class="w-1.5 h-1.5 rounded-full bg-amber-300 animate-pulse shrink-0"></span>
+          }
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+          </svg>
+          <span>Guardar</span>
+        }
+      </button>
+    </div>
+  </header>
+
+  @if (modoColaborativo()) {
+  <app-presencia-toolbar [visible]="modoColaborativo()" [onInvitarClick]="abrirModalInvitar"></app-presencia-toolbar>
+  }
+  
+  <div class="flex-1 overflow-hidden relative">
+
+    <!-- ══ PASO 1: Información básica ══ -->
+    @if (pasoActual() === 1) {
+    <div class="h-full overflow-y-auto flex items-center justify-center p-6 sm:p-8 bg-slate-50 animate-in fade-in duration-200">
+      <div class="w-full max-w-lg space-y-6">
+
+        <div class="text-center">
+          <div class="w-14 h-14 bg-brand-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <svg class="w-7 h-7 text-brand-primary" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+          </div>
+          <h2 class="text-2xl font-black text-slate-900">Información del proceso</h2>
+          <p class="text-slate-500 mt-1 text-sm">Cuéntanos de qué trata este proceso de negocio</p>
+        </div>
+
+        <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 sm:p-8 space-y-5">
+          <div>
+            <label for="w-codigo" class="block text-[11px] text-slate-700 font-bold uppercase tracking-wider mb-2">Código <span class="text-red-500 normal-case">*</span></label>
+            <input id="w-codigo" type="text" [ngModel]="codigoPolitica()"
+              (ngModelChange)="codigoPolitica.set($event); hayCambiosPendientes.set(true)" placeholder="Ej: LIC-01"
+              class="w-full px-4 py-3 bg-slate-50 border border-slate-200 text-slate-900 rounded-xl focus:outline-none focus:border-brand-primary focus:ring-4 focus:ring-brand-primary/10 transition-all text-sm uppercase font-mono font-bold placeholder:text-slate-400">
+            @if (codigoPolitica() && !resumenValidacion().codigoOk) {
+            <p class="text-[11px] text-red-500 font-semibold mt-1.5">Mínimo 3 caracteres</p>
+            }
+          </div>
+          <div>
+            <label for="w-nombre" class="block text-[11px] text-slate-700 font-bold uppercase tracking-wider mb-2">Nombre <span class="text-red-500 normal-case">*</span></label>
+            <input id="w-nombre" type="text" [ngModel]="nombrePolitica()"
+              (ngModelChange)="nombrePolitica.set($event); hayCambiosPendientes.set(true)" placeholder="Licencia de funcionamiento comercial"
+              class="w-full px-4 py-3 bg-slate-50 border border-slate-200 text-slate-900 rounded-xl focus:outline-none focus:border-brand-primary focus:ring-4 focus:ring-brand-primary/10 transition-all text-sm placeholder:text-slate-400 font-medium">
+            @if (nombrePolitica() && !resumenValidacion().nombreOk) {
+            <p class="text-[11px] text-red-500 font-semibold mt-1.5">Mínimo 3 caracteres</p>
+            }
+          </div>
+          <div>
+            <label for="w-desc" class="block text-[11px] text-slate-700 font-bold uppercase tracking-wider mb-2">Descripción</label>
+            <textarea id="w-desc" rows="3" [ngModel]="descripcionPolitica()"
+              (ngModelChange)="descripcionPolitica.set($event); hayCambiosPendientes.set(true)" placeholder="Breve descripción del trámite..."
+              class="w-full px-4 py-3 bg-slate-50 border border-slate-200 text-slate-900 rounded-xl focus:outline-none focus:border-brand-primary focus:ring-4 focus:ring-brand-primary/10 transition-all text-sm resize-none placeholder:text-slate-400 font-medium"></textarea>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between">
+          <button (click)="solicitarCerrarCreador()"
+            class="px-5 py-2.5 text-slate-600 text-sm font-bold rounded-xl border border-slate-200 hover:bg-slate-50 transition-all duration-200">
+            Cancelar
+          </button>
+          <button (click)="siguientePaso()" [disabled]="!metadatosValidos()"
+            class="flex items-center gap-2 px-6 py-2.5 bg-brand-primary hover:bg-brand-primary-hover text-white text-sm font-bold rounded-xl shadow-md shadow-brand-primary/20 transition-all duration-200 active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none">
+            Continuar al Diagrama
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+    }
+
+    <!-- ══ PASO 2: Diagrama BPMN — siempre en DOM para no perder el estado de maxGraph ══ -->
+    <div class="absolute inset-0 flex flex-col" [hidden]="pasoActual() !== 2">
+
+      <!-- Barra de acciones del canvas (IA · Organizar · Stats) -->
+      @if (!modoFoco()) {
+      <div class="shrink-0 h-11 bg-white border-b border-slate-100 flex items-center px-4 gap-2 z-30">
+        <button (click)="mostrarModalIA.set(true)"
+          class="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-bold rounded-lg shadow-sm transition-all duration-200">
+          <span>✨</span> Copiloto IA
+        </button>
+        <div class="w-px h-5 bg-slate-200"></div>
+        <button (click)="autoOrganizarDiagrama()"
+          class="flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-600 border border-slate-200 text-xs font-bold rounded-lg shadow-sm transition-all duration-200">
+          <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h7"/>
+          </svg>
+          Organizar
+        </button>
+        <div class="flex-1"></div>
+        <div class="flex items-center gap-3 text-[11px] font-semibold text-slate-500">
+          <span class="flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/>
+            </svg>
+            <span class="font-bold text-slate-700 tabular-nums">{{ lanesActuales().length }}</span> carriles
+          </span>
+          <span class="text-slate-300">·</span>
+          <span class="flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <rect x="3" y="6" width="18" height="12" rx="2"/>
+            </svg>
+            <span class="font-bold text-slate-700 tabular-nums">{{ pasosDetectados().length }}</span> nodos
+          </span>
+        </div>
+      </div>
+      }
+
+      <!-- Canvas BPMN -->
+      <div class="flex-1 relative overflow-hidden">
+        <div #pantallaCompleta
+             class="absolute inset-0 m-4 bg-white border border-slate-200 rounded-3xl shadow-sm overflow-hidden transition-all duration-300"
+             [class.!m-0]="esPantallaCompleta()"
+             [class.!rounded-none]="esPantallaCompleta()"
+             [class.!border-none]="esPantallaCompleta()">
+
+          <app-diagramador-bpmn class="w-full h-full" [xmlInicial]="xmlActual() || null" [modoColaborativo]="modoColaborativo()"
+            [departamentosDisponibles]="nombresDepartamentosDisponibles()"
+            (cambio)="onCambio($event)"
+            (lanesCambiadas)="onLanesCambiadas($event)"
+            (guardar)="onGuardar($event)"
+            (editarFormulario)="irAFormularioDesdeDiagrama($event)">
+          </app-diagramador-bpmn>
+
+          <button (click)="togglePantallaCompleta()" title="Pantalla Completa"
+            class="absolute bottom-6 right-6 z-50 w-12 h-12 bg-slate-900/90 hover:bg-slate-900 text-white rounded-2xl shadow-xl flex items-center justify-center backdrop-blur-md transition-transform hover:scale-105 active:scale-95 focus:outline-none focus:ring-4 focus:ring-slate-900/20">
+            @if (esPantallaCompleta()) {
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 9L4 4m0 0v4m0-4h4m11 5l5-5m0 0v4m0-4h-4M9 15l-5 5m0 0v-4m0 4h4m11-5l5 5m0 0v-4m0 4h-4"/></svg>
+            } @else {
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4m0 0h4M4 4l5 5m11-5h-4m4 0v4m0-4l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
+            }
+          </button>
+        </div>
+
+        <!-- Píldora de navegación flotante (solo visible en modo normal) -->
+        @if (!modoFoco() && !esPantallaCompleta()) {
+        <div class="absolute bottom-8 left-1/2 -translate-x-1/2 z-30">
+          <div class="flex items-center gap-3 bg-white/95 backdrop-blur-md border border-slate-200 rounded-2xl shadow-lg px-5 py-2.5">
+            <button (click)="pasoAnterior()"
+              class="flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-slate-900 transition-colors">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+              Información
+            </button>
+            <div class="w-px h-4 bg-slate-200"></div>
+            <button (click)="siguientePaso()"
+              class="flex items-center gap-1.5 text-xs font-bold text-brand-primary hover:text-brand-primary-hover transition-colors">
+              Áreas
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+            </button>
+          </div>
+        </div>
+        }
+      </div>
+    </div>
+
+    <!-- ══ PASO 3: Áreas involucradas ══ -->
+    @if (pasoActual() === 3) {
+    <div class="h-full overflow-y-auto p-8 animate-in fade-in duration-200 bg-slate-50">
+      <div class="max-w-4xl mx-auto space-y-6">
+        <div>
+          <h3 class="text-2xl font-bold text-slate-900 mb-1">Áreas del proceso</h3>
+          <p class="text-slate-500 font-medium">Los departamentos se detectan del diagrama. Aquí puedes revisar o ajustar cuáles participan.</p>
+        </div>
+
+        @if (departamentos().length === 0) {
+        <div class="p-6 bg-amber-50 border border-amber-200 rounded-2xl shadow-sm">
+          <div class="flex items-start gap-4">
+            <div class="w-12 h-12 bg-white rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm border border-amber-100">
+              <svg class="w-6 h-6 text-amber-500" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+            <div>
+              <h4 class="text-lg font-bold text-slate-900 mb-1">No hay departamentos creados</h4>
+              <p class="text-sm text-slate-600 mb-4">Necesitas crear la estructura organizacional antes de asignar flujos de trabajo.</p>
+              <a routerLink="/departamentos" class="inline-flex items-center gap-2 px-5 py-2.5 bg-amber-500 hover:bg-amber-600 text-white text-sm font-bold rounded-xl transition-all duration-200 shadow-sm">
+                Ir a Configuración de Departamentos
+              </a>
+            </div>
+          </div>
+        </div>
+        } @else {
+        <div class="bg-white border border-slate-200 rounded-3xl p-6 md:p-8 shadow-sm">
+          <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+            <p class="text-sm font-semibold text-slate-700 bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200">
+              <span class="font-black text-brand-primary">{{ lanesActuales().length }}</span> calles activas en el lienzo
+            </p>
+            <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Clic en una tarjeta para agregar/quitar</p>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            @for (d of deptosConEstado(); track d.id) {
+            <button type="button" (click)="toggleDepartamentoODCliente(d)"
+              class="group flex flex-col items-start gap-4 p-5 rounded-2xl text-left border-2 transition-all duration-200 focus:outline-none focus:ring-4"
+              [class]="d.esCliente
+                ? (d.enDiagrama ? 'bg-indigo-50 border-indigo-500 shadow-md focus:ring-indigo-100' : 'bg-white border-slate-200 hover:border-indigo-300 hover:bg-indigo-50/30 focus:ring-indigo-100')
+                : (d.enDiagrama ? 'bg-blue-50 border-brand-primary shadow-md focus:ring-brand-primary/20' : 'bg-white border-slate-200 hover:border-blue-300 hover:bg-blue-50/30 focus:ring-brand-primary/20')">
+              <div class="flex items-center justify-between w-full">
+                <div class="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 font-bold transition-all shadow-sm"
+                  [class]="d.esCliente ? (d.enDiagrama ? 'bg-indigo-600 text-white' : 'bg-indigo-100 text-indigo-600') : (d.enDiagrama ? 'bg-brand-primary text-white' : 'bg-slate-100 text-slate-600')">
+                  @if (d.enDiagrama) {
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>
+                  } @else if (d.esCliente) {
+                    <span class="text-xl">🎯</span>
+                  } @else {
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" /></svg>
+                  }
+                </div>
+                <span class="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-md border transition-all"
+                  [class]="d.enDiagrama ? (d.esCliente ? 'bg-indigo-200 border-indigo-300 text-indigo-800' : 'bg-blue-200 border-blue-300 text-blue-800') : 'bg-white border-slate-200 text-slate-500 opacity-0 group-hover:opacity-100'">
+                  {{ d.enDiagrama ? 'En flujo' : 'Agregar' }}
+                </span>
+              </div>
+              <div class="w-full">
+                <p class="font-bold text-slate-900 text-base truncate mb-1" [class.text-indigo-900]="d.esCliente && d.enDiagrama">{{ d.nombre }}</p>
+                @if (d.descripcion) {
+                  <p class="text-xs text-slate-500 line-clamp-2 leading-relaxed" [class.text-indigo-700]="d.esCliente && d.enDiagrama">{{ d.descripcion }}</p>
+                }
+              </div>
+            </button>
+            }
+          </div>
+        </div>
+        }
+
+        <div class="flex items-center justify-between pt-2">
+          <button (click)="pasoAnterior()"
+            class="flex items-center gap-2 px-5 py-2.5 text-slate-600 text-sm font-bold rounded-xl border border-slate-200 hover:bg-slate-50 transition-all duration-200">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+            Volver al Diagrama
+          </button>
+          <button (click)="siguientePaso()"
+            class="flex items-center gap-2 px-6 py-2.5 bg-brand-primary hover:bg-brand-primary-hover text-white text-sm font-bold rounded-xl shadow-md shadow-brand-primary/20 transition-all duration-200 active:scale-[0.98]">
+            Ir a Formularios
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+    }
+
+    <!-- ══ PASO 4: Constructor de formularios ══ -->
+    @if (pasoActual() === 4) {
+    <div class="h-full overflow-y-auto p-8 animate-in fade-in duration-200 bg-slate-50">
+      <div class="max-w-[1400px] mx-auto space-y-6">
+        <div>
+          <h3 class="text-2xl font-bold text-slate-900 mb-1">Constructor de Formularios</h3>
+          <p class="text-slate-500 font-medium">Configura los datos que los usuarios deben ingresar o visualizar en cada paso del proceso.</p>
+        </div>
+
+        @if (pasosDetectados().length === 0) {
+        <div class="flex flex-col items-center justify-center py-20 bg-white rounded-3xl border-2 border-dashed border-slate-200 shadow-sm">
+          <div class="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center mb-4 border border-slate-100">
+            <svg class="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+            </svg>
+          </div>
+          <h4 class="text-xl font-bold text-slate-900 mb-2">Aún no has creado pasos</h4>
+          <p class="text-slate-500 text-sm text-center max-w-md mb-6">Dibuja tareas en el Lienzo BPMN. Aparecerán automáticamente aquí para que configures sus pantallas.</p>
+          <button (click)="irAlPaso(2)" class="px-6 py-3 bg-brand-primary hover:bg-brand-primary-hover text-white text-sm font-bold rounded-xl shadow-md transition-all active:scale-[0.98]">
+            Ir al Diagrama
+          </button>
+        </div>
+        } @else {
+        <div class="bg-white border border-slate-200 rounded-3xl px-5 py-4 shadow-sm">
+          <div class="flex flex-wrap gap-2.5">
+            @for (p of pasosDetectados(); track p.id) {
+            <button type="button" (click)="pasoSeleccionado.set(p)"
+              class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-bold border transition-all duration-200 shadow-sm focus:outline-none focus:ring-4"
+              [class]="pasoSeleccionado()?.id === p.id
+                        ? 'bg-brand-primary border-brand-primary text-white shadow-brand-primary/20 focus:ring-brand-primary/20'
+                        : 'bg-white border-slate-200 text-slate-600 hover:border-brand-primary/50 hover:text-brand-primary focus:ring-slate-100'">
+              <span>{{ p.nombre || 'Sin nombre' }}</span>
+              @if (camposPorPaso()[p.id]?.length) {
+                <span class="px-2 py-0.5 rounded-md text-[10px] font-black"
+                  [class]="pasoSeleccionado()?.id === p.id ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'">
+                  {{ camposPorPaso()[p.id]?.length }}
+                </span>
+              }
+            </button>
+            }
+          </div>
+        </div>
+
+        @if (pasoSeleccionado(); as ps) {
+        <app-editor-formulario-paso [nombrePaso]="ps.nombre"
+          [valoresIniciales]="camposPorPaso()[pasoSeleccionado()!.id]"
+          [tipoResponsableInicial]="responsablesPorPaso()[pasoSeleccionado()!.id] || 'FUNCIONARIO'"
+          [camposGlobalesDisponibles]="camposGlobalesDelPasoActual()"
+          [camposVisiblesIniciales]="camposVisiblesPorPaso()[pasoSeleccionado()!.id] ?? []"
+          (cambio)="onCamposCambiaron($event)" (tipoResponsableCambiado)="onTipoResponsableCambiado($event)"
+          (camposVisiblesCambiados)="onCamposVisiblesCambiados($event)">
+        </app-editor-formulario-paso>
+        } @else {
+        <div class="flex flex-col items-center justify-center py-16 bg-slate-50 rounded-3xl border-2 border-dashed border-slate-200 transition-colors hover:bg-slate-100/50 hover:border-brand-primary/40 group">
+          <div class="w-20 h-20 bg-white rounded-2xl shadow-sm border border-slate-200 flex items-center justify-center mb-5 group-hover:scale-105 transition-transform duration-300">
+            <svg class="w-10 h-10 text-slate-400 group-hover:text-brand-primary transition-colors" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122" />
+            </svg>
+          </div>
+          <h4 class="text-slate-800 font-black text-xl mb-2">Diseña la interfaz del paso</h4>
+          <p class="text-slate-500 text-sm max-w-md text-center leading-relaxed">
+            Selecciona una de las tareas en la lista superior para configurar qué campos debe llenar o visualizar el usuario.
+          </p>
+          <div class="mt-6 flex items-center gap-2 text-[11px] font-bold text-slate-400 bg-white px-4 py-2 rounded-full border border-slate-200 shadow-sm">
+            <span>💡 Tip:</span>
+            <span class="text-slate-600 font-medium">También puedes hacer <strong>doble clic</strong> en una tarea desde el lienzo BPMN</span>
+          </div>
+        </div>
+        }
+        }
+
+        <div class="flex items-center justify-between pt-2">
+          <button (click)="pasoAnterior()"
+            class="flex items-center gap-2 px-5 py-2.5 text-slate-600 text-sm font-bold rounded-xl border border-slate-200 hover:bg-slate-50 transition-all duration-200">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+            Volver a Áreas
+          </button>
+          <button (click)="siguientePaso()"
+            class="flex items-center gap-2 px-6 py-2.5 bg-brand-primary hover:bg-brand-primary-hover text-white text-sm font-bold rounded-xl shadow-md shadow-brand-primary/20 transition-all duration-200 active:scale-[0.98]">
+            Revisar y Publicar
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+    }
+
+    <!-- ══ PASO 5: Revisar y publicar ══ -->
+    @if (pasoActual() === 5) {
+    <div class="h-full overflow-y-auto flex items-start justify-center p-6 sm:p-8 bg-slate-50 animate-in fade-in duration-200">
+      <div class="w-full max-w-3xl space-y-6 pt-4">
+
+        <div class="text-center">
+          @if (resumenValidacion().codigoOk && resumenValidacion().nombreOk && resumenValidacion().tienePasos) {
+          <div class="w-16 h-16 bg-emerald-100 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-sm">
+            <svg class="w-8 h-8 text-emerald-600" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          </div>
+          <h2 class="text-2xl font-black text-slate-900">Listo para publicar</h2>
+          <p class="text-slate-500 mt-1 text-sm">Revisa el resumen y publica cuando estés listo</p>
+          } @else {
+          <div class="w-16 h-16 bg-amber-100 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-sm">
+            <svg class="w-8 h-8 text-amber-600" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+          </div>
+          <h2 class="text-2xl font-black text-slate-900">Aún hay pendientes</h2>
+          <p class="text-slate-500 mt-1 text-sm">Completa los requerimientos antes de publicar</p>
+          }
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Resumen -->
+          <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-4">
+            <h3 class="text-[11px] font-black uppercase tracking-widest text-slate-500">Resumen</h3>
+            <div class="space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="text-sm text-slate-600 font-medium">Código</span>
+                <span class="text-sm font-black font-mono text-slate-900">{{ codigoPolitica() || '—' }}</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="text-sm text-slate-600 font-medium">Nombre</span>
+                <span class="text-sm font-bold text-slate-900 text-right max-w-[200px] truncate">{{ nombrePolitica() || '—' }}</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="text-sm text-slate-600 font-medium">Pasos</span>
+                <span class="text-sm font-black text-brand-primary">{{ resumenValidacion().totalPasos }}</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="text-sm text-slate-600 font-medium">Áreas</span>
+                <span class="text-sm font-black text-brand-primary">{{ resumenValidacion().totalLanes }}</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="text-sm text-slate-600 font-medium">Campos de formulario</span>
+                <span class="text-sm font-black text-slate-900">{{ resumenValidacion().totalCampos }}</span>
+              </div>
+              @if (procesoEditando()?.version) {
+              <div class="flex items-center justify-between">
+                <span class="text-sm text-slate-600 font-medium">Versión</span>
+                <span class="text-xs font-mono font-bold bg-slate-100 px-2 py-0.5 rounded-md text-slate-700">{{ procesoEditando()?.version }}</span>
+              </div>
+              }
+            </div>
+          </div>
+          <!-- Checklist -->
+          <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm">
+            <h3 class="text-[11px] font-black uppercase tracking-widest text-slate-500 mb-4">Requisitos</h3>
+            <ul class="space-y-3">
+              <li class="flex items-center gap-3 text-sm">
+                @if (resumenValidacion().codigoOk) {
+                  <div class="w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0"><svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></div>
+                  <span class="text-slate-800 font-semibold">Código válido</span>
+                } @else {
+                  <div class="w-6 h-6 rounded-full border-2 border-amber-300 flex-shrink-0"></div>
+                  <span class="text-slate-500">Falta código (mín. 3 caracteres)</span>
+                }
+              </li>
+              <li class="flex items-center gap-3 text-sm">
+                @if (resumenValidacion().nombreOk) {
+                  <div class="w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0"><svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></div>
+                  <span class="text-slate-800 font-semibold">Nombre válido</span>
+                } @else {
+                  <div class="w-6 h-6 rounded-full border-2 border-amber-300 flex-shrink-0"></div>
+                  <span class="text-slate-500">Falta nombre (mín. 3 caracteres)</span>
+                }
+              </li>
+              <li class="flex items-center gap-3 text-sm">
+                @if (resumenValidacion().tieneLanes) {
+                  <div class="w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0"><svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></div>
+                  <span class="text-slate-800 font-semibold">{{ resumenValidacion().totalLanes }} área(s) asignada(s)</span>
+                } @else {
+                  <div class="w-6 h-6 rounded-full border-2 border-amber-300 flex-shrink-0"></div>
+                  <span class="text-slate-500">Sin áreas en el diagrama</span>
+                }
+              </li>
+              <li class="flex items-center gap-3 text-sm">
+                @if (resumenValidacion().tienePasos) {
+                  <div class="w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0"><svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></div>
+                  <span class="text-slate-800 font-semibold">{{ resumenValidacion().totalPasos }} paso(s) en el flujo</span>
+                } @else {
+                  <div class="w-6 h-6 rounded-full border-2 border-amber-300 flex-shrink-0"></div>
+                  <span class="text-slate-500">Flujo vacío — dibuja tareas en el diagrama</span>
+                }
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        @if (procesoEditando()?.estado === 'BORRADOR') {
+        <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div>
+            <p class="font-bold text-slate-900">Publicar este proceso</p>
+            <p class="text-sm text-slate-500 mt-0.5">Al publicar estará disponible para los ciudadanos. Guarda primero si tienes cambios pendientes.</p>
+          </div>
+          <button (click)="publicarPolitica(procesoEditando()!)"
+            [disabled]="publicando() || hayCambiosPendientes() || !resumenValidacion().codigoOk || !resumenValidacion().nombreOk || !resumenValidacion().tienePasos"
+            [title]="hayCambiosPendientes() ? 'Guarda primero los cambios' : 'Publicar como versión activa'"
+            class="flex items-center gap-2 px-8 py-3 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold rounded-xl shadow-lg shadow-emerald-500/20 transition-all duration-200 active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none shrink-0">
+            @if (publicando()) {
+              <span>Publicando...</span>
+            } @else {
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 11l3-3m0 0l3 3m-3-3v8m0-13a9 9 0 110 18 9 9 0 010-18z"/></svg>
+              Publicar versión
+            }
+          </button>
+        </div>
+        }
+
+        <div class="flex items-center justify-between pt-2">
+          <button (click)="pasoAnterior()"
+            class="flex items-center gap-2 px-5 py-2.5 text-slate-600 text-sm font-bold rounded-xl border border-slate-200 hover:bg-slate-50 transition-all duration-200">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+            Volver a Formularios
+          </button>
+          <button (click)="guardarDesdeBoton()" [disabled]="!puedeGuardar()"
+            class="flex items-center gap-2 px-6 py-2.5 bg-brand-primary hover:bg-brand-primary-hover text-white text-sm font-bold rounded-xl shadow-md shadow-brand-primary/20 transition-all duration-200 active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg>
+            Guardar cambios
+          </button>
+        </div>
+
+      </div>
+    </div>
+    }
+
+  </div>
+
+  }
+
+  <div class="fixed bottom-6 right-6 z-[60] flex flex-col gap-3 max-w-sm pointer-events-none">
+    @for (t of toasts(); track t.id) {
+    <div class="pointer-events-auto animate-in slide-in-from-right-5 fade-in duration-300 flex items-start gap-3 p-4 rounded-xl border bg-white shadow-xl shadow-slate-200/50 min-w-[300px]"
+      [class]="t.tipo === 'ok' ? 'border-emerald-200' :
+               t.tipo === 'error' ? 'border-red-200' :
+               t.tipo === 'warning' ? 'border-amber-200' : 'border-blue-200'">
+      @switch (t.tipo) {
+        @case ('ok') { <svg class="w-5 h-5 flex-shrink-0 text-emerald-500 mt-0.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg> }
+        @case ('error') { <svg class="w-5 h-5 flex-shrink-0 text-red-500 mt-0.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg> }
+        @case ('warning') { <svg class="w-5 h-5 flex-shrink-0 text-amber-500 mt-0.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg> }
+        @default { <svg class="w-5 h-5 flex-shrink-0 text-blue-500 mt-0.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg> }
+      }
+      <div class="flex-1 min-w-0">
+        <p class="font-bold text-sm text-slate-800 leading-tight">{{ t.titulo }}</p>
+        @if (t.texto) { <p class="text-xs text-slate-500 mt-1 leading-relaxed">{{ t.texto }}</p> }
+      </div>
+      <button (click)="cerrarToast(t.id)" class="text-slate-400 hover:text-slate-600 transition-colors flex-shrink-0">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+      </button>
+    </div>
+    }
+  </div>
+
+  @if (confirmacion(); as conf) {
+  <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[75] flex items-center justify-center p-4 animate-in fade-in duration-200" (click)="cerrarConfirmacion()">
+    <div class="bg-white border rounded-2xl max-w-md w-full p-8 shadow-2xl animate-in zoom-in-95 duration-200"
+      [class]="conf.tipo === 'danger' ? 'border-red-200' : conf.tipo === 'warning' ? 'border-amber-200' : 'border-slate-200'"
+      (click)="$event.stopPropagation()">
+
+      <div class="flex items-center justify-center w-16 h-16 rounded-2xl mx-auto mb-6"
+        [class]="conf.tipo === 'danger' ? 'bg-red-50' : conf.tipo === 'warning' ? 'bg-amber-50' : 'bg-blue-50'">
+        @switch (conf.tipo) {
+          @case ('danger') { <svg class="w-8 h-8 text-red-500" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M1 7h22M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3" /></svg> }
+          @case ('warning') { <svg class="w-8 h-8 text-amber-500" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg> }
+          @default { <svg class="w-8 h-8 text-blue-500" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg> }
+        }
+      </div>
+
+      <h3 class="text-xl font-bold text-slate-900 text-center mb-2">{{ conf.titulo }}</h3>
+      <p class="text-sm text-slate-500 font-medium text-center mb-8 leading-relaxed">{{ conf.mensaje }}</p>
+
+      <div class="flex gap-3">
+        <button type="button" (click)="cerrarConfirmacion()"
+          class="flex-1 py-3 bg-white hover:bg-slate-50 text-slate-700 rounded-xl font-bold text-sm border border-slate-200 transition-all focus:ring-4 focus:ring-slate-100">
+          {{ conf.textoCancelar }}
+        </button>
+        <button type="button" (click)="ejecutarConfirmacion()"
+          class="flex-1 py-3 text-white rounded-xl font-bold text-sm shadow-md transition-all duration-200 active:scale-[0.98]"
+          [class]="conf.tipo === 'danger' ? 'bg-red-500 hover:bg-red-600 shadow-red-500/20' :
+                   conf.tipo === 'warning' ? 'bg-amber-500 hover:bg-amber-600 shadow-amber-500/20' :
+                   'bg-brand-primary hover:bg-brand-primary-hover shadow-brand-primary/20'">
+          {{ conf.textoConfirmar }}
+        </button>
+      </div>
+    </div>
+  </div>
+  }
+
+  @if (mostrandoValidacion()) {
+  <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[75] flex items-center justify-center p-4 animate-in fade-in" (click)="cerrarValidacion()">
+    <div class="bg-white border border-red-200 rounded-2xl max-w-md w-full p-8 shadow-2xl animate-in zoom-in-95" (click)="$event.stopPropagation()">
+      <div class="flex items-center justify-center w-16 h-16 rounded-2xl mx-auto mb-6 bg-red-50 border border-red-100">
+        <svg class="w-8 h-8 text-red-500" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+        </svg>
+      </div>
+      <h3 class="text-xl font-bold text-slate-900 text-center mb-2">Error de validación</h3>
+      <p class="text-sm text-slate-500 font-medium text-center mb-6">
+        La política tiene {{ erroresValidacion().length }} problema(s) que debes corregir antes de publicar:
+      </p>
+      <ul class="space-y-3 mb-8 max-h-64 overflow-y-auto pr-2 custom-scrollbar">
+        @for (error of erroresValidacion(); track $index) {
+        <li class="flex items-start gap-3 p-3 bg-red-50 border border-red-100 rounded-xl text-sm font-medium text-red-800">
+          <span class="text-red-500 mt-0.5 shrink-0">⚠️</span>
+          <span class="leading-snug">{{ error }}</span>
+        </li>
+        }
+      </ul>
+      <button (click)="cerrarValidacion()" class="w-full py-3 bg-red-500 hover:bg-red-600 text-white rounded-xl font-bold text-sm transition-colors shadow-md shadow-red-500/20 active:scale-[0.98]">
+        Entendido, voy a corregirlo
+      </button>
+    </div>
+  </div>
+  }
+
+  @if (mostrarModalIA()) {
+  <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[70] flex items-center justify-center p-4 animate-in fade-in" (click)="mostrarModalIA.set(false)">
+    <div class="bg-white border border-indigo-100 rounded-3xl max-w-2xl w-full p-8 shadow-2xl animate-in zoom-in-95 flex flex-col max-h-[90vh]" (click)="$event.stopPropagation()">
+
+      <div class="flex items-center gap-5 mb-6 border-b border-slate-100 pb-6 flex-shrink-0">
+        <div class="w-14 h-14 rounded-2xl flex items-center justify-center border shadow-sm"
+          [class]="modoEdicionIA() ? 'bg-violet-50 border-violet-100' : 'bg-indigo-50 border-indigo-100'">
+          <span class="text-3xl">{{ modoEdicionIA() ? '🪄' : '✨' }}</span>
+        </div>
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-3 mb-1">
+            <h3 class="text-2xl font-black text-slate-900 tracking-tight">Copiloto IA de Procesos</h3>
+            <span class="px-2.5 py-0.5 text-[10px] font-bold rounded-full uppercase tracking-wide"
+              [class]="modoEdicionIA()
+                ? 'bg-violet-100 text-violet-700 border border-violet-200'
+                : 'bg-indigo-100 text-indigo-700 border border-indigo-200'">
+              {{ modoEdicionIA() ? 'Modo edición' : 'Modo creación' }}
+            </span>
+          </div>
+          <p class="text-sm text-slate-500 font-medium">
+            {{ modoEdicionIA()
+              ? 'El diagrama ya tiene pasos. La IA los modificará según tu instrucción.'
+              : 'Describe el flujo en lenguaje natural y Gemini lo dibujará automáticamente.' }}
+          </p>
+        </div>
+      </div>
+
+      <div class="overflow-y-auto flex-1 pr-2 space-y-6 custom-scrollbar">
+
+        @if (historialPrompts().length > 0) {
+        <div>
+          <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-2">🕐 Instrucciones recientes</p>
+          <div class="flex flex-col gap-1.5">
+            @for (h of historialPrompts(); track h) {
+            <button type="button" (click)="promptIA.set(h)" [disabled]="cargandoIA()"
+              class="text-left px-3 py-2 bg-slate-50 hover:bg-indigo-50 hover:border-indigo-200 text-slate-600 hover:text-indigo-700 text-xs rounded-xl border border-slate-200 transition-all truncate disabled:opacity-50">
+              {{ h }}
+            </button>
+            }
+          </div>
+        </div>
+        }
+
+        @if (modoEdicionIA() && diagramador?.elementoSeleccionado()?.esTarea) {
+        <div class="bg-violet-50 border border-violet-200 rounded-xl p-3 flex items-center gap-3">
+          <span class="text-lg flex-shrink-0">🔗</span>
+          <div class="flex-1 min-w-0">
+            <p class="text-[11px] text-violet-700 font-bold">Nodo seleccionado: <span class="font-black">{{ diagramador?.elementoSeleccionado()?.nombre }}</span></p>
+            <p class="text-[10px] text-violet-600 mt-0.5">Puedes pedirle a la IA que continúe el flujo desde aquí.</p>
+          </div>
+          <button type="button" (click)="continuarDesdeSeleccionado()" [disabled]="cargandoIA()"
+            class="px-3 py-1.5 bg-violet-600 hover:bg-violet-700 text-white text-[11px] font-bold rounded-lg transition-colors flex-shrink-0 disabled:opacity-50">
+            Continuar aquí
+          </button>
+        </div>
+        }
+
+        <div>
+          <p class="text-[10px] text-indigo-600 font-bold uppercase tracking-wider mb-3">💡 Ejemplos rápidos</p>
+          <div class="flex flex-wrap gap-2.5">
+            @for (ej of ejemplosPrompt; track ej.label) {
+            <button type="button" (click)="usarEjemploPrompt(ej.prompt)" [disabled]="cargandoIA()"
+              class="px-4 py-2 bg-white hover:bg-indigo-50 hover:border-indigo-300 hover:text-indigo-700 text-slate-600 text-xs font-bold rounded-xl border border-slate-200 shadow-sm transition-all duration-200 disabled:opacity-50">
+              {{ ej.label }}
+            </button>
+            }
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-[11px] text-slate-700 font-bold uppercase tracking-wider mb-2">
+            Tu descripción del proceso
+          </label>
+          <div class="relative w-full">
+            <textarea rows="6" [ngModel]="promptIA()" (ngModelChange)="promptIA.set($event)" [disabled]="cargandoIA()"
+              placeholder="Ej: Trámite de vacaciones que inicia el Cliente / Solicitante, pasa por revisión en Atención al Cliente, y si es aprobado termina en el Departamento Técnico..."
+              class="w-full px-5 py-4 pr-16 bg-slate-50 border border-slate-200 text-slate-900 rounded-2xl focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all text-sm resize-none disabled:opacity-50 font-medium"></textarea>
+            
+            @if (vozService.estaSoportado()) {
+              <button type="button" (click)="toggleDictado()"
+                [class]="vozService.isListening() ? 'bg-red-500 text-white animate-pulse shadow-md shadow-red-500/20' : 'bg-white text-slate-500 border-slate-200 hover:text-indigo-600 hover:border-indigo-300 shadow-sm'"
+                class="absolute bottom-4 right-4 p-3 rounded-full border transition-all duration-200 focus:outline-none z-10"
+                [title]="vozService.isListening() ? 'Detener dictado' : 'Dictar por voz'">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                  @if (vozService.isListening()) {
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" />
+                  } @else {
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                  }
+                </svg>
+              </button>
+            }
+          </div>
+          <p class="text-[11px] text-slate-500 font-medium mt-2 flex items-start gap-2 bg-slate-50 p-3 rounded-xl border border-slate-100">
+            <svg class="w-4 h-4 flex-shrink-0 text-amber-500 mt-0.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <span>Tip: menciona explícitamente los <strong class="text-slate-800">departamentos</strong> y las <strong class="text-slate-800">decisiones</strong> (aprobado/rechazado) para que la IA estructure mejor los Gateways (Rombos).</span>
+          </p>
+        </div>
+
+        <div class="bg-indigo-50/50 border border-indigo-100 rounded-xl p-4">
+          <p class="text-[10px] text-indigo-700 font-bold uppercase tracking-wider mb-3">
+            Departamentos del sistema ({{ deptosConEstado().length }})
+          </p>
+          <div class="flex flex-wrap gap-2">
+            @for (d of deptosConEstado(); track d.id) {
+            <span class="px-2.5 py-1 text-[10px] font-bold rounded-md border shadow-sm"
+              [class]="d.esCliente ? 'bg-purple-100 text-purple-700 border-purple-200' : 'bg-white text-slate-600 border-slate-200'">
+              {{ d.nombre }}
+            </span>
+            }
+          </div>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-between gap-3 pt-6 border-t border-slate-100 mt-6 flex-shrink-0">
+        <div class="flex gap-2">
+          <button (click)="mostrarModalIA.set(false)" [disabled]="cargandoIA()"
+            class="px-5 py-3 bg-white hover:bg-slate-50 text-slate-700 text-sm font-bold rounded-xl border border-slate-200 transition-all shadow-sm disabled:opacity-50">
+            Cancelar
+          </button>
+          @if (modoEdicionIA()) {
+          <button (click)="forzarCreacionIA()" [disabled]="cargandoIA()"
+            title="Borra el diagrama actual y genera uno nuevo desde cero"
+            class="px-4 py-3 bg-white hover:bg-red-50 text-slate-500 hover:text-red-600 text-xs font-bold rounded-xl border border-slate-200 hover:border-red-200 transition-all shadow-sm disabled:opacity-50">
+            Nuevo diagrama
+          </button>
+          }
+        </div>
+        <button (click)="generarFlujoConIA()" [disabled]="cargandoIA() || promptIA().length < 10"
+          class="flex items-center gap-2 px-8 py-3 text-white text-sm font-bold rounded-xl shadow-lg transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed focus:ring-4"
+          [class]="modoEdicionIA()
+            ? 'bg-violet-600 hover:bg-violet-700 shadow-violet-500/30 focus:ring-violet-200'
+            : 'bg-indigo-600 hover:bg-indigo-700 shadow-indigo-500/30 focus:ring-indigo-200'">
+          @if (cargandoIA()) {
+          <svg class="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          <span>Procesando con Gemini...</span>
+          } @else if (modoEdicionIA()) {
+          <span>🪄</span> <span>Aplicar cambios</span>
+          } @else {
+          <span>✨</span> <span>Generar diagrama</span>
+          }
+        </button>
+      </div>
+    </div>
+  </div>
+  }
+
+  @if (mostrarInvitar() && procesoEditando()?.id; as procesoId) {
+  <app-invitar-colaboradores [procesoId]="procesoId" [nombreProceso]="procesoEditando()!.nombre"
+    (cerrar)="cerrarModalInvitar()" (toast)="$any($event); cerrarToast(0)">
+  </app-invitar-colaboradores>
+  }
+
+  @if (mostrarModalBorrador() && borradorPendiente(); as bp) {
+  <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[80] flex items-center justify-center p-4 animate-in fade-in">
+    <div class="bg-white border border-purple-200 rounded-2xl max-w-md w-full p-8 shadow-2xl animate-in zoom-in-95">
+      <div class="flex items-center justify-center w-16 h-16 rounded-2xl mx-auto mb-6 bg-purple-50">
+        <span class="text-3xl">📝</span>
+      </div>
+      <h3 class="text-xl font-bold text-slate-900 text-center mb-2">Hay un borrador colaborativo</h3>
+      <p class="text-sm text-slate-500 font-medium text-center mb-6 leading-relaxed">
+        <strong class="text-slate-700">{{ bp.borradorPor }}</strong> dejó cambios sin publicar el {{ bp.fechaUltimoBorrador | date:'short' }}. ¿Quieres recuperarlos o ignorarlos?
+      </p>
+      <div class="flex gap-3">
+        <button (click)="descartarBorrador()"
+          class="flex-1 py-3 bg-white hover:bg-slate-50 text-slate-700 rounded-xl font-bold text-sm border border-slate-200 transition-all shadow-sm">
+          Ignorar borrador
+        </button>
+        <button (click)="recuperarBorrador()"
+          class="flex-1 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-bold text-sm shadow-md shadow-purple-500/20 transition-all">
+          ✓ Recuperar
+        </button>
+      </div>
+    </div>
+  </div>
+  }
+
+  @if (mostrandoVersiones(); as proceso) {
+  <div class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[90] flex items-center justify-center p-4 animate-in fade-in duration-200"
+    (click)="cerrarVersiones()" role="dialog" aria-modal="true">
+    <div class="bg-white border border-slate-200 rounded-3xl w-full max-w-4xl shadow-2xl max-h-[90vh] flex flex-col animate-in zoom-in-95 duration-200"
+      (click)="$event.stopPropagation()">
+
+      <!-- HEADER -->
+      <div class="flex items-start justify-between p-6 md:p-8 border-b border-slate-100 flex-shrink-0">
+        <div class="flex items-center gap-4">
+          <div class="w-12 h-12 bg-violet-50 border border-violet-100 rounded-2xl flex items-center justify-center shadow-sm flex-shrink-0">
+            <svg class="w-6 h-6 text-violet-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+          </div>
+          <div>
+            <h3 class="text-xl font-black text-slate-900 tracking-tight">Historial de versiones</h3>
+            <p class="text-sm font-medium text-slate-500 mt-0.5 line-clamp-1">
+              {{ proceso.nombre }}
+              @if (!cargandoVersiones()) {
+                <span class="text-slate-400">· {{ procesoVersiones().length }} versión(es)</span>
+              }
+            </p>
+          </div>
+        </div>
+        <button type="button" (click)="cerrarVersiones()"
+          class="w-10 h-10 flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition-all duration-200 flex-shrink-0"
+          aria-label="Cerrar">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <!-- BODY -->
+      <div class="overflow-y-auto flex-1 p-6 md:p-8">
+
+        @if (cargandoVersiones()) {
+        <div class="flex flex-col items-center justify-center py-16">
+          <div class="w-10 h-10 border-4 border-slate-200 border-t-violet-500 rounded-full animate-spin"></div>
+          <p class="text-slate-500 text-sm font-medium mt-4">Cargando historial...</p>
+        </div>
+
+        } @else if (procesoVersiones().length === 0) {
+        <div class="flex flex-col items-center justify-center py-16 bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200">
+          <svg class="w-10 h-10 text-slate-300 mb-3" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          <p class="text-slate-500 font-medium text-sm">Sin versiones publicadas aún</p>
+          <p class="text-slate-400 text-xs mt-1">Publica el borrador para que aparezca aquí</p>
+        </div>
+
+        } @else {
+        <div class="relative">
+          <!-- Línea vertical de la timeline -->
+          <div class="absolute left-5 top-5 bottom-10 w-0.5 bg-gradient-to-b from-violet-200 via-slate-200 to-transparent"></div>
+
+          <div class="space-y-5">
+            @for (v of procesoVersiones(); track v.id; let i = $index) {
+            <div class="relative flex gap-5">
+
+              <!-- Nodo de la timeline -->
+              <div class="relative z-10 w-10 h-10 flex items-center justify-center rounded-full border-2 shadow-sm flex-shrink-0 mt-1"
+                [class]="v.estado === 'ACTIVA'   ? 'bg-emerald-50  border-emerald-300' :
+                         v.estado === 'OBSOLETA' ? 'bg-slate-100   border-slate-300'  :
+                                                   'bg-amber-50    border-amber-300'">
+                @if (v.estado === 'ACTIVA') {
+                  <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                } @else if (v.estado === 'OBSOLETA') {
+                  <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                } @else {
+                  <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                }
+              </div>
+
+              <!-- Tarjeta de la versión -->
+              <div class="flex-1 bg-white border border-slate-200 rounded-2xl p-5 shadow-sm hover:border-slate-300 transition-colors mb-1">
+
+                <!-- Fila título -->
+                <div class="flex items-start justify-between gap-3 flex-wrap mb-4">
+                  <div class="flex items-center gap-2.5 flex-wrap">
+                    @if (v.version) {
+                    <span class="font-mono font-black text-slate-800 text-xl leading-none">{{ v.version }}</span>
+                    }
+                    <span class="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider rounded-lg border shadow-sm"
+                      [class]="v.estado === 'ACTIVA'   ? 'bg-emerald-50  text-emerald-700 border-emerald-200' :
+                               v.estado === 'OBSOLETA' ? 'bg-slate-100   text-slate-600   border-slate-200'  :
+                                                         'bg-amber-50    text-amber-700   border-amber-200'">
+                      {{ v.estado }}
+                    </span>
+                    @if (i === 0 && v.estado === 'ACTIVA') {
+                    <span class="px-2 py-0.5 bg-emerald-100 text-emerald-700 text-[10px] font-bold rounded-md border border-emerald-200">Versión actual</span>
+                    }
+                  </div>
+
+                  <!-- Botones de acción -->
+                  <div class="flex items-center gap-2 flex-shrink-0">
+                    <button type="button" (click)="toggleAuditoriaVersion(v)"
+                      class="inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-lg border transition-colors focus:ring-2"
+                      [class]="auditoriaVersion()[v.id!] !== undefined
+                               ? 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100 focus:ring-amber-200'
+                               : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100 focus:ring-slate-200'"
+                      [disabled]="cargandoAuditoriaId() === v.id">
+                      @if (cargandoAuditoriaId() === v.id) {
+                        <span class="w-3 h-3 border-2 border-amber-400 border-t-transparent rounded-full animate-spin"></span>
+                      } @else {
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                      }
+                      Auditoría
+                    </button>
+                    <button type="button" (click)="toggleXmlVersion(v)"
+                      class="inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-lg border transition-colors focus:ring-2"
+                      [class]="versionXmlVisible()?.id === v.id
+                               ? 'bg-indigo-50 text-indigo-700 border-indigo-200 hover:bg-indigo-100 focus:ring-indigo-200'
+                               : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100 focus:ring-slate-200'">
+                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
+                      BPMN XML
+                    </button>
+                    @if (v.estado === 'OBSOLETA') {
+                    <button type="button" (click)="restaurarVersion(v, $event)"
+                      class="inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-lg border border-violet-200 bg-violet-50 text-violet-700 hover:bg-violet-100 transition-colors focus:ring-2 focus:ring-violet-200"
+                      title="Crear un borrador editable con el contenido de esta versión">
+                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                      Restaurar
+                    </button>
+                    }
+                  </div>
+                </div>
+
+                <!-- Grid de metadatos -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs mb-3">
+                  <div>
+                    <p class="text-[9px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">Publicado por</p>
+                    <p class="text-slate-700 font-semibold">{{ v.publicadoPor || '—' }}</p>
+                  </div>
+                  <div>
+                    <p class="text-[9px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">Fecha publicación</p>
+                    <p class="text-slate-700 font-mono text-[11px]">{{ formatearFechaV(v.fechaPublicacion) }}</p>
+                  </div>
+                  <div>
+                    <p class="text-[9px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">Pasos</p>
+                    <p class="text-slate-700 font-semibold">{{ v.pasos?.length ?? 0 }}</p>
+                  </div>
+                  <div>
+                    <p class="text-[9px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">Código base</p>
+                    <p class="text-slate-700 font-mono text-[11px]">{{ v.codigoBase || v.codigo }}</p>
+                  </div>
+                </div>
+
+                <!-- Motivo obsolescencia -->
+                @if (v.motivoObsolescencia) {
+                <div class="bg-slate-50 border border-slate-100 rounded-xl p-3 mb-3">
+                  <p class="text-[9px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">Motivo de obsolescencia</p>
+                  <p class="text-xs text-slate-600 leading-relaxed">{{ v.motivoObsolescencia }}</p>
+                </div>
+                }
+
+                <!-- Auditoría expandida -->
+                @if (auditoriaVersion()[v.id!] !== undefined) {
+                <div class="mt-3 border-t border-slate-100 pt-3">
+                  <p class="text-[9px] text-amber-600 font-bold uppercase tracking-wider mb-2">Eventos de auditoría</p>
+                  @if (auditoriaVersion()[v.id!].length === 0) {
+                  <p class="text-xs text-slate-400 text-center py-3">Sin eventos registrados para esta versión</p>
+                  } @else {
+                  <div class="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+                    @for (log of auditoriaVersion()[v.id!]; track log.id) {
+                    <div class="flex items-start gap-3 p-2.5 bg-amber-50/50 rounded-lg border border-amber-100 text-xs">
+                      <span class="text-amber-500 font-mono text-[10px] min-w-[120px]">{{ formatearFechaV(log.fechaTimestamp) }}</span>
+                      <div class="flex-1 min-w-0">
+                        <span class="font-bold text-slate-700 text-[10px] uppercase tracking-wider">{{ log.accion }}</span>
+                        <span class="text-slate-500 ml-1.5 text-[10px]">&#64;{{ log.usuarioId }}</span>
+                        @if (log.detalle) {
+                        <p class="text-slate-500 text-[10px] mt-0.5 line-clamp-2">{{ log.detalle }}</p>
+                        }
+                      </div>
+                    </div>
+                    }
+                  </div>
+                  }
+                </div>
+                }
+
+                <!-- XML expandido -->
+                @if (versionXmlVisible()?.id === v.id) {
+                <div class="mt-3 border-t border-slate-100 pt-3">
+                  <p class="text-[9px] text-indigo-600 font-bold uppercase tracking-wider mb-2">BPMN XML — {{ v.version }}</p>
+                  @if (v.bpmnXml) {
+                  <div class="bg-slate-900 rounded-xl p-4 max-h-72 overflow-auto">
+                    <pre class="text-emerald-400 text-[10px] font-mono whitespace-pre-wrap break-all">{{ v.bpmnXml }}</pre>
+                  </div>
+                  } @else {
+                  <p class="text-xs text-slate-400 text-center py-3">Esta versión no tiene XML guardado</p>
+                  }
+                </div>
+                }
+
+              </div>
+            </div>
+            }
+          </div>
+        </div>
+        }
+      </div>
+
+      <!-- FOOTER -->
+      <div class="flex justify-end p-6 border-t border-slate-100 flex-shrink-0 bg-slate-50 rounded-b-3xl">
+        <button type="button" (click)="cerrarVersiones()"
+          class="px-6 py-3 bg-white hover:bg-slate-100 text-slate-700 rounded-xl font-bold text-sm border border-slate-200 transition-colors shadow-sm focus:ring-4 focus:ring-slate-100">
+          Cerrar
+        </button>
+      </div>
+
+    </div>
+  </div>
+  }
+
+  <!-- ======================================================= -->
+  <!-- MODAL: Ya existe un BORRADOR para este codigoBase       -->
+  <!-- ======================================================= -->
+  @if (mostrandoBorradorExistente()) {
+  <div class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[95] flex items-center justify-center p-4 animate-in fade-in duration-150"
+    (click)="mostrandoBorradorExistente.set(false)">
+    <div class="bg-white border border-slate-200 rounded-2xl w-full max-w-md shadow-2xl animate-in zoom-in-95 duration-150"
+      (click)="$event.stopPropagation()">
+      <div class="p-6">
+        <div class="flex items-center gap-4 mb-4">
+          <div class="w-12 h-12 bg-amber-50 border border-amber-100 rounded-2xl flex items-center justify-center flex-shrink-0">
+            <svg class="w-6 h-6 text-amber-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+            </svg>
+          </div>
+          <div>
+            <h3 class="text-base font-black text-slate-900">Borrador ya existente</h3>
+            <p class="text-sm text-slate-500 mt-0.5">No se puede crear un segundo borrador</p>
+          </div>
+        </div>
+        <p class="text-sm text-slate-600 mb-6 leading-relaxed">
+          Ya existe un borrador en edición para esta política. Solo puede haber un borrador activo por política a la vez.
+          Puedes <strong>abrirlo directamente</strong> o <strong>unirte como colaborador</strong> si otro admin ya lo tiene abierto.
+        </p>
+        <div class="flex gap-3">
+          <button type="button" (click)="mostrandoBorradorExistente.set(false)"
+            class="flex-1 py-2.5 bg-white hover:bg-slate-50 text-slate-700 rounded-xl text-sm font-bold border border-slate-200 transition-colors">
+            Cancelar
+          </button>
+          <button type="button" (click)="colabBorradorExistente()"
+            class="flex-1 py-2.5 bg-purple-50 hover:bg-purple-100 text-purple-700 rounded-xl text-sm font-bold border border-purple-200 transition-colors">
+            🤝 Co-editar
+          </button>
+          <button type="button" (click)="irAlBorradorExistente()"
+            class="flex-1 py-2.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-sm font-bold shadow-md shadow-amber-500/20 transition-colors">
+            Abrir borrador
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  }
+
+  <!-- ======================================================= -->
+  <!-- MODAL: Colaboradores activos al intentar publicar       -->
+  <!-- ======================================================= -->
+  @if (mostrandoAlertaColaboradores()) {
+  <div class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[95] flex items-center justify-center p-4 animate-in fade-in duration-150"
+    (click)="mostrandoAlertaColaboradores.set(false)">
+    <div class="bg-white border border-slate-200 rounded-2xl w-full max-w-md shadow-2xl animate-in zoom-in-95 duration-150"
+      (click)="$event.stopPropagation()">
+      <div class="p-6">
+        <div class="flex items-center gap-4 mb-4">
+          <div class="w-12 h-12 bg-orange-50 border border-orange-100 rounded-2xl flex items-center justify-center flex-shrink-0">
+            <svg class="w-6 h-6 text-orange-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
+          </div>
+          <div>
+            <h3 class="text-base font-black text-slate-900">Colaboradores activos</h3>
+            <p class="text-sm text-slate-500 mt-0.5">Hay admins editando este borrador ahora</p>
+          </div>
+        </div>
+        <div class="bg-orange-50 border border-orange-100 rounded-xl p-4 mb-5">
+          <p class="text-xs font-bold text-orange-700 uppercase tracking-wider mb-2">Editando en este momento:</p>
+          <div class="flex flex-col gap-2">
+            @for (colab of colaboradoresActivos(); track colab.username) {
+            <div class="flex items-center gap-2">
+              <div class="w-7 h-7 rounded-full flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0"
+                [style.background-color]="colab.color || '#6366f1'">
+                {{ colab.iniciales || '?' }}
+              </div>
+              <span class="text-sm font-semibold text-slate-700">{{ colab.nombreCompleto || colab.username }}</span>
+            </div>
+            }
+          </div>
+        </div>
+        <p class="text-sm text-slate-600 mb-6 leading-relaxed">
+          Si publicas ahora, los cambios no guardados de los colaboradores se perderán y recibirán una notificación.
+          ¿Deseas publicar de todos modos?
+        </p>
+        <div class="flex gap-3">
+          <button type="button" (click)="mostrandoAlertaColaboradores.set(false)"
+            class="flex-1 py-2.5 bg-white hover:bg-slate-50 text-slate-700 rounded-xl text-sm font-bold border border-slate-200 transition-colors">
+            Cancelar
+          </button>
+          <button type="button" (click)="publicarForzado()"
+            class="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-bold shadow-md shadow-emerald-500/20 transition-colors">
+            Sí, publicar igual
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  }
+
+  @if (notificacionesEntrantes().length > 0) {
+  <div class="fixed top-6 right-6 z-[65] flex flex-col gap-3 max-w-sm">
+    @for (notif of notificacionesEntrantes(); track notif.timestamp) {
+    <div class="bg-white border-2 border-purple-200 rounded-2xl p-5 shadow-2xl animate-in slide-in-from-right-5">
+      <div class="flex items-start gap-4 mb-4">
+        <div class="w-12 h-12 bg-purple-50 rounded-xl flex items-center justify-center flex-shrink-0 border border-purple-100">
+          <span class="text-2xl">🤝</span>
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="font-bold text-slate-900 text-sm">Invitación de <span class="text-purple-700">&#64;{{ notif.invitador }}</span></p>
+          <p class="text-xs font-medium text-slate-500 mt-0.5">Te invita a co-editar una política</p>
+          @if (notif.mensaje) {
+          <p class="text-xs text-slate-600 italic mt-2 bg-slate-50 p-2.5 rounded-lg border border-slate-100">"{{ notif.mensaje }}"</p>
+          }
+        </div>
+      </div>
+      <div class="flex gap-2">
+        <button (click)="rechazarInvitacion(notif.timestamp)"
+          class="flex-1 py-2.5 bg-white hover:bg-slate-50 text-slate-600 rounded-xl text-xs font-bold border border-slate-200 transition-all shadow-sm">
+          Rechazar
+        </button>
+        <button (click)="aceptarInvitacion(notif)"
+          class="flex-1 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold shadow-md shadow-purple-500/20 transition-all">
+          ✨ Unirme
+        </button>
+      </div>
+    </div>
+    }
+  </div>
+  }
+</div>

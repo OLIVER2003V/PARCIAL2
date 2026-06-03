@@ -1,0 +1,317 @@
+<div class="max-w-7xl mx-auto space-y-6 animate-in fade-in duration-500 p-4 md:p-8">
+
+  <!-- ── Header ───────────────────────────────────────────── -->
+  <div class="relative overflow-hidden rounded-2xl bg-linear-to-br from-indigo-600 via-indigo-700 to-violet-800 p-6 md:p-8 shadow-xl shadow-indigo-500/25">
+
+    <!-- subtle grid texture -->
+    <div class="absolute inset-0 opacity-10"
+         style="background-image:radial-gradient(circle, white 1px, transparent 1px); background-size:24px 24px;"></div>
+
+    <!-- decorative blobs -->
+    <div class="absolute -top-12 -right-12 w-48 h-48 bg-white/5 rounded-full blur-2xl"></div>
+    <div class="absolute -bottom-8 -left-8  w-40 h-40 bg-violet-400/10 rounded-full blur-2xl"></div>
+
+    <div class="relative flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+
+      <!-- Title -->
+      <div class="flex items-center gap-4">
+        <div class="w-14 h-14 bg-white/15 border border-white/20 rounded-2xl flex items-center justify-center shadow-inner shrink-0">
+          <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+          </svg>
+        </div>
+        <div>
+          <h2 class="text-2xl sm:text-3xl font-bold text-white tracking-tight">Bandeja de Entrada</h2>
+          <p class="text-indigo-200 text-sm mt-0.5">
+            Funcionario: <span class="text-white font-semibold">{{ nombreFuncionario() }}</span>
+          </p>
+        </div>
+      </div>
+
+      <!-- Search + actions -->
+      <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto">
+
+        <div class="relative flex-1 sm:w-72 sm:flex-none">
+          <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+            <svg class="w-4 h-4 text-indigo-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+            </svg>
+          </div>
+          <input type="text"
+                 [ngModel]="terminoBusqueda()"
+                 (ngModelChange)="terminoBusqueda.set($event)"
+                 placeholder="Buscar código o cliente..."
+                 class="w-full pl-10 pr-10 py-2.5 bg-white/10 border border-white/20 text-white rounded-xl focus:outline-none focus:bg-white/20 focus:border-white/40 transition-all text-sm placeholder:text-indigo-300">
+          @if (terminoBusqueda()) {
+            <button (click)="terminoBusqueda.set('')"
+                    class="absolute inset-y-0 right-0 pr-3 flex items-center text-indigo-300 hover:text-white transition-colors">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+              </svg>
+            </button>
+          }
+        </div>
+
+        <div class="flex items-center gap-2 shrink-0">
+          <div class="px-4 py-2.5 bg-white/15 border border-white/20 rounded-xl flex items-center gap-2 whitespace-nowrap">
+            <!-- CORRECCIÓN: Aquí se mostraba el .total, ahora muestra los .pendientes reales -->
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span class="text-white font-bold text-sm">{{ conteosPorEstado().pendientes }} pendiente(s)</span>
+          </div>
+          <button (click)="cargarBandeja()"
+                  class="p-2.5 bg-white/10 border border-white/20 rounded-xl text-indigo-200 hover:text-white hover:bg-white/20 transition-all focus:outline-none"
+                  title="Refrescar">
+            <svg class="w-5 h-5" [class.animate-spin]="isLoading()" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mini stats strip -->
+    <div class="relative mt-6 grid grid-cols-2 sm:grid-cols-5 gap-3">
+      <div class="bg-white/10 border border-white/15 rounded-xl px-4 py-3 flex items-center gap-3">
+        <div class="w-8 h-8 rounded-lg bg-white/15 flex items-center justify-center shrink-0">
+          <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+          </svg>
+        </div>
+        <div>
+          <p class="text-2xl font-black text-white leading-none">{{ conteosPorEstado().total }}</p>
+          <p class="text-indigo-200 text-xs font-medium mt-0.5">Total</p>
+        </div>
+      </div>
+      <div class="bg-white/10 border border-white/15 rounded-xl px-4 py-3 flex items-center gap-3">
+        <div class="w-8 h-8 rounded-lg bg-blue-400/20 flex items-center justify-center shrink-0">
+          <svg class="w-4 h-4 text-blue-200" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+        </div>
+        <div>
+          <p class="text-2xl font-black text-white leading-none">{{ conteosPorEstado().enRevision }}</p>
+          <p class="text-indigo-200 text-xs font-medium mt-0.5">En Revisión</p>
+        </div>
+      </div>
+      <div class="bg-white/10 border border-white/15 rounded-xl px-4 py-3 flex items-center gap-3">
+        <div class="w-8 h-8 rounded-lg bg-emerald-400/20 flex items-center justify-center shrink-0">
+          <svg class="w-4 h-4 text-emerald-200" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+        </div>
+        <div>
+          <p class="text-2xl font-black text-white leading-none">{{ conteosPorEstado().aprobados }}</p>
+          <p class="text-indigo-200 text-xs font-medium mt-0.5">Aprobados</p>
+        </div>
+      </div>
+      <div class="bg-white/10 border border-white/15 rounded-xl px-4 py-3 flex items-center gap-3">
+        <div class="w-8 h-8 rounded-lg bg-amber-400/20 flex items-center justify-center shrink-0">
+          <svg class="w-4 h-4 text-amber-200" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+        </div>
+        <div>
+          <p class="text-2xl font-black text-white leading-none">{{ conteosPorEstado().pendientes }}</p>
+          <p class="text-indigo-200 text-xs font-medium mt-0.5">Pendientes</p>
+        </div>
+      </div>
+
+      <!-- CU24: Críticos (IA) -->
+      <div class="bg-red-500/20 border border-red-400/30 rounded-xl px-4 py-3 flex items-center gap-3">
+        <div class="w-8 h-8 rounded-lg bg-red-400/30 flex items-center justify-center shrink-0">
+          <svg class="w-4 h-4 text-red-200" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/>
+          </svg>
+        </div>
+        <div>
+          <p class="text-2xl font-black text-white leading-none">{{ conteosPorEstado().criticos }}</p>
+          <p class="text-red-200 text-xs font-medium mt-0.5">Críticos IA</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Sin departamento ──────────────────────────────────── -->
+  @if (sinDepartamento()) {
+    <div class="p-8 bg-amber-50 border border-amber-200 rounded-2xl text-center max-w-2xl mx-auto">
+      <div class="w-14 h-14 bg-amber-100 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-amber-200">
+        <svg class="w-7 h-7 text-amber-600" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/>
+        </svg>
+      </div>
+      <h3 class="text-lg font-bold text-amber-900 mb-1">Sin departamento asignado</h3>
+      <p class="text-amber-700 text-sm leading-relaxed">Contacta al administrador para que vincule tu cuenta a un departamento.</p>
+    </div>
+
+  } @else {
+
+    <!-- ── Filter tabs ───────────────────────────────────────── -->
+    <div class="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
+      @for (tab of [
+        { id: 'TODOS',       label: 'Todos',        count: conteosPorEstado().total },
+        { id: 'EN_REVISION', label: 'En Revisión',  count: conteosPorEstado().enRevision },
+        { id: 'APROBADO',    label: 'Aprobados',    count: conteosPorEstado().aprobados },
+        { id: 'RECHAZADO',   label: 'Rechazados',   count: conteosPorEstado().rechazados },
+        { id: 'PENDIENTE',   label: 'Pendientes',   count: conteosPorEstado().pendientes },
+        { id: 'CRITICO',     label: '🔴 Críticos',  count: conteosPorEstado().criticos }
+      ]; track tab.id) {
+        <button (click)="filtroEstado.set(tab.id)"
+                class="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold whitespace-nowrap transition-all duration-200 border"
+                [class]="filtroEstado() === tab.id
+                  ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm shadow-indigo-200'
+                  : 'bg-white text-slate-600 border-slate-200 hover:border-indigo-300 hover:text-indigo-600'">
+          {{ tab.label }}
+          <span class="px-1.5 py-0.5 rounded-md text-[10px] font-bold"
+                [class]="filtroEstado() === tab.id ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'">
+            {{ tab.count }}
+          </span>
+        </button>
+      }
+    </div>
+
+    <!-- ── Loading skeletons ─────────────────────────────────── -->
+    @if (isLoading()) {
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        @for (i of [1,2,3,4,5,6]; track i) {
+          <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+            <div class="h-1 bg-slate-200 animate-pulse"></div>
+            <div class="p-5 space-y-4">
+              <div class="flex justify-between">
+                <div class="h-5 w-28 bg-slate-100 rounded-lg animate-pulse"></div>
+                <div class="h-5 w-20 bg-slate-100 rounded-lg animate-pulse"></div>
+              </div>
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-slate-100 animate-pulse shrink-0"></div>
+                <div class="space-y-1.5 flex-1">
+                  <div class="h-3 w-16 bg-slate-100 rounded animate-pulse"></div>
+                  <div class="h-4 w-36 bg-slate-100 rounded animate-pulse"></div>
+                </div>
+              </div>
+              <div class="h-16 bg-slate-100 rounded-xl animate-pulse"></div>
+              <div class="flex justify-between items-center">
+                <div class="h-3.5 w-32 bg-slate-100 rounded animate-pulse"></div>
+                <div class="h-9 w-28 bg-slate-100 rounded-xl animate-pulse"></div>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+
+    <!-- ── Empty state ───────────────────────────────────────── -->
+    } @else if (tramitesFiltrados().length === 0) {
+      <div class="flex flex-col items-center justify-center py-20 bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200 text-center">
+        <div class="w-16 h-16 bg-indigo-50 rounded-2xl flex items-center justify-center mb-5 border border-indigo-100">
+          <svg class="w-8 h-8 text-indigo-400" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+        </div>
+        <h4 class="text-xl font-bold text-slate-800">
+          <!-- CORRECCIÓN: Mensajes más precisos -->
+          @if (terminoBusqueda()) {
+            Sin resultados para tu búsqueda
+          } @else if (filtroEstado() === 'TODOS') {
+            Bandeja vacía
+          } @else {
+            No hay trámites en esta categoría
+          }
+        </h4>
+        <p class="text-slate-500 text-sm max-w-xs mt-2 leading-relaxed">
+          @if (terminoBusqueda()) {
+            Ningún trámite coincide con "{{ terminoBusqueda() }}". Intenta con otro código.
+          } @else {
+            Actualmente no tienes tareas pendientes en esta vista. ¡Buen trabajo!
+          }
+        </p>
+        @if (terminoBusqueda()) {
+          <button (click)="terminoBusqueda.set('')"
+                  class="mt-5 px-5 py-2.5 bg-white hover:bg-indigo-50 text-indigo-600 text-sm font-bold rounded-xl border border-indigo-200 shadow-sm transition-all">
+            Limpiar búsqueda
+          </button>
+        }
+      </div>
+
+    <!-- ── Card grid ─────────────────────────────────────────── -->
+    } @else {
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        @for (tramite of tramitesFiltrados(); track tramite.id) {
+
+          <div class="group bg-white rounded-2xl border border-slate-200 border-l-4 overflow-hidden
+                      hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300"
+               [ngClass]="getSemaforoConfig(tramite.estadoSemaforo).borderLeft">
+
+            <div class="p-5 flex flex-col gap-4">
+
+              <!-- Row 1: code + status badge -->
+              <div class="flex items-start justify-between gap-3">
+                <div class="flex items-center gap-2 min-w-0">
+                  <div class="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center shrink-0">
+                    <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
+                    </svg>
+                  </div>
+                  <span class="text-[11px] font-bold text-slate-500 uppercase tracking-widest font-mono truncate">
+                    {{ tramite.codigoSeguimiento || 'SIN-CODIGO' }}
+                  </span>
+                </div>
+
+                <span class="shrink-0 inline-flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider rounded-lg border"
+                      [ngClass]="getSemaforoConfig(tramite.estadoSemaforo).clase">
+                  <span class="w-1.5 h-1.5 rounded-full" [ngClass]="getSemaforoConfig(tramite.estadoSemaforo).dotColor"></span>
+                  {{ getSemaforoConfig(tramite.estadoSemaforo).texto }}
+                </span>
+              </div>
+
+              <!-- Priority chip (CU24 IA) -->
+              @if (getPrioridadConfig(tramite.nivelPrioridad); as p) {
+                <div class="-mt-1">
+                  <span class="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold rounded-md border"
+                        [ngClass]="p.clase">
+                    {{ p.icono }} {{ p.texto }}
+                  </span>
+                </div>
+              }
+
+              <!-- Row 2: avatar + client name -->
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-linear-to-br from-indigo-400 to-violet-500 flex items-center justify-center text-white font-black text-sm shrink-0 shadow-sm">
+                  {{ (tramite.clienteId || '?').charAt(0).toUpperCase() }}
+                </div>
+                <div class="min-w-0">
+                  <p class="text-[10px] text-slate-400 uppercase font-bold tracking-widest">Solicitante</p>
+                  <p class="text-slate-800 font-bold text-sm truncate">{{ tramite.clienteId || 'Usuario Desconocido' }}</p>
+                </div>
+              </div>
+
+              <!-- Row 3: description -->
+              <div class="bg-slate-50 rounded-xl p-3.5 border border-slate-100">
+                <p class="text-slate-500 text-xs leading-relaxed line-clamp-3 italic">
+                  "{{ tramite.descripcion || 'Sin descripción proporcionada por el usuario.' }}"
+                </p>
+              </div>
+
+              <!-- Row 4: date + CTA -->
+              <div class="flex items-center justify-between gap-3 pt-1">
+                <div class="flex items-center gap-1.5 text-slate-400 min-w-0">
+                  <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5"/>
+                  </svg>
+                  <span class="text-[11px] font-semibold truncate">{{ tramite.fechaCreacion | date:'dd MMM yyyy · HH:mm' }}</span>
+                </div>
+
+                <a [routerLink]="['/tramite', tramite.id]"
+                   class="shrink-0 inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-bold text-xs rounded-xl transition-all shadow-sm shadow-indigo-300/40 active:scale-[0.97]">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/>
+                  </svg>
+                  Revisar
+                </a>
+              </div>
+
+            </div>
+          </div>
+
+        }
+      </div>
+    }
+  }
+</div>

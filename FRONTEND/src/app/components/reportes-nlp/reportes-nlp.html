@@ -1,0 +1,441 @@
+<div class="min-h-screen bg-slate-50/50">
+<div class="max-w-7xl mx-auto p-4 md:p-6 space-y-5 animate-in fade-in slide-in-from-bottom-4 duration-500">
+
+  <!-- ══ Header ══════════════════════════════════════════════════════════════ -->
+  <div class="relative overflow-hidden rounded-2xl
+              bg-linear-to-br from-violet-900 via-indigo-900 to-slate-900
+              border border-violet-700/40 shadow-xl p-5 md:p-6">
+    <div class="absolute inset-0 opacity-[0.06]"
+         style="background-image:radial-gradient(circle,#a78bfa 1px,transparent 1px);background-size:22px 22px;"></div>
+    <div class="absolute top-0 right-0 w-96 h-96 bg-violet-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+    <div class="relative flex flex-col sm:flex-row sm:items-center justify-between gap-5">
+      <div class="flex items-center gap-4">
+        <div class="w-12 h-12 bg-violet-500/20 border border-violet-400/30 rounded-2xl flex items-center justify-center shrink-0">
+          <svg class="w-6 h-6 text-violet-300" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/>
+          </svg>
+        </div>
+        <div>
+          <h2 class="text-xl md:text-2xl font-black text-white tracking-tight">Reportes Inteligentes</h2>
+          <p class="text-violet-300 text-xs font-medium mt-0.5">
+            Consulta tus datos con lenguaje natural. Powered by Gemini AI.
+          </p>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="flex items-center gap-2 shrink-0">
+        <div class="flex items-center gap-3 bg-violet-900/60 border border-violet-700/50 rounded-2xl px-4 py-2.5">
+          <div class="text-center">
+            <p class="text-[9px] text-violet-400 uppercase tracking-widest font-black">Consultas</p>
+            <p class="text-xl font-black text-white leading-none">{{ historial().length }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ Content grid ════════════════════════════════════════════════════════ -->
+  <div class="grid grid-cols-1 xl:grid-cols-12 gap-5 items-start">
+
+    <!-- ── Panel izquierdo: input + historial ────────────────────────────── -->
+    <aside class="xl:col-span-4 space-y-3">
+
+      <!-- Input de consulta -->
+      <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+        <div class="px-4 pt-4 pb-3 space-y-3">
+          <div>
+            <label for="consultaInput" class="text-xs font-black text-slate-700 uppercase tracking-wider mb-1.5 block">
+              Escribe tu consulta
+            </label>
+            <div class="relative">
+              <textarea
+                id="consultaInput"
+                #inputRef
+                [ngModel]="consulta()"
+                (ngModelChange)="consulta.set($event)"
+                (keydown)="onEnter($event)"
+                rows="3"
+                [disabled]="procesando()"
+                placeholder="Ej: Muéstrame los trámites aprobados en abril 2026 por departamento"
+                class="w-full px-3.5 py-3 pr-11 bg-slate-50 border border-slate-200 text-slate-800 text-sm
+                       rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-300 focus:border-violet-400
+                       resize-none transition-all placeholder:text-slate-400 disabled:opacity-60
+                       leading-relaxed"
+                style="field-sizing:content; min-height:80px; max-height:160px;">
+              </textarea>
+
+              <!-- Botón micrófono -->
+              @if (vozService.estaSoportado()) {
+                <button type="button"
+                        (click)="toggleVoz()"
+                        [title]="vozService.isListening() ? 'Detener grabación' : 'Hablar'"
+                        class="absolute bottom-2.5 right-2.5 w-7 h-7 rounded-lg flex items-center justify-center
+                               transition-all active:scale-90"
+                        [class.bg-red-500]="vozService.isListening()"
+                        [class.text-white]="vozService.isListening()"
+                        [class.shadow-md]="vozService.isListening()"
+                        [class.animate-pulse]="vozService.isListening()"
+                        [class.bg-slate-200]="!vozService.isListening()"
+                        [class.text-slate-500]="!vozService.isListening()"
+                        [class.hover:bg-violet-100]="!vozService.isListening()"
+                        [class.hover:text-violet-600]="!vozService.isListening()">
+                  @if (vozService.isListening()) {
+                    <!-- Stop icon -->
+                    <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
+                      <rect x="6" y="6" width="12" height="12" rx="2"/>
+                    </svg>
+                  } @else {
+                    <!-- Mic icon -->
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z"/>
+                    </svg>
+                  }
+                </button>
+              }
+            </div>
+
+            <!-- Indicador grabación activa -->
+            @if (vozService.isListening()) {
+              <div class="flex items-center gap-2 px-3 py-1.5 bg-red-50 border border-red-200 rounded-lg">
+                <span class="w-2 h-2 bg-red-500 rounded-full animate-pulse shrink-0"></span>
+                <p class="text-[11px] text-red-700 font-semibold">Escuchando… habla tu consulta</p>
+              </div>
+            }
+          </div>
+
+          <button type="button"
+                  (click)="enviar()"
+                  [disabled]="procesando() || !consulta().trim()"
+                  class="w-full py-2.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2
+                         bg-violet-600 hover:bg-violet-500 text-white shadow-sm transition-all active:scale-[0.98]
+                         disabled:opacity-50 disabled:pointer-events-none">
+            @if (procesando()) {
+              <div class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+              Consultando con IA…
+            } @else {
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/>
+              </svg>
+              Generar reporte
+            }
+          </button>
+
+          <p class="text-[10px] text-slate-400 text-center">
+            Enter para enviar · Shift+Enter nueva línea
+            @if (vozService.estaSoportado()) { · 🎤 micrófono disponible }
+          </p>
+        </div>
+
+        <!-- Sugerencias -->
+        @if (!historial().length) {
+          <div class="px-4 pb-4 border-t border-slate-100 pt-3">
+            <p class="text-[10px] font-black text-slate-500 uppercase tracking-wider mb-2">Sugerencias</p>
+            <div class="space-y-1.5">
+              @for (s of sugerencias; track s) {
+                <button type="button" (click)="usarSugerencia(s)"
+                        class="w-full text-left px-3 py-2 rounded-lg bg-slate-50 hover:bg-violet-50
+                               border border-slate-200 hover:border-violet-200 text-xs text-slate-600
+                               hover:text-violet-700 font-medium transition-all group">
+                  <span class="text-violet-400 mr-1.5 group-hover:text-violet-500">✦</span>{{ s }}
+                </button>
+              }
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Historial de consultas -->
+      @if (historial().length) {
+        <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+          <div class="px-4 py-3 bg-slate-50 border-b border-slate-100">
+            <h3 class="text-xs font-black text-slate-700 uppercase tracking-wider">Historial</h3>
+          </div>
+          <div class="divide-y divide-slate-50 max-h-80 overflow-y-auto">
+            @for (entrada of historial(); track entrada.id) {
+              <button type="button"
+                      (click)="seleccionar(entrada)"
+                      class="w-full text-left px-4 py-3 transition-all group relative"
+                      [class.bg-violet-50]="entradaActiva()?.id === entrada.id"
+                      [class.hover:bg-violet-50]="entradaActiva()?.id !== entrada.id"
+                      [class.hover:bg-slate-50]="entradaActiva()?.id !== entrada.id">
+
+                @if (entradaActiva()?.id === entrada.id) {
+                  <div class="absolute left-0 top-0 bottom-0 w-0.5 bg-violet-500 rounded-r-full"></div>
+                }
+
+                <div class="flex items-start gap-2">
+                  @if (entrada.cargando) {
+                    <div class="w-3.5 h-3.5 border-2 border-violet-300 border-t-violet-600 rounded-full animate-spin shrink-0 mt-0.5"></div>
+                  } @else if (entrada.resultado?.error) {
+                    <span class="text-red-400 shrink-0 text-sm leading-none mt-0.5">✕</span>
+                  } @else {
+                    <span class="text-[11px] shrink-0 mt-0.5">{{ iconoTipo(entrada.resultado?.tipoVisualizacion ?? '') }}</span>
+                  }
+                  <div class="min-w-0 flex-1">
+                    <p class="text-xs text-slate-700 font-semibold line-clamp-2 leading-snug">{{ entrada.consulta }}</p>
+                    <p class="text-[10px] text-slate-400 mt-0.5">{{ formatearHora(entrada.timestamp) }}</p>
+                  </div>
+                </div>
+              </button>
+            }
+          </div>
+        </div>
+      }
+
+    </aside>
+
+    <!-- ── Panel derecho: resultado ──────────────────────────────────────── -->
+    <section class="xl:col-span-8 space-y-4">
+
+      @if (entradaActiva(); as entrada) {
+
+        <!-- Cargando -->
+        @if (entrada.cargando) {
+          <div class="bg-white border border-slate-200 rounded-2xl shadow-sm p-16 flex flex-col items-center gap-4">
+            <div class="relative">
+              <div class="w-14 h-14 border-4 border-violet-100 border-t-violet-600 rounded-full animate-spin"></div>
+              <div class="absolute inset-0 flex items-center justify-center">
+                <svg class="w-5 h-5 text-violet-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/>
+                </svg>
+              </div>
+            </div>
+            <div class="text-center">
+              <p class="text-sm font-black text-slate-700">Gemini está analizando tu consulta…</p>
+              <p class="text-xs text-slate-400 mt-1">Interpretando intent, construyendo query y agrupando datos.</p>
+            </div>
+          </div>
+        }
+
+        <!-- Error -->
+        @else if (entrada.resultado?.error) {
+          <div class="bg-white border border-red-100 rounded-2xl shadow-sm overflow-hidden">
+            <div class="px-5 py-4 bg-red-50 border-b border-red-100 flex items-center gap-3">
+              <div class="w-8 h-8 bg-red-100 rounded-xl flex items-center justify-center shrink-0">
+                <svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"/>
+                </svg>
+              </div>
+              <div>
+                <h3 class="text-sm font-black text-red-800">No se pudo generar el reporte</h3>
+                <p class="text-xs text-red-600 mt-0.5">{{ entrada.resultado!.error }}</p>
+              </div>
+            </div>
+            <div class="p-5">
+              <p class="text-xs font-bold text-slate-600 mb-2">Prueba con estas consultas:</p>
+              <div class="space-y-1.5">
+                @for (s of sugerencias.slice(0,3); track s) {
+                  <button type="button" (click)="usarSugerencia(s)"
+                          class="block text-left text-xs text-violet-700 hover:text-violet-900 font-medium
+                                 px-3 py-1.5 bg-violet-50 hover:bg-violet-100 rounded-lg transition-colors w-full">
+                    ✦ {{ s }}
+                  </button>
+                }
+              </div>
+            </div>
+          </div>
+        }
+
+        <!-- Resultado exitoso -->
+        @else if (entrada.resultado; as res) {
+
+          <!-- Título e interpretación -->
+          <div class="bg-white border border-slate-200 rounded-2xl shadow-sm p-5">
+            <div class="flex items-start justify-between gap-4">
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2 mb-1">
+                  <span class="text-lg">{{ iconoTipo(res.tipoVisualizacion) }}</span>
+                  <h3 class="text-lg font-black text-slate-900">{{ res.titulo }}</h3>
+                </div>
+                @if (res.interpretacion) {
+                  <p class="text-sm text-slate-500 leading-relaxed">{{ res.interpretacion }}</p>
+                }
+              </div>
+
+              <!-- Badge total + acciones -->
+              <div class="shrink-0 flex flex-col items-end gap-2">
+                <div class="bg-violet-50 border border-violet-200 rounded-xl px-3 py-2 text-center">
+                  <p class="text-[9px] text-violet-500 font-black uppercase tracking-widest">Total</p>
+                  <p class="text-2xl font-black text-violet-700 leading-none">{{ res.totalRegistros }}</p>
+                </div>
+
+                @if (res.exportable) {
+                  <div class="flex items-center gap-1.5">
+                    <!-- Botón PDF -->
+                    <button type="button"
+                            (click)="exportarPdf()"
+                            [disabled]="exportandoPdf() || exportandoExcel()"
+                            title="Descargar PDF"
+                            class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold
+                                   bg-red-50 hover:bg-red-100 text-red-700 border border-red-200
+                                   transition-all active:scale-95 disabled:opacity-50 disabled:pointer-events-none">
+                      @if (exportandoPdf()) {
+                        <div class="w-3.5 h-3.5 border-2 border-red-300 border-t-red-600 rounded-full animate-spin"></div>
+                      } @else {
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m.75 12l3 3m0 0l3-3m-3 3v-6m-1.5-9H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/>
+                        </svg>
+                      }
+                      PDF
+                    </button>
+
+                    <!-- Botón Excel -->
+                    <button type="button"
+                            (click)="exportarExcel()"
+                            [disabled]="exportandoPdf() || exportandoExcel()"
+                            title="Descargar Excel"
+                            class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold
+                                   bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200
+                                   transition-all active:scale-95 disabled:opacity-50 disabled:pointer-events-none">
+                      @if (exportandoExcel()) {
+                        <div class="w-3.5 h-3.5 border-2 border-emerald-300 border-t-emerald-600 rounded-full animate-spin"></div>
+                      } @else {
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M3.375 19.5h17.25m-17.25 0a1.125 1.125 0 01-1.125-1.125M3.375 19.5h1.5C5.496 19.5 6 18.996 6 18.375m-3.75 0V5.625m0 12.75v-1.5c0-.621.504-1.125 1.125-1.125m18.375 2.625V5.625m0 12.75c0 .621-.504 1.125-1.125 1.125m1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125m0 3.75h-1.5A1.125 1.125 0 0118 18.375M20.625 4.5H3.375m17.25 0c.621 0 1.125.504 1.125 1.125M20.625 4.5h-1.5C18.504 4.5 18 5.004 18 5.625m3.75 0v1.5c0 .621-.504 1.125-1.125 1.125M3.375 4.5c-.621 0-1.125.504-1.125 1.125M3.375 4.5h1.5C5.496 4.5 6 5.004 6 5.625m-3.75 0v1.5c0 .621.504 1.125 1.125 1.125m0 0h1.5m-1.5 0c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125m1.5-3.75C5.496 8.25 6 8.754 6 9.375v1.5m0-5.25v5.25m0-5.25C6 5.004 6.504 4.5 7.125 4.5h9.75c.621 0 1.125.504 1.125 1.125m1.125 2.625h1.5m-1.5 0A1.125 1.125 0 0118 7.875v1.5m1.5-3.75C19.496 5.004 19.992 4.5 20.625 4.5M18 7.875v1.5c0 .621.504 1.125 1.125 1.125M18 7.875C18 8.496 18.504 9 19.125 9h1.5"/>
+                        </svg>
+                      }
+                      Excel
+                    </button>
+                  </div>
+                }
+              </div>
+            </div>
+
+            <!-- Chips de consulta -->
+            <div class="mt-3 flex items-center gap-1.5 flex-wrap">
+              <span class="px-2.5 py-1 bg-slate-100 text-slate-600 text-[10px] font-bold rounded-lg uppercase tracking-wide">
+                {{ res.tipoVisualizacion }}
+              </span>
+              <span class="px-2.5 py-1 bg-slate-100 text-slate-500 text-[11px] font-medium rounded-lg italic truncate max-w-xs">
+                "{{ entrada.consulta }}"
+              </span>
+            </div>
+          </div>
+
+          <!-- Gráfico (cuando aplica) -->
+          @if (res.tipoVisualizacion !== 'tabla') {
+            <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+              <div class="px-5 py-3.5 border-b border-slate-100 flex items-center gap-2.5">
+                <div class="w-7 h-7 bg-violet-50 border border-violet-100 rounded-lg flex items-center justify-center shrink-0">
+                  <svg class="w-3.5 h-3.5 text-violet-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z"/>
+                  </svg>
+                </div>
+                <h4 class="text-sm font-black text-slate-800">Visualización</h4>
+              </div>
+              <div class="p-5">
+                <div class="relative" style="height:320px;">
+                  <canvas #chartCanvas></canvas>
+                </div>
+              </div>
+            </div>
+          }
+
+          <!-- Tabla de datos -->
+          @if (res.columnas.length && res.filas.length) {
+            <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+              <div class="px-5 py-3.5 border-b border-slate-100 flex items-center justify-between gap-2">
+                <div class="flex items-center gap-2.5">
+                  <div class="w-7 h-7 bg-slate-100 border border-slate-200 rounded-lg flex items-center justify-center shrink-0">
+                    <svg class="w-3.5 h-3.5 text-slate-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M3.375 19.5h17.25m-17.25 0a1.125 1.125 0 01-1.125-1.125M3.375 19.5h1.5C5.496 19.5 6 18.996 6 18.375m-3.75 0V5.625m0 12.75v-1.5c0-.621.504-1.125 1.125-1.125m18.375 2.625V5.625m0 12.75c0 .621-.504 1.125-1.125 1.125m1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125m0 3.75h-1.5A1.125 1.125 0 0118 18.375M20.625 4.5H3.375m17.25 0c.621 0 1.125.504 1.125 1.125M20.625 4.5h-1.5C18.504 4.5 18 5.004 18 5.625m3.75 0v1.5c0 .621-.504 1.125-1.125 1.125M3.375 4.5c-.621 0-1.125.504-1.125 1.125M3.375 4.5h1.5C5.496 4.5 6 5.004 6 5.625m-3.75 0v1.5c0 .621.504 1.125 1.125 1.125m0 0h1.5m-1.5 0c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125m1.5-3.75C5.496 8.25 6 8.754 6 9.375v1.5m0-5.25v5.25m0-5.25C6 5.004 6.504 4.5 7.125 4.5h9.75c.621 0 1.125.504 1.125 1.125m1.125 2.625h1.5m-1.5 0A1.125 1.125 0 0118 7.875v1.5m1.5-3.75C19.496 5.004 19.992 4.5 20.625 4.5M18 7.875v1.5c0 .621.504 1.125 1.125 1.125M18 7.875C18 8.496 18.504 9 19.125 9h1.5"/>
+                    </svg>
+                  </div>
+                  <h4 class="text-sm font-black text-slate-800">Datos</h4>
+                </div>
+                <span class="text-[10px] text-slate-400 font-bold">{{ res.filas.length }} fila{{ res.filas.length !== 1 ? 's' : '' }}</span>
+              </div>
+
+              <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                  <thead>
+                    <tr class="bg-slate-50 border-b border-slate-200">
+                      @for (col of res.columnas; track col) {
+                        <th class="px-4 py-2.5 text-left text-[11px] font-black text-slate-500 uppercase tracking-wider">
+                          {{ col }}
+                        </th>
+                      }
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-slate-50">
+                    @for (fila of res.filas; track $index) {
+                      <tr class="hover:bg-slate-50 transition-colors">
+                        @for (celda of fila; track $index; let ci = $index) {
+                          <td class="px-4 py-2.5 text-slate-700"
+                              [class.font-semibold]="ci === 0"
+                              [class.font-mono]="ci > 0"
+                              [class.text-right]="ci > 0">
+                            {{ celda }}
+                          </td>
+                        }
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          }
+
+        }
+
+      } @else {
+
+        <!-- Estado vacío inicial -->
+        <div class="bg-white border border-slate-200 rounded-2xl shadow-sm p-16 flex flex-col items-center text-center">
+          <div class="relative mb-6">
+            <div class="w-20 h-20 rounded-3xl bg-violet-50 border border-violet-100 flex items-center justify-center">
+              <svg class="w-10 h-10 text-violet-400" fill="none" stroke="currentColor" stroke-width="1.3" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/>
+              </svg>
+            </div>
+            <div class="absolute -bottom-1 -right-1 w-7 h-7 bg-indigo-500 rounded-xl flex items-center justify-center shadow-md">
+              <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75z"/>
+              </svg>
+            </div>
+          </div>
+          <h3 class="text-lg font-black text-slate-800">Tu reporte aparecerá aquí</h3>
+          <p class="text-sm text-slate-400 mt-2 max-w-sm leading-relaxed">
+            Escribe una consulta en lenguaje natural en el panel izquierdo.
+            La IA interpretará tu intención, consultará los datos y generará
+            un gráfico o tabla automáticamente.
+          </p>
+          <div class="mt-6 grid grid-cols-2 gap-2 w-full max-w-sm">
+            <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 text-center">
+              <p class="text-2xl mb-1">📊</p>
+              <p class="text-[11px] font-bold text-slate-600">Gráficos dinámicos</p>
+            </div>
+            <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 text-center">
+              <p class="text-2xl mb-1">🔍</p>
+              <p class="text-[11px] font-bold text-slate-600">Filtros automáticos</p>
+            </div>
+            <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 text-center">
+              <p class="text-2xl mb-1">📋</p>
+              <p class="text-[11px] font-bold text-slate-600">Tablas detalladas</p>
+            </div>
+            <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 text-center">
+              <p class="text-2xl mb-1">🗓️</p>
+              <p class="text-[11px] font-bold text-slate-600">Tendencias temporales</p>
+            </div>
+          </div>
+        </div>
+
+      }
+    </section>
+
+  </div>
+</div>
+</div>

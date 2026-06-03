@@ -1,0 +1,93 @@
+:host {
+  display: block;
+  width: 100%;
+}
+
+/* ─── Canvas: dot grid overlay ─────────────────────────────── */
+:host ::ng-deep .editor-canvas {
+  position: relative;
+}
+:host ::ng-deep .editor-canvas::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle, rgba(99,102,241,.10) 1.5px, transparent 1.5px);
+  background-size: 22px 22px;
+  pointer-events: none;
+  z-index: 0;
+}
+:host ::ng-deep .editor-canvas > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* ─── Scrollbar: all panels ─────────────────────────────────── */
+:host ::ng-deep ::-webkit-scrollbar       { width: 5px; height: 5px; }
+:host ::ng-deep ::-webkit-scrollbar-track { background: transparent; }
+:host ::ng-deep ::-webkit-scrollbar-thumb {
+  background: rgba(148,163,184,.25);
+  border-radius: 99px;
+}
+:host ::ng-deep ::-webkit-scrollbar-thumb:hover {
+  background: rgba(148,163,184,.45);
+}
+
+/* ─── Dark left sidebar ─────────────────────────────────────── */
+:host ::ng-deep .sidebar-dark {
+  background: #0f172a;
+  border-right-color: #1e293b;
+}
+:host ::ng-deep .sidebar-dark ::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,.08);
+}
+
+/* ─── Field card in canvas ──────────────────────────────────── */
+:host ::ng-deep .field-card {
+  transition: box-shadow .18s ease, border-color .18s ease, transform .15s ease;
+}
+:host ::ng-deep .field-card:hover {
+  box-shadow: 0 4px 20px rgba(99,102,241,.08), 0 1px 4px rgba(0,0,0,.06);
+}
+:host ::ng-deep .field-card.is-selected {
+  box-shadow: 0 0 0 2px rgba(99,102,241,.25), 0 8px 30px rgba(99,102,241,.10);
+}
+
+/* ─── Selection accent stripe ───────────────────────────────── */
+:host ::ng-deep .field-card.is-selected::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 12px; bottom: 12px;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: linear-gradient(180deg, #6366f1, #8b5cf6);
+}
+
+/* ─── Drag state ────────────────────────────────────────────── */
+[draggable="true"] { user-select: none; -webkit-user-select: none; }
+[draggable="true"]:active { cursor: grabbing; }
+
+/* ─── Properties panel tabs ─────────────────────────────────── */
+:host ::ng-deep .prop-tab-active {
+  color: #6366f1;
+  box-shadow: inset 0 -2px 0 #6366f1;
+}
+
+/* ─── Input focus refinement ────────────────────────────────── */
+:host ::ng-deep .dark-input {
+  background: rgba(255,255,255,.06);
+  border-color: rgba(255,255,255,.10);
+  color: #e2e8f0;
+  transition: border-color .15s, background .15s;
+}
+:host ::ng-deep .dark-input:focus {
+  background: rgba(255,255,255,.10);
+  border-color: rgba(99,102,241,.5);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(99,102,241,.15);
+}
+:host ::ng-deep .dark-input::placeholder { color: #475569; }
+
+/* ─── Motion preferences ────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  * { transition-duration: .01ms !important; animation-duration: .01ms !important; }
+}

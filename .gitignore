@@ -1,0 +1,49 @@
+# ── Python ────────────────────────────────────────────────────────────────────
+venv/
+__pycache__/
+*.pyc
+*.pyo
+
+# ── Node / Angular ────────────────────────────────────────────────────────────
+node_modules/
+dist/
+
+# ── Java / Maven ──────────────────────────────────────────────────────────────
+BACKEND/target/
+*.class
+*.jar
+*.war
+
+# ── Secretos ──────────────────────────────────────────────────────────────────
+BACKEND/.env
+BACKEND/src/main/resources/firebase-service-account.json
+BACKEND/src/main/resources/client_secret_*.json
+
+# ── Archivos binarios grandes ─────────────────────────────────────────────────
+NLP_SERVICE/ffmpeg.exe
+NLP_SERVICE/*.exe
+
+# ── Scripts de seed local (contienen URIs de MongoDB) ────────────────────────
+seed_*.js
+fix_*.js
+reset_db.js
+
+# ── Firebase (contiene API keys de Google) ────────────────────────────────────
+MOVIL/android/app/google-services.json
+MOVIL/ios/Runner/GoogleService-Info.plist
+
+# ── ML model ──────────────────────────────────────────────────────────────────
+ML-SERVICE/models/
+
+# ── Claude Code (configuración local, no va en repo) ─────────────────────────
+.claude/
+.agents/
+
+# ── IDEs ──────────────────────────────────────────────────────────────────────
+.idea/
+.vscode/
+*.iml
+
+# ── Sistema operativo ────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db

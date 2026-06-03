@@ -1,0 +1,572 @@
+/* ── ViewEncapsulation.None — estilos globales ────────────────────────────── */
+
+/* ── Modal contenedor ───────────────────────────────────────────────────── */
+.wdoc-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  animation: wdocFadeIn .12s ease;
+}
+@keyframes wdocFadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+/* ── Barra de título (Word azul) ─────────────────────────────────────────── */
+.wdoc-titlebar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 12px;
+  height: 40px;
+  background: #2b579a;
+  color: #fff;
+  flex-shrink: 0;
+  gap: 12px;
+}
+.wdoc-titlebar-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.wdoc-titlebar-logo {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+.wdoc-docname {
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 300px;
+}
+.wdoc-saved-badge {
+  font-size: 11px;
+  color: #cdd8f0;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+}
+.wdoc-saved-badge .wdoc-spin {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,.3);
+  border-top-color: #fff;
+  animation: wdocSpin .6s linear infinite;
+  display: inline-block;
+}
+@keyframes wdocSpin { to { transform: rotate(360deg); } }
+
+.wdoc-titlebar-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.wdoc-title-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border: 1px solid rgba(255,255,255,.35);
+  background: rgba(255,255,255,.1);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: 3px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background .12s;
+}
+.wdoc-title-btn:hover { background: rgba(255,255,255,.2); }
+.wdoc-title-btn svg { width: 14px; height: 14px; }
+.wdoc-title-back {
+  background: rgba(255,255,255,.15);
+  border-color: rgba(255,255,255,.4);
+}
+
+.wdoc-presencia-wrap {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+.wdoc-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  border: 2px solid #2b579a;
+  cursor: default;
+  transition: transform .12s;
+  position: relative;
+}
+.wdoc-avatar:hover { transform: scale(1.15); z-index: 1; }
+
+/* ── Ribbon tabs ─────────────────────────────────────────────────────────── */
+.wdoc-ribbon-tabs {
+  display: flex;
+  align-items: flex-end;
+  padding: 0 4px;
+  background: #f3f2f1;
+  border-bottom: 1px solid #c8c6c4;
+  flex-shrink: 0;
+  height: 30px;
+}
+.wdoc-rtab {
+  padding: 0 12px;
+  height: 30px;
+  border: none;
+  background: transparent;
+  font-size: 12px;
+  color: #323130;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: color .12s, border-color .12s;
+  white-space: nowrap;
+}
+.wdoc-rtab:hover { color: #2b579a; }
+.wdoc-rtab.wdoc-rtab-active {
+  color: #2b579a;
+  border-bottom-color: #2b579a;
+  font-weight: 600;
+}
+
+/* ── Ribbon contenido ────────────────────────────────────────────────────── */
+.wdoc-ribbon {
+  display: flex;
+  align-items: stretch;
+  padding: 4px 8px 0;
+  background: #f3f2f1;
+  border-bottom: 1px solid #c8c6c4;
+  flex-shrink: 0;
+  min-height: 76px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  gap: 0;
+}
+.wdoc-ribbon::-webkit-scrollbar { height: 3px; }
+.wdoc-ribbon::-webkit-scrollbar-thumb { background: #c8c6c4; border-radius: 2px; }
+
+.wdoc-rgroup {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  padding: 0 8px 4px;
+  min-width: fit-content;
+}
+.wdoc-rgroup-btns {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+.wdoc-rrow {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+}
+.wdoc-rgroup-label {
+  text-align: center;
+  font-size: 10px;
+  color: #605e5c;
+  margin-top: 3px;
+  padding-top: 2px;
+  border-top: 1px solid #e1dfdd;
+  white-space: nowrap;
+}
+.wdoc-rsep {
+  width: 1px;
+  background: #c8c6c4;
+  margin: 4px 4px 20px;
+  align-self: stretch;
+  flex-shrink: 0;
+}
+
+/* Botón ribbon pequeño */
+.wdoc-rbtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 26px;
+  border: 1px solid transparent;
+  background: transparent;
+  border-radius: 2px;
+  cursor: pointer;
+  color: #323130;
+  font-size: 13px;
+  padding: 0 4px;
+  transition: background .1s, border-color .1s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.wdoc-rbtn:hover:not(:disabled) {
+  background: #e1dfdd;
+  border-color: #c8c6c4;
+}
+.wdoc-rbtn.wdoc-active {
+  background: #deecf9;
+  border-color: #106ebe;
+  color: #106ebe;
+}
+.wdoc-rbtn:disabled { opacity: .4; cursor: default; }
+.wdoc-rbtn svg { width: 16px; height: 16px; pointer-events: none; }
+
+/* Botón ribbon grande (undo/redo) con icono grande */
+.wdoc-rbtn-lg {
+  flex-direction: column;
+  gap: 2px;
+  min-width: 40px;
+  height: 52px;
+  padding: 4px 6px 0;
+  font-size: 10px;
+  color: #323130;
+}
+.wdoc-rbtn-lg svg { width: 22px; height: 22px; }
+.wdoc-rbtn-lg span { font-size: 10px; line-height: 1; }
+
+/* Select del ribbon */
+.wdoc-rselect {
+  height: 26px;
+  border: 1px solid #c8c6c4;
+  border-radius: 2px;
+  background: #fff;
+  font-size: 12px;
+  color: #323130;
+  padding: 0 22px 0 6px;
+  outline: none;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23605e5c'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 5px center;
+  min-width: 120px;
+}
+.wdoc-rselect:hover { border-color: #106ebe; }
+.wdoc-rselect:focus { border-color: #106ebe; box-shadow: 0 0 0 1px #106ebe; }
+
+/* Color buttons en ribbon */
+.wdoc-color-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 26px;
+  border: 1px solid transparent;
+  background: transparent;
+  border-radius: 2px;
+  cursor: pointer;
+  padding: 2px 4px;
+  gap: 1px;
+  transition: background .1s, border-color .1s;
+  position: relative;
+  flex-shrink: 0;
+}
+.wdoc-color-btn:hover { background: #e1dfdd; border-color: #c8c6c4; }
+.wdoc-color-btn svg { width: 14px; height: 14px; color: #323130; }
+.wdoc-color-bar { height: 3px; width: 14px; border-radius: 1px; }
+.wdoc-color-input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+/* Style gallery buttons */
+.wdoc-style-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border: 1px solid #c8c6c4;
+  background: #fff;
+  border-radius: 2px;
+  cursor: pointer;
+  color: #323130;
+  gap: 2px;
+  transition: background .1s, border-color .1s;
+  padding: 4px;
+  overflow: hidden;
+}
+.wdoc-style-btn:hover { background: #e1dfdd; border-color: #106ebe; }
+.wdoc-style-btn.wdoc-active {
+  background: #deecf9;
+  border-color: #106ebe;
+}
+.wdoc-style-btn .wdoc-style-preview {
+  line-height: 1;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  width: 100%;
+  text-align: center;
+  font-family: Calibri, Arial, sans-serif;
+}
+.wdoc-style-btn .wdoc-style-name {
+  font-size: 9px;
+  color: #605e5c;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  width: 100%;
+  text-align: center;
+}
+.wdoc-style-gallery {
+  display: flex;
+  gap: 4px;
+}
+
+/* ── Área del editor ─────────────────────────────────────────────────────── */
+.wdoc-editor-area {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: auto;
+  background: #d3d3d3;
+  padding: 28px 24px 40px;
+}
+.wdoc-editor-area::-webkit-scrollbar { width: 10px; }
+.wdoc-editor-area::-webkit-scrollbar-track { background: #d3d3d3; }
+.wdoc-editor-area::-webkit-scrollbar-thumb { background: #b0aeac; border-radius: 4px; border: 2px solid #d3d3d3; }
+
+/* ── Página A4 ────────────────────────────────────────────────────────────── */
+.wdoc-page {
+  width: 816px;
+  min-height: 1056px;
+  margin: 0 auto;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0,0,0,.2), 0 8px 24px rgba(0,0,0,.12);
+  padding: 96px 96px 120px;
+  position: relative;
+  border: 1px solid rgba(0,0,0,.08);
+}
+@media (max-width: 920px) {
+  .wdoc-page { width: 100%; padding: 32px 20px 60px; }
+  .wdoc-editor-area { padding: 10px 0; }
+}
+
+/* ── ProseMirror — estilos del contenido ─────────────────────────────────── */
+.ProseMirror {
+  outline: none;
+  min-height: 840px;
+  font-family: Calibri, Arial, sans-serif;
+  font-size: 11pt;
+  line-height: 1.5;
+  color: #000;
+  word-break: break-word;
+  white-space: pre-wrap;
+}
+.ProseMirror > * + * { margin-top: 0; }
+.ProseMirror p { margin: 0 0 8px; }
+.ProseMirror p:last-child { margin-bottom: 0; }
+.ProseMirror h1 { font-size: 20pt; font-weight: 700; color: #2e74b5; margin: 20px 0 10px; line-height: 1.2; }
+.ProseMirror h2 { font-size: 16pt; font-weight: 700; color: #2e74b5; margin: 16px 0 8px; line-height: 1.2; }
+.ProseMirror h3 { font-size: 12pt; font-weight: 700; color: #1f3864; margin: 14px 0 6px; line-height: 1.2; }
+.ProseMirror h4 { font-size: 11pt; font-weight: 700; margin: 12px 0 4px; }
+.ProseMirror ul { padding-left: 24px; margin: 4px 0 8px; list-style: disc; }
+.ProseMirror ol { padding-left: 24px; margin: 4px 0 8px; list-style: decimal; }
+.ProseMirror li { margin: 2px 0; }
+.ProseMirror ul[data-type="taskList"] { list-style: none; padding-left: 2px; }
+.ProseMirror ul[data-type="taskList"] li {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 1px 0;
+}
+.ProseMirror ul[data-type="taskList"] li > label { flex-shrink: 0; margin-top: 3px; cursor: pointer; }
+.ProseMirror ul[data-type="taskList"] li > div { flex: 1; }
+.ProseMirror blockquote {
+  border-left: 4px solid #2b579a;
+  padding: 4px 0 4px 16px;
+  margin: 8px 0;
+  color: #444;
+}
+.ProseMirror pre {
+  background: #f4f4f4;
+  border: 1px solid #e0e0e0;
+  border-radius: 3px;
+  padding: 12px 16px;
+  font-family: Consolas, 'Courier New', monospace;
+  font-size: 9.5pt;
+  overflow-x: auto;
+  margin: 8px 0;
+}
+.ProseMirror code {
+  background: #f4f4f4;
+  border: 1px solid #e0e0e0;
+  border-radius: 2px;
+  padding: 1px 4px;
+  font-family: Consolas, 'Courier New', monospace;
+  font-size: 9pt;
+}
+.ProseMirror pre code { background: none; border: none; padding: 0; font-size: inherit; }
+.ProseMirror a { color: #0563c1; text-decoration: underline; cursor: pointer; }
+.ProseMirror a:hover { color: #024d95; }
+.ProseMirror img { max-width: 100%; border: 1px solid #e0e0e0; cursor: default; }
+.ProseMirror hr {
+  border: none;
+  border-top: 1px solid #c8c6c4;
+  margin: 16px 0;
+}
+
+/* ── Tablas ───────────────────────────────────────────────────────────────── */
+.ProseMirror table {
+  border-collapse: collapse;
+  table-layout: fixed;
+  width: 100%;
+  margin: 8px 0;
+  font-size: 11pt;
+}
+.ProseMirror td,
+.ProseMirror th {
+  border: 1px solid #bfbfbf;
+  padding: 5px 8px;
+  min-width: 40px;
+  vertical-align: top;
+  position: relative;
+  box-sizing: border-box;
+}
+.ProseMirror th { background: #d6dce4; font-weight: 700; }
+.ProseMirror .selectedCell:after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(43,87,154,.12);
+  pointer-events: none;
+}
+.ProseMirror .column-resize-handle {
+  position: absolute;
+  right: -2px;
+  top: 0; bottom: 0;
+  width: 4px;
+  background: #106ebe;
+  cursor: col-resize;
+  opacity: 0;
+  z-index: 1;
+}
+.ProseMirror table:hover .column-resize-handle { opacity: 1; }
+
+/* ── Placeholder ─────────────────────────────────────────────────────────── */
+.ProseMirror p.is-editor-empty:first-child::before {
+  color: #aaa;
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+
+/* ── Cursores colaborativos ──────────────────────────────────────────────── */
+.collab-cursor {
+  position: relative;
+  display: inline-block;
+  pointer-events: none;
+  word-break: normal;
+}
+
+.collab-cursor__caret {
+  border-left: 2px solid;
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 1.15em;
+  pointer-events: none;
+}
+
+.collab-cursor__label {
+  position: absolute;
+  top: -28px;
+  left: -1px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 7px 2px 3px;
+  border-radius: 10px 10px 10px 0;
+  color: #fff;
+  font-size: 11px;
+  font-family: system-ui, sans-serif;
+  font-weight: 600;
+  white-space: nowrap;
+  user-select: none;
+  pointer-events: none;
+  box-shadow: 0 1px 4px rgba(0,0,0,.25);
+  z-index: 10;
+}
+
+.collab-cursor__avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.25);
+  color: #fff;
+  font-size: 9px;
+  font-weight: 800;
+  flex-shrink: 0;
+  border: 1px solid rgba(255,255,255,.4);
+}
+
+/* ── Barra de estado ─────────────────────────────────────────────────────── */
+.wdoc-statusbar {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 0 16px;
+  height: 22px;
+  background: #2b579a;
+  color: rgba(255,255,255,.85);
+  font-size: 11px;
+  flex-shrink: 0;
+}
+.wdoc-statusbar-right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+/* ── Selection ───────────────────────────────────────────────────────────── */
+.ProseMirror ::selection { background: rgba(43,87,154,.2); }
+
+/* ── Print ───────────────────────────────────────────────────────────────── */
+@media print {
+  .wdoc-titlebar,
+  .wdoc-ribbon-tabs,
+  .wdoc-ribbon,
+  .wdoc-statusbar { display: none !important; }
+  .wdoc-editor-area { padding: 0; background: white; overflow: visible; }
+  .wdoc-page { box-shadow: none; border: none; margin: 0; padding: 20mm; min-height: unset; width: 100%; }
+}
+
+/* ── Compact card presence avatars ──────────────────────────────────────── */
+.presencia-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  flex-shrink: 0;
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 1px rgba(0,0,0,.15);
+  cursor: default;
+}

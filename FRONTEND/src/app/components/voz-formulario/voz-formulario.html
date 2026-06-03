@@ -1,0 +1,536 @@
+<!-- ════════════════════════════════════════════════════════════════════════
+     VozFormularioComponent — Asistente IA tipo chat (CU21)
+     Panel lateral deslizable; en móvil ocupa toda la pantalla.
+     ════════════════════════════════════════════════════════════════════════ -->
+
+<!-- Backdrop en móvil -->
+<div class="fixed inset-0 z-40 bg-black/40 backdrop-blur-[2px] sm:hidden"
+     (click)="cancelar()"
+     (keydown.escape)="cancelar()"
+     aria-hidden="true"></div>
+
+<!-- ── Panel lateral ─────────────────────────────────────────────────────── -->
+<aside
+  class="fixed inset-y-0 right-0 z-50 flex flex-col
+         w-full sm:w-[420px]
+         bg-white shadow-2xl border-l border-slate-200
+         animate-in slide-in-from-right-full duration-300"
+  (dragover)="onDragOver($event)"
+  (dragleave)="onDragLeave()"
+  (drop)="onDrop($event)">
+
+  <!-- ── Overlay drag & drop ──────────────────────────────────────────── -->
+  @if (arrastrando()) {
+    <div class="absolute inset-0 z-50 flex flex-col items-center justify-center
+                bg-violet-600/90 backdrop-blur-sm rounded-none pointer-events-none">
+      <svg class="w-16 h-16 text-white mb-4 opacity-90" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round"
+          d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/>
+      </svg>
+      <p class="text-white font-bold text-lg">Suelta los archivos aquí</p>
+      <p class="text-violet-200 text-sm mt-1">JPG · PNG · PDF · WebP · HEIC · hasta 10 archivos</p>
+    </div>
+  }
+
+  <!-- ── Cabecera ──────────────────────────────────────────────────────── -->
+  <div class="flex items-center justify-between px-4 py-3 border-b border-slate-100 shrink-0
+              bg-linear-to-r from-violet-600 to-violet-500">
+    <div class="flex items-center gap-3">
+      <div class="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center">
+        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round"
+            d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/>
+        </svg>
+      </div>
+      <div>
+        <h2 class="font-bold text-white text-sm leading-tight">Asistente IA · Formulario</h2>
+        <p class="text-violet-200 text-[10px] mt-0.5">El formulario sigue visible a la izquierda</p>
+      </div>
+    </div>
+    <button type="button" (click)="cancelar()"
+            title="Cerrar asistente (Esc)"
+            class="p-2 rounded-xl text-white/70 hover:text-white hover:bg-white/10 transition-colors">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+      </svg>
+    </button>
+  </div>
+
+  <!-- ── Chat: área de mensajes ─────────────────────────────────────────── -->
+  <div #chatContainer
+       class="flex-1 overflow-y-auto overscroll-contain p-4 space-y-3 bg-slate-50/50">
+
+    @for (msg of mensajes(); track msg.id) {
+
+      <!-- ═══ BIENVENIDA (bot) ═══ -->
+      @if (msg.tipo === 'saludo') {
+        <div class="flex items-start gap-2.5 animate-in fade-in duration-300">
+          <div class="w-7 h-7 rounded-xl bg-violet-600 flex items-center justify-center shrink-0 mt-0.5 shadow-sm">
+            <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/>
+            </svg>
+          </div>
+          <div class="bg-white border border-slate-200 rounded-2xl rounded-tl-none px-4 py-3 max-w-[85%] shadow-sm">
+            <p class="text-sm text-slate-700 leading-relaxed whitespace-pre-line">{{ msg.texto }}</p>
+          </div>
+        </div>
+      }
+
+      <!-- ═══ MENSAJE DE USUARIO — SOLO TEXTO ═══ -->
+      @if (msg.tipo === 'usuario-texto') {
+        <div class="flex items-start gap-2.5 justify-end animate-in fade-in duration-200">
+          <div class="bg-violet-600 rounded-2xl rounded-tr-none px-4 py-3 max-w-[85%] shadow-sm">
+            <p class="text-sm text-white leading-relaxed">{{ msg.texto }}</p>
+          </div>
+          <div class="w-7 h-7 rounded-xl bg-slate-200 flex items-center justify-center shrink-0 mt-0.5">
+            <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"/>
+            </svg>
+          </div>
+        </div>
+      }
+
+      <!-- ═══ MENSAJE DE USUARIO — ARCHIVOS (+ texto opcional) ═══ -->
+      @if (msg.tipo === 'usuario-archivo') {
+        <div class="flex items-start gap-2.5 justify-end animate-in fade-in duration-200">
+          <div class="bg-violet-600 rounded-2xl rounded-tr-none px-3 py-3 max-w-[90%] shadow-sm space-y-2">
+
+            <!-- Texto opcional (si vino combinado) -->
+            @if (msg.texto) {
+              <p class="text-sm text-white leading-relaxed px-1">{{ msg.texto }}</p>
+            }
+
+            <!-- Grid de archivos adjuntos -->
+            @if (msg.archivos && msg.archivos.length > 0) {
+
+              <!-- Si hay exactamente 1 imagen, mostrar preview grande -->
+              @if (msg.archivos.length === 1 && msg.archivos[0].esImagen && msg.archivos[0].preview) {
+                <img [src]="msg.archivos[0].preview" alt="Documento adjunto"
+                     class="w-full max-h-52 object-cover rounded-xl border border-violet-400/30">
+                <p class="text-xs text-violet-200 font-medium px-1">
+                  📎 {{ msg.archivos[0].nombre }} · {{ msg.archivos[0].tamano }}
+                </p>
+              } @else {
+                <!-- Múltiples archivos o PDFs: chips compactos -->
+                <div class="flex flex-wrap gap-1.5">
+                  @for (archivo of msg.archivos; track archivo.nombre) {
+                    <div class="flex items-center gap-1.5 bg-white/15 rounded-lg px-2 py-1.5 max-w-40">
+                      @if (archivo.esImagen && archivo.preview) {
+                        <img [src]="archivo.preview" alt="Miniatura"
+                             class="w-7 h-7 rounded-md object-cover shrink-0 border border-white/20">
+                      } @else {
+                        <div class="w-7 h-7 rounded-md bg-white/20 flex items-center justify-center shrink-0">
+                          <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                              d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/>
+                          </svg>
+                        </div>
+                      }
+                      <div class="min-w-0">
+                        <p class="text-xs text-white font-medium truncate max-w-25 leading-tight">{{ archivo.nombre }}</p>
+                        <p class="text-[9px] text-violet-200 leading-tight">{{ archivo.tamano }}</p>
+                      </div>
+                    </div>
+                  }
+                </div>
+                <p class="text-[10px] text-violet-200 px-1">
+                  📎 {{ msg.archivos.length }} archivo{{ msg.archivos.length !== 1 ? 's' : '' }} adjunto{{ msg.archivos.length !== 1 ? 's' : '' }}
+                </p>
+              }
+            }
+          </div>
+          <div class="w-7 h-7 rounded-xl bg-slate-200 flex items-center justify-center shrink-0 mt-0.5">
+            <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"/>
+            </svg>
+          </div>
+        </div>
+      }
+
+      <!-- ═══ PROCESANDO (bot) ═══ -->
+      @if (msg.tipo === 'procesando') {
+        <div class="flex items-start gap-2.5 animate-in fade-in duration-200">
+          <div class="w-7 h-7 rounded-xl bg-violet-600 flex items-center justify-center shrink-0 mt-0.5 shadow-sm">
+            <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/>
+            </svg>
+          </div>
+          <div class="bg-white border border-slate-200 rounded-2xl rounded-tl-none px-4 py-3 shadow-sm">
+            <div class="flex items-center gap-2">
+              <div class="flex gap-1">
+                <span class="w-2 h-2 rounded-full bg-violet-400 animate-bounce" style="animation-delay:0ms"></span>
+                <span class="w-2 h-2 rounded-full bg-violet-400 animate-bounce" style="animation-delay:150ms"></span>
+                <span class="w-2 h-2 rounded-full bg-violet-400 animate-bounce" style="animation-delay:300ms"></span>
+              </div>
+              <span class="text-xs text-slate-500 font-medium">Analizando con IA…</span>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- ═══ RESULTADO (bot) ═══ -->
+      @if (msg.tipo === 'resultado' && msg.resultado && msg.preview) {
+        <div class="flex items-start gap-2.5 animate-in fade-in duration-300">
+          <div class="w-7 h-7 rounded-xl bg-violet-600 flex items-center justify-center shrink-0 mt-0.5 shadow-sm">
+            <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/>
+            </svg>
+          </div>
+          <div class="bg-white border border-slate-200 rounded-2xl rounded-tl-none shadow-sm overflow-hidden max-w-[90%]">
+
+            <!-- Métricas -->
+            <div class="flex items-center gap-3 px-4 pt-3 pb-2 border-b border-slate-100">
+              <div class="flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full"
+                      [class.bg-emerald-500]="porcentajeConfianza(msg.resultado) >= 75"
+                      [class.bg-amber-400]="porcentajeConfianza(msg.resultado) >= 50 && porcentajeConfianza(msg.resultado) < 75"
+                      [class.bg-red-400]="porcentajeConfianza(msg.resultado) < 50"></span>
+                <span class="text-[11px] font-bold text-slate-600">
+                  {{ camposAAplicar(msg.preview, msg.soloVacios ?? true) }} campo{{ camposAAplicar(msg.preview, msg.soloVacios ?? true) !== 1 ? 's' : '' }} detectado{{ camposAAplicar(msg.preview, msg.soloVacios ?? true) !== 1 ? 's' : '' }}
+                </span>
+              </div>
+              <!-- Badge archivos asignados -->
+              @if (msg.resultado.archivosAsignados && msg.resultado.archivosAsignados > 0) {
+                <span class="text-[10px] bg-blue-50 text-blue-700 border border-blue-200 px-1.5 py-0.5 rounded-full font-semibold">
+                  📎 {{ msg.resultado.archivosAsignados }} archivo{{ msg.resultado.archivosAsignados !== 1 ? 's' : '' }}
+                </span>
+              }
+              <div class="ml-auto text-[11px] font-semibold px-2 py-0.5 rounded-full"
+                   [class.text-emerald-700]="porcentajeConfianza(msg.resultado) >= 75"
+                   [class.bg-emerald-50]="porcentajeConfianza(msg.resultado) >= 75"
+                   [class.text-amber-700]="porcentajeConfianza(msg.resultado) >= 50 && porcentajeConfianza(msg.resultado) < 75"
+                   [class.bg-amber-50]="porcentajeConfianza(msg.resultado) >= 50 && porcentajeConfianza(msg.resultado) < 75"
+                   [class.text-red-700]="porcentajeConfianza(msg.resultado) < 50"
+                   [class.bg-red-50]="porcentajeConfianza(msg.resultado) < 50">
+                {{ porcentajeConfianza(msg.resultado) }}% confianza
+              </div>
+            </div>
+
+            <!-- Lista de campos -->
+            <div class="px-3 py-2 space-y-1 max-h-56 overflow-y-auto">
+              @for (campo of msg.preview; track campo.id) {
+
+                <!-- Campos de archivo/imagen -->
+                @if (campo.tipo === 'archivo' || campo.tipo === 'imagen') {
+                  <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg transition-colors"
+                       [class.bg-blue-50]="campo.archivoIA !== null && !campo.yaLleno"
+                       [class.bg-amber-50]="campo.archivoIA !== null && campo.yaLleno"
+                       [class.bg-slate-50]="campo.archivoIA === null">
+
+                    @if (campo.archivoIA !== null && !campo.yaLleno) {
+                      <svg class="w-3.5 h-3.5 text-blue-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M18.375 12.739l-7.693 7.693a4.5 4.5 0 01-6.364-6.364l10.94-10.94A3 3 0 1119.5 7.372L8.552 18.32m.009-.01l-.01.01m5.699-9.941l-7.81 7.81a1.5 1.5 0 002.112 2.13"/>
+                      </svg>
+                    } @else if (campo.archivoIA !== null && campo.yaLleno) {
+                      <svg class="w-3.5 h-3.5 text-amber-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"/>
+                      </svg>
+                    } @else {
+                      <div class="w-3.5 h-3.5 shrink-0 flex items-center justify-center">
+                        <div class="w-1.5 h-1.5 rounded-full bg-slate-300"></div>
+                      </div>
+                    }
+
+                    <span class="text-xs font-semibold text-slate-700 truncate flex-1">{{ campo.etiqueta }}</span>
+
+                    @if (campo.archivoIA !== null) {
+                      <span class="text-xs font-medium truncate max-w-27.5"
+                            [class.text-blue-700]="!campo.yaLleno"
+                            [class.text-amber-600]="campo.yaLleno">
+                        📎 {{ campo.archivoIA.nombreOriginal }}
+                      </span>
+                      @if (campo.yaLleno) {
+                        <span class="text-[9px] bg-amber-100 text-amber-700 px-1 py-0.5 rounded font-bold shrink-0">reemplaza</span>
+                      }
+                    } @else {
+                      <span class="text-[10px] text-slate-400 italic shrink-0">no asignado</span>
+                    }
+                  </div>
+
+                } @else {
+                  <!-- Campos de texto / número / fecha / selección -->
+                  <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg transition-colors"
+                       [class.bg-emerald-50]="campo.valorIA !== null && campo.valido && !campo.yaLleno"
+                       [class.bg-amber-50]="campo.valorIA !== null && campo.valido && campo.yaLleno"
+                       [class.bg-red-50]="campo.valorIA !== null && !campo.valido"
+                       [class.bg-slate-50]="campo.valorIA === null">
+
+                    @if (campo.valorIA !== null && campo.valido && !campo.yaLleno) {
+                      <svg class="w-3.5 h-3.5 text-emerald-500 shrink-0" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/>
+                      </svg>
+                    } @else if (campo.valorIA !== null && campo.valido && campo.yaLleno) {
+                      <svg class="w-3.5 h-3.5 text-amber-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"/>
+                      </svg>
+                    } @else if (campo.valorIA !== null && !campo.valido) {
+                      <svg class="w-3.5 h-3.5 text-red-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"/>
+                      </svg>
+                    } @else {
+                      <div class="w-3.5 h-3.5 shrink-0 flex items-center justify-center">
+                        <div class="w-1.5 h-1.5 rounded-full bg-slate-300"></div>
+                      </div>
+                    }
+
+                    <span class="text-xs font-semibold text-slate-700 truncate flex-1">{{ campo.etiqueta }}</span>
+
+                    @if (campo.valorIA !== null && campo.valido) {
+                      <span class="text-xs font-medium truncate max-w-27.5"
+                            [class.text-emerald-700]="!campo.yaLleno"
+                            [class.text-amber-600]="campo.yaLleno">
+                        {{ formatearValor(campo.valorIA, campo.tipo) }}
+                      </span>
+                      @if (campo.yaLleno) {
+                        <span class="text-[9px] bg-amber-100 text-amber-700 px-1 py-0.5 rounded font-bold shrink-0">reemplaza</span>
+                      }
+                    } @else if (campo.valorIA !== null && !campo.valido) {
+                      <span class="text-xs text-red-500 italic shrink-0">inválido</span>
+                    } @else {
+                      <span class="text-[10px] text-slate-400 italic shrink-0">no detectado</span>
+                    }
+                  </div>
+                }
+
+              }
+            </div>
+
+            <!-- Toggle solo vacíos -->
+            @if (hayValoresAReemplazar(msg.preview)) {
+              <div class="px-3 pb-2">
+                <label class="flex items-center gap-2 cursor-pointer rounded-lg bg-amber-50 border border-amber-200 px-2.5 py-2">
+                  <input type="checkbox"
+                         [checked]="msg.soloVacios"
+                         (change)="msg.soloVacios = !msg.soloVacios"
+                         class="rounded accent-amber-600 w-3.5 h-3.5 shrink-0">
+                  <span class="text-xs text-amber-800">
+                    <span class="font-bold">Preservar campos ya completados</span>
+                    <span class="text-amber-600 block text-[10px]">Solo rellena los campos vacíos</span>
+                  </span>
+                </label>
+              </div>
+            }
+
+            <!-- Acciones -->
+            <div class="flex gap-2 p-3 pt-2 border-t border-slate-100">
+              <button type="button" (click)="reintentar(msg)"
+                      class="flex-1 py-2 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-600 transition-colors">
+                ↩ Reintentar
+              </button>
+              <button type="button"
+                      (click)="aplicarResultado(msg, msg.soloVacios ?? true)"
+                      [disabled]="camposAAplicar(msg.preview, msg.soloVacios ?? true) === 0"
+                      class="flex-2 py-2 rounded-xl text-xs font-bold text-white bg-emerald-600
+                             hover:bg-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed
+                             transition-colors flex items-center justify-center gap-1.5 shadow-sm">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/>
+                </svg>
+                Aplicar {{ camposAAplicar(msg.preview, msg.soloVacios ?? true) }} campo{{ camposAAplicar(msg.preview, msg.soloVacios ?? true) !== 1 ? 's' : '' }} al formulario
+              </button>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- ═══ ERROR (bot) ═══ -->
+      @if (msg.tipo === 'error' && msg.error) {
+        <div class="flex items-start gap-2.5 animate-in fade-in duration-200">
+          <div class="w-7 h-7 rounded-xl bg-red-500 flex items-center justify-center shrink-0 mt-0.5 shadow-sm">
+            <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"/>
+            </svg>
+          </div>
+          <div class="bg-red-50 border border-red-200 rounded-2xl rounded-tl-none px-4 py-3 max-w-[85%] shadow-sm">
+            <p class="text-sm font-semibold text-red-800">{{ msg.error.mensaje }}</p>
+            @if (msg.error.detalle) {
+              <p class="text-xs text-red-600 mt-1">{{ msg.error.detalle }}</p>
+            }
+          </div>
+        </div>
+      }
+
+    }
+  </div>
+
+  <!-- ── Zona de archivos adjuntos pendientes (múltiples chips) ─────────── -->
+  @if (archivosAdjuntos().length > 0) {
+    <div class="mx-3 mb-2 animate-in slide-in-from-bottom-2 duration-200">
+
+      <!-- Cabecera de la zona -->
+      <div class="flex items-center justify-between mb-1.5 px-0.5">
+        <span class="text-[10px] font-bold text-violet-700 uppercase tracking-wide">
+          {{ archivosAdjuntos().length }} archivo{{ archivosAdjuntos().length !== 1 ? 's' : '' }} adjunto{{ archivosAdjuntos().length !== 1 ? 's' : '' }}
+        </span>
+        <button type="button"
+                (click)="archivosAdjuntos.set([])"
+                class="text-[10px] text-slate-400 hover:text-red-500 font-medium transition-colors">
+          Quitar todos
+        </button>
+      </div>
+
+      <!-- Chips de archivos -->
+      <div class="flex flex-wrap gap-1.5 p-2 bg-violet-50 border border-violet-200 rounded-xl">
+        @for (adj of archivosAdjuntos(); track adj.file.name; let idx = $index) {
+          <div class="flex items-center gap-1.5 bg-white border border-violet-200 rounded-lg px-2 py-1.5
+                      shadow-sm max-w-45 group">
+
+            <!-- Miniatura o icono -->
+            @if (adj.file.type.startsWith('image/') && adj.previewUrl) {
+              <img [src]="adj.previewUrl" alt="Vista previa"
+                   class="w-7 h-7 rounded-md object-cover shrink-0 border border-violet-100">
+            } @else {
+              <div class="w-7 h-7 rounded-md bg-violet-100 flex items-center justify-center shrink-0">
+                <svg class="w-4 h-4 text-violet-600" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/>
+                </svg>
+              </div>
+            }
+
+            <!-- Info -->
+            <div class="min-w-0 flex-1">
+              <p class="text-[11px] font-semibold text-slate-700 truncate leading-tight">{{ adj.file.name }}</p>
+              <p class="text-[9px] text-slate-400 leading-tight">{{ (adj.file.size / 1_048_576).toFixed(2) }} MB</p>
+            </div>
+
+            <!-- Quitar -->
+            <button type="button"
+                    (click)="quitarArchivo(idx)"
+                    class="p-0.5 rounded text-slate-300 hover:text-red-500 hover:bg-red-50
+                           transition-colors shrink-0 opacity-0 group-hover:opacity-100"
+                    title="Quitar archivo">
+              <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+              </svg>
+            </button>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- ── Transcript en vivo mientras escucha ────────────────────────────── -->
+  @if (escuchando() && transcriptVivo()) {
+    <div class="mx-3 mb-1 px-3 py-1.5 bg-red-50 border border-red-200 rounded-xl
+                text-xs text-red-700 italic animate-in fade-in duration-150">
+      "{{ transcriptVivo() }}…"
+    </div>
+  }
+
+  <!-- ── Barra de input ──────────────────────────────────────────────────── -->
+  <div class="shrink-0 border-t border-slate-200 bg-white px-3 py-3">
+    <div class="flex items-end gap-2">
+
+      <!-- Botón adjuntar archivo -->
+      <button type="button" (click)="abrirSelectorArchivo()"
+              [disabled]="procesando() || archivosAdjuntos().length >= 10"
+              [title]="archivosAdjuntos().length >= 10 ? 'Máximo 10 archivos' : 'Adjuntar documentos o imágenes'"
+              class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-colors relative
+                     text-slate-400 hover:text-violet-600 hover:bg-violet-50 disabled:opacity-40 disabled:cursor-not-allowed">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round"
+            d="M18.375 12.739l-7.693 7.693a4.5 4.5 0 01-6.364-6.364l10.94-10.94A3 3 0 1119.5 7.372L8.552 18.32m.009-.01l-.01.01m5.699-9.941l-7.81 7.81a1.5 1.5 0 002.112 2.13"/>
+        </svg>
+        <!-- Badge contador de archivos -->
+        @if (archivosAdjuntos().length > 0) {
+          <span class="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-violet-600 text-white
+                       text-[9px] font-bold flex items-center justify-center leading-none">
+            {{ archivosAdjuntos().length }}
+          </span>
+        }
+      </button>
+
+      <!-- Input de texto -->
+      <div class="flex-1 relative">
+        <textarea
+          [ngModel]="inputTexto()"
+          (ngModelChange)="inputTexto.set($event)"
+          (keydown)="onEnterPresionado($event)"
+          rows="1"
+          [disabled]="procesando()"
+          [placeholder]="escuchando() ? 'Escuchando… habla ahora' :
+                         (archivosAdjuntos().length > 0 ? 'Añade un mensaje opcional…' :
+                         'Escribe o dicta los datos del formulario…')"
+          class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 text-slate-800 text-sm
+                 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-300 focus:border-violet-400
+                 resize-none overflow-hidden transition-all placeholder:text-slate-400
+                 disabled:opacity-60 disabled:cursor-not-allowed leading-relaxed"
+          style="min-height: 40px; max-height: 120px; field-sizing: content;">
+        </textarea>
+        @if (escuchando()) {
+          <div class="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center gap-1">
+            <span class="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></span>
+            <span class="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" style="animation-delay:0.2s"></span>
+            <span class="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" style="animation-delay:0.4s"></span>
+          </div>
+        }
+      </div>
+
+      <!-- Botón micrófono -->
+      @if (voz.speechSupported()) {
+        <button type="button" (click)="toggleMic()"
+                [disabled]="procesando()"
+                [title]="escuchando() ? 'Detener reconocimiento de voz' : 'Hablar (Web Speech API)'"
+                class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-all
+                       disabled:opacity-40 disabled:cursor-not-allowed relative"
+                [class.bg-red-500]="escuchando()"
+                [class.hover:bg-red-400]="escuchando()"
+                [class.text-white]="escuchando()"
+                [class.text-slate-400]="!escuchando()"
+                [class.hover:text-violet-600]="!escuchando()"
+                [class.hover:bg-violet-50]="!escuchando()">
+          @if (escuchando()) {
+            <span class="absolute inset-0 rounded-xl bg-red-400 opacity-40 animate-ping"></span>
+          }
+          <svg class="w-5 h-5 relative z-10" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z"/>
+          </svg>
+        </button>
+      }
+
+      <!-- Botón enviar -->
+      <button type="button"
+              (click)="enviar()"
+              [disabled]="!puedeEnviar()"
+              title="Enviar"
+              class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-all
+                     bg-violet-600 hover:bg-violet-500 text-white shadow-sm
+                     disabled:opacity-40 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:shadow-none">
+        @if (procesando()) {
+          <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+          </svg>
+        } @else {
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5"/>
+          </svg>
+        }
+      </button>
+    </div>
+
+    <!-- Hint de atajos -->
+    <p class="text-[10px] text-slate-400 text-center mt-2 font-medium">
+      @if (voz.speechSupported()) {
+        🎤 Voz instantánea · 📎 Hasta 10 archivos · Enter para enviar
+      } @else {
+        📎 Hasta 10 archivos · Shift+Enter nueva línea · Enter para enviar
+      }
+    </p>
+  </div>
+
+  <!-- Input oculto para seleccionar archivo (múltiple) -->
+  <input #archivoInputRef type="file" multiple
+         accept="image/jpeg,image/jpg,image/png,image/webp,image/gif,image/heic,image/heif,application/pdf"
+         class="sr-only"
+         (change)="onArchivoSeleccionado($event)">
+
+</aside>

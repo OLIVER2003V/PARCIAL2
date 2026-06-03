@@ -1,0 +1,38 @@
+/* 👇 NUEVO Colaboración: estilos del overlay de cursores remotos */
+
+.cursor-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 999;
+}
+
+.cursor-flotante {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+  transition: transform 80ms linear;
+  /* la transición suaviza el movimiento del cursor remoto sin verse robótico */
+  pointer-events: none;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+.cursor-label {
+  margin-top: 12px;
+  margin-left: 4px;
+  padding: 2px 8px;
+  border-radius: 6px;
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}

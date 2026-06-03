@@ -1,0 +1,15 @@
+@import "tailwindcss";
+
+@theme {
+  /* Horizonte Azul */
+  --color-brand-bg: #F0F9FF;         /* Sky 50 */
+  --color-brand-surface: #FFFFFF;    /* Blanco */
+  --color-brand-border: #BAE6FD;     /* Sky 200 */
+  --color-brand-muted: #64748B;      /* Slate 500 */
+  --color-brand-primary: #0284C7;    /* Sky 600 */
+  --color-brand-primary-hover: #0369A1; 
+  --color-brand-accent: #8B5CF6;     /* Violet 500 */
+
+  --background-image-brand-gradient: linear-gradient(to right, #0284C7, #3B82F6);
+  --shadow-brand-glow: 0 10px 25px -5px rgba(2, 132, 199, 0.3);
+}

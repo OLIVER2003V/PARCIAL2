@@ -1,0 +1,277 @@
+<!-- ════════════════════════════════════════════════════════════════════════
+     DocumentacionTramiteComponent — CU22
+     Panel de gestión de documentos adjuntos al expediente.
+     ════════════════════════════════════════════════════════════════════════ -->
+
+<!-- ── Zona drag & drop global ────────────────────────────────────────────── -->
+<div class="relative rounded-2xl border transition-all duration-200"
+     [class.border-violet-400]="arrastrando()"
+     [class.bg-violet-50]="arrastrando()"
+     [class.border-slate-200]="!arrastrando()"
+     [class.bg-white]="!arrastrando()"
+     (dragover)="onDragOver($event)"
+     (dragleave)="onDragLeave()"
+     (drop)="onDrop($event)">
+
+  <!-- Overlay de arrastrar -->
+  @if (arrastrando()) {
+    <div class="absolute inset-0 z-20 flex flex-col items-center justify-center
+                rounded-2xl pointer-events-none">
+      <svg class="w-10 h-10 text-violet-500 mb-2" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round"
+          d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/>
+      </svg>
+      <p class="text-violet-700 font-bold text-sm">Suelta para adjuntar al expediente</p>
+    </div>
+  }
+
+  <!-- ── Cabecera del panel ──────────────────────────────────────────────── -->
+  <div class="flex items-center justify-between px-5 py-3.5 border-b border-slate-100">
+    <div class="flex items-center gap-2.5">
+      <!-- Icono -->
+      <div class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
+           [class.bg-blue-100]="totalDocs() > 0"
+           [class.bg-slate-100]="totalDocs() === 0">
+        <svg class="w-3.5 h-3.5"
+             [class.text-blue-600]="totalDocs() > 0"
+             [class.text-slate-400]="totalDocs() === 0"
+             fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round"
+            d="M18.375 12.739l-7.693 7.693a4.5 4.5 0 01-6.364-6.364l10.94-10.94A3 3 0 1119.5 7.372L8.552 18.32m.009-.01l-.01.01m5.699-9.941l-7.81 7.81a1.5 1.5 0 002.112 2.13"/>
+        </svg>
+      </div>
+      <div>
+        <h3 class="text-sm font-bold text-slate-800">Documentación del expediente</h3>
+        @if (paso) {
+          <p class="text-[10px] text-slate-400 font-medium">Paso: {{ paso }}</p>
+        }
+      </div>
+      <!-- Badge contador -->
+      @if (totalDocs() > 0) {
+        <span class="px-2 py-0.5 bg-blue-100 text-blue-700 text-[10px] font-black rounded-full">
+          {{ totalDocs() }}
+        </span>
+      }
+    </div>
+
+    <div class="flex items-center gap-2">
+      <!-- Botón subir -->
+      @if (modoEdicion) {
+        <button type="button"
+                (click)="abrirSelector()"
+                [disabled]="subiendo()"
+                title="Adjuntar documento"
+                class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold
+                       bg-blue-600 hover:bg-blue-500 text-white transition-colors
+                       disabled:opacity-50 disabled:cursor-not-allowed shadow-sm">
+          @if (subiendo()) {
+            <svg class="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+            </svg>
+            Subiendo…
+          } @else {
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/>
+            </svg>
+            Adjuntar
+          }
+        </button>
+      }
+      <!-- Toggle colapso -->
+      <button type="button"
+              (click)="colapsado.set(!colapsado())"
+              class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors">
+        <svg class="w-4 h-4 transition-transform duration-200"
+             [class.rotate-180]="!colapsado()"
+             fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- ── Cuerpo colapsable ───────────────────────────────────────────────── -->
+  @if (!colapsado()) {
+
+    <!-- Error -->
+    @if (errorMsg()) {
+      <div class="mx-4 mt-3 flex items-center gap-2 px-3 py-2.5 bg-red-50 border border-red-200 rounded-xl text-xs font-semibold text-red-700">
+        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"/>
+        </svg>
+        {{ errorMsg() }}
+      </div>
+    }
+
+    <!-- Cargando -->
+    @if (cargando()) {
+      <div class="flex items-center justify-center py-10 gap-3">
+        <div class="w-5 h-5 border-2 border-blue-200 border-t-blue-500 rounded-full animate-spin"></div>
+        <span class="text-xs text-slate-400 font-medium">Cargando documentos…</span>
+      </div>
+    }
+
+    <!-- Sin documentos -->
+    @if (!cargando() && documentos().length === 0) {
+      <div class="flex flex-col items-center justify-center py-10 px-4 text-center">
+        <div class="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center mb-3">
+          <svg class="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/>
+          </svg>
+        </div>
+        <p class="text-sm font-bold text-slate-600">Sin documentos adjuntos</p>
+        @if (modoEdicion) {
+          <p class="text-xs text-slate-400 mt-1">Arrastra archivos aquí o usa el botón "Adjuntar".</p>
+          <p class="text-[10px] text-slate-300 mt-1">PDF · Word · Excel · JPG · PNG · WebP · máx. 10 MB</p>
+        }
+      </div>
+    }
+
+    <!-- Lista de documentos -->
+    @if (!cargando() && documentos().length > 0) {
+      <div class="divide-y divide-slate-50">
+        @for (doc of documentos(); track doc.id) {
+          <div class="px-4 py-3 hover:bg-slate-50/60 transition-colors group">
+            <div class="flex items-start gap-3">
+
+              <!-- Icono de tipo -->
+              <div class="w-9 h-9 rounded-xl bg-slate-100 flex items-center justify-center shrink-0 text-lg mt-0.5">
+                {{ iconoTipo(doc.tipoMime) }}
+              </div>
+
+              <!-- Info principal -->
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <p class="text-sm font-bold text-slate-800 truncate max-w-52">{{ doc.nombreOriginal }}</p>
+                  <!-- Badge tipo -->
+                  <span class="text-[9px] font-black uppercase tracking-wide px-1.5 py-0.5 rounded-md shrink-0"
+                        [class.bg-red-100]="doc.tipoMime.includes('pdf')"
+                        [class.text-red-700]="doc.tipoMime.includes('pdf')"
+                        [class.bg-blue-100]="doc.tipoMime.startsWith('image')"
+                        [class.text-blue-700]="doc.tipoMime.startsWith('image')"
+                        [class.bg-slate-100]="!doc.tipoMime.includes('pdf') && !doc.tipoMime.startsWith('image')"
+                        [class.text-slate-600]="!doc.tipoMime.includes('pdf') && !doc.tipoMime.startsWith('image')">
+                    {{ etiquetaTipo(doc.tipoMime) }}
+                  </span>
+                  <!-- Badge versión (si hay más de 1) -->
+                  @if (doc.versiones.length > 1) {
+                    <button type="button"
+                            (click)="toggleHistorial(doc.id)"
+                            class="text-[9px] font-black px-1.5 py-0.5 rounded-md bg-amber-100 text-amber-700 hover:bg-amber-200 transition-colors shrink-0">
+                      v{{ doc.versiones.length }} ▾
+                    </button>
+                  }
+                </div>
+
+                <!-- Meta: tamaño + quién subió + paso -->
+                <div class="flex items-center gap-2 mt-0.5 flex-wrap">
+                  @if (versionActual(doc); as v) {
+                    <span class="text-[10px] text-slate-400">{{ formatearTamano(v.tamano) }}</span>
+                    <span class="text-[10px] text-slate-300">·</span>
+                    <span class="text-[10px] text-slate-400 truncate max-w-28">{{ v.subidoPor }}</span>
+                    @if (v.paso) {
+                      <span class="text-[10px] text-slate-300">·</span>
+                      <span class="text-[10px] text-violet-500 font-semibold truncate max-w-28">{{ v.paso }}</span>
+                    }
+                    @if (v.rol) {
+                      <span class="text-[9px] uppercase font-bold tracking-wide px-1 py-0.5 rounded shrink-0"
+                            [class.bg-indigo-50]="v.rol === 'FUNCIONARIO' || v.rol === 'ADMIN'"
+                            [class.text-indigo-600]="v.rol === 'FUNCIONARIO' || v.rol === 'ADMIN'"
+                            [class.bg-emerald-50]="v.rol === 'CLIENTE'"
+                            [class.text-emerald-600]="v.rol === 'CLIENTE'">
+                        {{ v.rol }}
+                      </span>
+                    }
+                  }
+                  <span class="text-[10px] text-slate-300">·</span>
+                  <span class="text-[10px] text-slate-400">{{ formatearFecha(doc.creadoEn) }}</span>
+                </div>
+
+                <!-- Historial de versiones (expandible) -->
+                @if (historialAbierto() === doc.id && doc.versiones.length > 1) {
+                  <div class="mt-2 ml-0 space-y-1 border-l-2 border-amber-200 pl-3">
+                    @for (v of doc.versiones; track v.numero) {
+                      <div class="flex items-center gap-2 py-1">
+                        <span class="text-[9px] font-black bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded shrink-0">v{{ v.numero }}</span>
+                        <span class="text-[10px] text-slate-500 truncate">{{ v.subidoPor }}</span>
+                        <span class="text-[10px] text-slate-400">{{ formatearFecha(v.fechaSubida) }}</span>
+                        <span class="text-[10px] text-slate-400">{{ formatearTamano(v.tamano) }}</span>
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+
+              <!-- Acciones -->
+              <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                <!-- Previsualizar / abrir -->
+                <button type="button"
+                        (click)="previsualizarOAbrir(doc)"
+                        title="Ver documento"
+                        class="p-1.5 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.964-7.178z M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                  </svg>
+                </button>
+                <!-- Eliminar (solo roles con permiso) -->
+                @if (modoEdicion && permiteEliminar) {
+                  <button type="button"
+                          (click)="eliminar(doc)"
+                          title="Eliminar documento"
+                          class="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/>
+                    </svg>
+                  </button>
+                }
+              </div>
+
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Pie: tip de drag & drop -->
+      @if (modoEdicion) {
+        <div class="px-5 py-2.5 border-t border-slate-50 bg-slate-50/50 rounded-b-2xl">
+          <p class="text-[10px] text-slate-400 text-center font-medium">
+            📎 Arrastra archivos aquí · PDF, Word, Excel, JPG, PNG, WebP · máx. 10 MB por archivo · máx. 20 documentos
+          </p>
+        </div>
+      }
+    }
+
+  }
+
+</div>
+
+<!-- Input oculto para selector múltiple -->
+<input #fileInputRef type="file" multiple
+       accept=".pdf,.doc,.docx,.xls,.xlsx,image/jpeg,image/jpg,image/png,image/webp,image/heic,image/heif"
+       class="sr-only"
+       (change)="onArchivoSeleccionado($event)">
+
+<!-- ── Modal de imagen ────────────────────────────────────────────────────── -->
+@if (imagenModal()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
+       (click)="cerrarModal()"
+       (keydown.escape)="cerrarModal()"
+       role="dialog" aria-modal="true">
+    <div class="relative max-w-4xl max-h-[90vh]" (click)="$event.stopPropagation()">
+      <img [src]="imagenModal()!" alt="Documento adjunto"
+           class="max-w-full max-h-[85vh] object-contain rounded-2xl shadow-2xl border border-white/10">
+      <button type="button"
+              (click)="cerrarModal()"
+              class="absolute -top-3 -right-3 w-8 h-8 rounded-full bg-white text-slate-800
+                     flex items-center justify-center shadow-lg hover:bg-red-50 hover:text-red-600 transition-colors">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+}

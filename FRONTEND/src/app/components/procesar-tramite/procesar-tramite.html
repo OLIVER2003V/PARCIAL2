@@ -1,0 +1,1102 @@
+<div class="max-w-7xl mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 p-4 md:p-6">
+
+  <!-- ══ Header ══════════════════════════════════════════════════════════ -->
+  <div class="relative overflow-hidden rounded-2xl bg-linear-to-br from-slate-800 via-slate-900 to-slate-950 border border-slate-700/60 shadow-xl p-6">
+    <div class="absolute inset-0 opacity-10"
+         style="background-image:radial-gradient(circle, #6366f1 1px, transparent 1px); background-size:28px 28px;"></div>
+    <div class="absolute top-0 right-0 w-72 h-72 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none"></div>
+
+    <div class="relative flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div class="flex items-center gap-4">
+        <div class="w-12 h-12 bg-indigo-500/15 border border-indigo-500/30 rounded-2xl flex items-center justify-center shrink-0">
+          <!-- FIX: SVG Path corregido -->
+          <svg class="w-6 h-6 text-indigo-400" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10.125 2.25h-4.5c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125v-9M10.125 2.25h.375a9 9 0 019 9v.375M10.125 2.25A3.375 3.375 0 0113.5 5.625v1.5c0 .621.504 1.125 1.125 1.125h1.5a3.375 3.375 0 013.375 3.375M9 15l2.25 2.25L15 12" />
+          </svg>
+        </div>
+        <div>
+          <h2 class="text-2xl sm:text-3xl font-black text-white tracking-tight">Resolución de Expediente</h2>
+          <!-- ... resto del código ... -->
+          <p class="text-slate-400 text-sm mt-0.5">
+            @if (nombrePasoActual()) {
+              Etapa actual:
+              <span class="text-indigo-400 font-bold">{{ nombrePasoActual() }}</span>
+            } @else {
+              Evaluación técnica y dictamen oficial
+            }
+          </p>
+        </div>
+      </div>
+
+      <a routerLink="/bandeja"
+         class="inline-flex items-center gap-2 px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 rounded-xl text-sm font-bold transition-all active:scale-95 shrink-0">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"/>
+        </svg>
+        Volver a Bandeja
+      </a>
+    </div>
+  </div>
+
+  <!-- ══ Éxito ════════════════════════════════════════════════════════════ -->
+  @if (mensajeExito()) {
+    <div class="flex items-center gap-3 p-5 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 rounded-2xl font-bold shadow-lg">
+      <svg class="w-6 h-6 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      </svg>
+      Dictamen firmado y guardado con éxito. Redirigiendo...
+    </div>
+  }
+
+  <!-- ══ Loading ══════════════════════════════════════════════════════════ -->
+  @if (!tramiteActual() && isLoading()) {
+    <div class="flex flex-col items-center justify-center py-32 space-y-4">
+      <div class="w-14 h-14 border-4 border-indigo-500/20 border-t-indigo-500 rounded-full animate-spin"></div>
+      <p class="text-slate-500 font-bold tracking-widest uppercase text-xs">Cargando expediente...</p>
+    </div>
+  }
+
+  <!-- ══ Content ══════════════════════════════════════════════════════════ -->
+  @if (tramiteActual()) {
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+      <!-- ── LEFT COLUMN ──────────────────────────────────────────────── -->
+      <div class="lg:col-span-5 space-y-5">
+
+        <!-- Ficha del Trámite -->
+        <div class="bg-brand-surface rounded-2xl border border-brand-border overflow-hidden shadow-lg">
+          <div class="px-5 py-4 border-b border-brand-border flex items-center gap-2.5">
+            <div class="w-7 h-7 bg-sky-100 rounded-lg flex items-center justify-center">
+              <svg class="w-3.5 h-3.5 text-sky-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 9h3.75M15 12h3.75M15 15h3.75M4.5 19.5h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5zm6-10.125a1.875 1.875 0 11-3.75 0 1.875 1.875 0 013.75 0zm1.294 6.336a6.721 6.721 0 01-3.17.789 6.721 6.721 0 01-3.168-.789 3.376 3.376 0 016.338 0z"/>
+              </svg>
+            </div>
+            <h3 class="text-sm font-bold text-slate-800">Ficha del Trámite</h3>
+          </div>
+
+          <div class="p-5 space-y-4">
+            <div class="grid grid-cols-2 gap-3">
+              <div class="bg-brand-bg rounded-xl p-3 border border-brand-border">
+                <p class="text-[10px] text-brand-muted uppercase font-black tracking-widest mb-1">Código</p>
+                <p class="font-mono text-indigo-400 font-bold text-sm">{{ tramiteActual()?.codigoSeguimiento }}</p>
+              </div>
+              <div class="bg-brand-bg rounded-xl p-3 border border-brand-border">
+                <p class="text-[10px] text-brand-muted uppercase font-black tracking-widest mb-1">Ingreso</p>
+                <p class="text-slate-700 text-xs font-semibold">{{ tramiteActual()?.fechaCreacion | date:'dd/MM/yy HH:mm' }}</p>
+              </div>
+            </div>
+
+            <div class="bg-brand-bg rounded-xl p-3 border border-brand-border flex items-center gap-3">
+              <div class="w-9 h-9 rounded-full bg-linear-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white font-black text-sm shrink-0 shadow-sm">
+                {{ (tramiteActual()?.clienteId || '?').charAt(0).toUpperCase() }}
+              </div>
+              <div class="min-w-0">
+                <p class="text-[10px] text-brand-muted uppercase font-black tracking-widest">Solicitante</p>
+                <p class="text-slate-800 font-bold text-sm truncate">{{ tramiteActual()?.clienteId }}</p>
+              </div>
+            </div>
+
+            <div>
+              <p class="text-[10px] text-brand-muted uppercase font-black tracking-widest mb-2">Relato del caso</p>
+              <div class="bg-brand-bg rounded-xl p-3 border border-brand-border">
+                <p class="text-xs text-slate-600 italic leading-relaxed line-clamp-4">{{ tramiteActual()?.descripcion }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- CU24 ── Panel de Análisis de Riesgo IA ────────────────────────── -->
+        @if (tramiteActual()?.motivoPrediccion) {
+          <div class="rounded-2xl border overflow-hidden shadow-lg"
+               [class]="tramiteActual()?.nivelPrioridad === 'CRITICO'
+                 ? 'bg-red-50 border-red-200'
+                 : tramiteActual()?.nivelPrioridad === 'ALTO'
+                   ? 'bg-amber-50 border-amber-200'
+                   : 'bg-emerald-50 border-emerald-200'">
+
+            <!-- Header -->
+            <div class="px-5 py-3.5 flex items-center justify-between border-b"
+                 [class]="tramiteActual()?.nivelPrioridad === 'CRITICO'
+                   ? 'border-red-200 bg-red-100/60'
+                   : tramiteActual()?.nivelPrioridad === 'ALTO'
+                     ? 'border-amber-200 bg-amber-100/60'
+                     : 'border-emerald-200 bg-emerald-100/60'">
+              <div class="flex items-center gap-2.5">
+                <div class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
+                     [class]="tramiteActual()?.nivelPrioridad === 'CRITICO'
+                       ? 'bg-red-200 border border-red-300'
+                       : tramiteActual()?.nivelPrioridad === 'ALTO'
+                         ? 'bg-amber-200 border border-amber-300'
+                         : 'bg-emerald-200 border border-emerald-300'">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
+                       [class]="tramiteActual()?.nivelPrioridad === 'CRITICO'
+                         ? 'text-red-700'
+                         : tramiteActual()?.nivelPrioridad === 'ALTO'
+                           ? 'text-amber-700'
+                           : 'text-emerald-700'">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M14.25 3.104c.251.023.501.05.75.082M19.8 15.3l-1.57.393A9.065 9.065 0 0112 15a9.065 9.065 0 00-6.23-.693L5 14.5m14.8.8l1.402 1.402c1 1 .03 2.798-1.332 2.798H4.13c-1.361 0-2.332-1.797-1.332-2.798L4.2 15.3"/>
+                  </svg>
+                </div>
+                <h3 class="text-sm font-bold text-slate-800">Análisis de Riesgo IA</h3>
+              </div>
+
+              <!-- Chip nivel -->
+              <span class="inline-flex items-center gap-1 px-2.5 py-1 text-[10px] font-black rounded-lg border"
+                    [class]="tramiteActual()?.nivelPrioridad === 'CRITICO'
+                      ? 'bg-red-100 text-red-800 border-red-300'
+                      : tramiteActual()?.nivelPrioridad === 'ALTO'
+                        ? 'bg-amber-100 text-amber-800 border-amber-300'
+                        : 'bg-emerald-100 text-emerald-800 border-emerald-300'">
+                {{ tramiteActual()?.nivelPrioridad === 'CRITICO' ? '🔴 CRÍTICO'
+                 : tramiteActual()?.nivelPrioridad === 'ALTO'    ? '🟡 ALTO'
+                 :                                                 '🟢 NORMAL' }}
+              </span>
+            </div>
+
+            <!-- Body -->
+            <div class="px-5 py-4 space-y-3">
+
+              <!-- Barra de riesgo -->
+              <div>
+                <div class="flex justify-between items-center text-xs font-semibold mb-1.5">
+                  <span class="text-slate-500">Riesgo de demora</span>
+                  <span class="font-black"
+                        [class]="tramiteActual()?.nivelPrioridad === 'CRITICO'
+                          ? 'text-red-700'
+                          : tramiteActual()?.nivelPrioridad === 'ALTO'
+                            ? 'text-amber-700'
+                            : 'text-emerald-700'">
+                    {{ ((tramiteActual()?.riesgoDemora ?? 0) * 100).toFixed(0) }}%
+                  </span>
+                </div>
+                <div class="w-full bg-white/70 rounded-full h-2.5 border border-white">
+                  <div class="h-2.5 rounded-full transition-all"
+                       [style.width]="((tramiteActual()?.riesgoDemora ?? 0) * 100).toFixed(0) + '%'"
+                       [class]="tramiteActual()?.nivelPrioridad === 'CRITICO'
+                         ? 'bg-red-500'
+                         : tramiteActual()?.nivelPrioridad === 'ALTO'
+                           ? 'bg-amber-400'
+                           : 'bg-emerald-500'">
+                  </div>
+                </div>
+              </div>
+
+              <!-- Motivo de la predicción -->
+              <p class="text-xs text-slate-600 leading-relaxed">
+                {{ tramiteActual()?.motivoPrediccion }}
+              </p>
+
+              <!-- Badge anomalía -->
+              @if (tramiteActual()?.esAnomalia) {
+                <div class="flex items-center gap-2 px-3 py-2 bg-red-100 border border-red-300 rounded-xl">
+                  <svg class="w-3.5 h-3.5 text-red-600 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/>
+                  </svg>
+                  <span class="text-xs font-bold text-red-700">Anomalía detectada — patrón atípico en este trámite</span>
+                </div>
+              }
+
+            </div>
+          </div>
+
+        } @else {
+          <!-- Sin análisis aún -->
+          <div class="bg-slate-50 rounded-2xl border border-slate-200 px-5 py-4 flex items-center gap-3">
+            <div class="w-7 h-7 bg-slate-100 rounded-lg border border-slate-200 flex items-center justify-center shrink-0">
+              <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M14.25 3.104c.251.023.501.05.75.082M19.8 15.3l-1.57.393A9.065 9.065 0 0112 15a9.065 9.065 0 00-6.23-.693L5 14.5m14.8.8l1.402 1.402c1 1 .03 2.798-1.332 2.798H4.13c-1.361 0-2.332-1.797-1.332-2.798L4.2 15.3"/>
+              </svg>
+            </div>
+            <div>
+              <p class="text-xs font-bold text-slate-600">Análisis de riesgo pendiente</p>
+              <p class="text-[10px] text-slate-400 mt-0.5">El modelo IA procesará este trámite al avanzar al siguiente paso.</p>
+            </div>
+          </div>
+        }
+
+        <!-- Expediente -->
+        <div class="bg-brand-surface rounded-2xl border border-purple-500/20 overflow-hidden shadow-lg">
+          <div class="px-5 py-4 border-b border-purple-500/15">
+            <div class="flex items-center justify-between mb-3">
+              <div class="flex items-center gap-2.5">
+                <div class="w-7 h-7 bg-purple-500/15 rounded-lg flex items-center justify-center">
+                  <svg class="w-3.5 h-3.5 text-purple-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.75V12A2.25 2.25 0 014.5 9.75h15A2.25 2.25 0 0121.75 12v.75m-8.69-6.44l-2.12-2.12a1.5 1.5 0 00-1.061-.44H4.5A2.25 2.25 0 002.25 6v12a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9a2.25 2.25 0 00-2.25-2.25h-5.379a1.5 1.5 0 01-1.06-.44z"/>
+                  </svg>
+                </div>
+                <h3 class="text-sm font-bold text-slate-800">Expediente del trámite</h3>
+              </div>
+              <button (click)="expedienteColapsado.set(!expedienteColapsado())"
+                      class="flex items-center gap-1.5 text-xs text-brand-muted hover:text-slate-900 transition px-2.5 py-1.5 rounded-lg hover:bg-sky-50">
+                <svg class="w-3.5 h-3.5 transition-transform duration-200" [class.rotate-180]="!expedienteColapsado()"
+                     fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5"/>
+                </svg>
+                {{ expedienteColapsado() ? 'Mostrar' : 'Ocultar' }}
+              </button>
+            </div>
+
+            @if (!expedienteColapsado()) {
+              <div class="flex gap-2">
+                <button (click)="tabExpediente.set('datos')"
+                        class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold border transition"
+                        [class]="tabExpediente() === 'datos'
+                          ? 'bg-purple-500/20 text-purple-300 border-purple-500/40'
+                          : 'bg-brand-bg text-brand-muted border-brand-border hover:text-slate-800'">
+                  <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"/>
+                  </svg>
+                  Datos del cliente
+                  @if (tieneDatosCliente()) {
+                    <span class="ml-0.5 bg-purple-500/30 px-1.5 rounded text-[10px]">{{ entradasCliente().length }}</span>
+                  }
+                </button>
+                <button (click)="tabExpediente.set('dictamenes')"
+                        class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold border transition"
+                        [class]="tabExpediente() === 'dictamenes'
+                          ? 'bg-purple-500/20 text-purple-300 border-purple-500/40'
+                          : 'bg-brand-bg text-brand-muted border-brand-border hover:text-slate-800'">
+                  <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75m-7.5 3h15M3.375 4.5C2.339 4.5 1.5 5.34 1.5 6.375V13.5h21V6.375c0-1.036-.84-1.875-1.875-1.875H3.375z"/>
+                  </svg>
+                  Dictámenes previos
+                  @if (dictamenesPrevios().length > 0) {
+                    <span class="ml-0.5 bg-purple-500/30 px-1.5 rounded text-[10px]">{{ dictamenesPrevios().length }}</span>
+                  }
+                </button>
+              </div>
+            }
+          </div>
+
+          @if (!expedienteColapsado()) {
+            <div class="p-4 max-h-120 overflow-y-auto">
+              <!-- TAB: Datos del cliente -->
+              @if (tabExpediente() === 'datos') {
+                @if (tieneDatosCliente()) {
+                  <div class="space-y-3">
+                    @for (entrada of entradasCliente(); track entrada.id) {
+                      <div class="bg-brand-bg p-3 rounded-xl border border-brand-border">
+                        <p class="text-[10px] text-brand-muted uppercase font-black mb-1.5">{{ entrada.etiqueta }}</p>
+                        @switch (entrada.tipo) {
+                          @case ('archivo') {
+                            @if (entrada.valor?.url) {
+                              <a [href]="urlArchivoCompleta(entrada.valor.url)" target="_blank"
+                                 class="flex items-center gap-2 p-2 bg-emerald-500/5 border border-emerald-500/20 rounded-lg hover:bg-emerald-500/10 transition">
+                                <svg class="w-5 h-5 text-emerald-400 shrink-0" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                                  <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/>
+                                </svg>
+                                <div class="flex-1 min-w-0">
+                                  <p class="text-xs text-slate-800 font-bold truncate">{{ entrada.valor.nombreOriginal }}</p>
+                                  <p class="text-[10px] text-emerald-400">Ver archivo →</p>
+                                </div>
+                              </a>
+                            } @else {
+                              <p class="text-xs text-slate-500 italic">Sin archivo</p>
+                            }
+                          }
+                          @case ('imagen') {
+                            @if (entrada.valor?.url) {
+                              <a [href]="urlArchivoCompleta(entrada.valor.url)" target="_blank">
+                                <img [src]="urlArchivoCompleta(entrada.valor.url)"
+                                     class="w-full max-h-48 object-contain rounded-lg border border-brand-border bg-black hover:opacity-80 transition">
+                              </a>
+                            } @else {
+                              <p class="text-xs text-slate-500 italic">Sin imagen</p>
+                            }
+                          }
+                          @case ('firma') {
+                            @if (entrada.valor?.url) {
+                              <div class="bg-white p-2 rounded-lg border border-emerald-500/30">
+                                <p class="text-[9px] font-bold uppercase tracking-widest text-emerald-700 mb-1">Firma del solicitante</p>
+                                <img [src]="urlArchivoCompleta(entrada.valor.url)" class="w-full max-h-32 object-contain bg-white rounded">
+                              </div>
+                            } @else {
+                              <p class="text-xs text-slate-500 italic">Sin firma</p>
+                            }
+                          }
+                          @case ('checkbox') {
+                            @if (entrada.valor && entrada.valor.length > 0) {
+                              <div class="flex flex-wrap gap-1">
+                                @for (v of entrada.valor; track v) {
+                                  <span class="px-2 py-0.5 bg-purple-100 text-purple-700 text-[10px] rounded-md">{{ v }}</span>
+                                }
+                              </div>
+                            } @else {
+                              <p class="text-xs text-slate-500 italic">—</p>
+                            }
+                          }
+                          @case ('si_no') {
+                            <p class="text-sm font-bold" [class]="entrada.valor === 'SI' ? 'text-emerald-400' : 'text-red-400'">
+                              {{ entrada.valor === 'SI' ? '✓ Sí' : '✗ No' }}
+                            </p>
+                          }
+                          @case ('calificacion') {
+                            <div class="flex gap-0.5">
+                              @for (n of [1,2,3,4,5]; track n) {
+                                <span class="text-lg" [class.text-amber-400]="n <= (entrada.valor ?? 0)"
+                                      [class.text-brand-border]="n > (entrada.valor ?? 0)">★</span>
+                              }
+                            </div>
+                          }
+                          @case ('tabla') {
+                            @if (entrada.valor && entrada.valor.length > 0) {
+                              <div class="overflow-x-auto bg-white border border-brand-border rounded-xl mt-2">
+                                <table class="w-full text-left text-xs">
+                                  <thead class="bg-slate-50 border-b border-brand-border text-brand-muted uppercase tracking-wider">
+                                    <tr>
+                                      <th class="w-8 p-2 text-center">#</th>
+                                      @for (col of entrada.columnas; track col.id) {
+                                        <th class="p-2 font-bold">{{ col.etiqueta }}</th>
+                                      }
+                                    </tr>
+                                  </thead>
+                                  <tbody class="divide-y divide-brand-border">
+                                    @for (fila of entrada.valor; track $index) {
+                                      <tr class="hover:bg-slate-50/50 transition-colors">
+                                        <td class="p-2 text-center text-slate-400 font-medium">{{ $index + 1 }}</td>
+                                        @for (col of entrada.columnas; track col.id) {
+                                          <td class="p-2 text-slate-700">
+                                            @if (col.tipo === 'booleano') {
+                                              <span [class]="fila[col.id] === 'si' ? 'text-emerald-600 font-bold' : (fila[col.id] === 'no' ? 'text-red-500 font-bold' : '')">
+                                                {{ fila[col.id] === 'si' ? 'Sí' : (fila[col.id] === 'no' ? 'No' : (fila[col.id] || '—')) }}
+                                              </span>
+                                            } @else if (col.tipo === 'checkbox') {
+                                              <span [class]="fila[col.id] ? 'text-emerald-600 font-bold' : 'text-slate-400'">
+                                                {{ fila[col.id] ? '✓ Sí' : '—' }}
+                                              </span>
+                                            } @else {
+                                              {{ fila[col.id] || '—' }}
+                                            }
+                                          </td>
+                                        }
+                                      </tr>
+                                    }
+                                  </tbody>
+                                </table>
+                              </div>
+                            } @else {
+                              <p class="text-xs text-slate-500 italic mt-1">Tabla sin registros</p>
+                            }
+                          }
+
+
+
+                          @case ('documento-texto') {
+                            <app-editor-texto-colaborativo
+                              [documentoId]="'borrador_' + tramiteActual()!.procesoDefinicionId + '_' + entrada.id"
+                              [soloLectura]="true"
+                              class="block w-full mt-1">
+                            </app-editor-texto-colaborativo>
+                          }
+                          @case ('documento-hoja') {
+                            <app-hoja-calculo-colaborativa
+                              [documentoId]="'borrador_' + tramiteActual()!.procesoDefinicionId + '_' + entrada.id"
+                              [soloLectura]="true"
+                              class="block w-full mt-1">
+                            </app-hoja-calculo-colaborativa>
+                          }
+                          @default {
+                            <p class="text-sm text-slate-800 wrap-break-word whitespace-pre-wrap">
+                              {{ formatearValor(entrada.valor, entrada.tipo) }}
+                            </p>
+                          }
+                        }
+                      </div>
+                    }
+                  </div>
+                } @else {
+                  <div class="text-center py-8">
+                    <div class="w-12 h-12 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-3 border border-brand-border">
+                      <svg class="w-6 h-6 text-slate-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 13.5h3.86a2.25 2.25 0 012.012 1.244l.256.512a2.25 2.25 0 002.013 1.244h3.218a2.25 2.25 0 002.013-1.244l.256-.512a2.25 2.25 0 012.013-1.244h3.859m-19.5.338V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18v-4.162c0-.224-.034-.447-.1-.661L19.24 5.338a2.25 2.25 0 00-2.15-1.588H6.911a2.25 2.25 0 00-2.15 1.588L2.35 13.177a2.25 2.25 0 00-.1.661z"/>
+                      </svg>
+                    </div>
+                    <p class="text-xs text-brand-muted italic">Este trámite no tiene formulario inicial del cliente.</p>
+                    <p class="text-[10px] text-brand-muted mt-1">El cliente solo envió la descripción general.</p>
+                  </div>
+                }
+              }
+
+              <!-- TAB: Dictámenes previos -->
+              @if (tabExpediente() === 'dictamenes') {
+                @if (dictamenesPrevios().length > 0) {
+                  <div class="space-y-3">
+                    @for (log of dictamenesPrevios(); track log.id) {
+                      <div class="bg-brand-bg rounded-xl border border-brand-border overflow-hidden">
+                        <div class="px-4 py-3 border-b border-brand-border flex items-start justify-between gap-3">
+                          <div>
+                            <span class="text-[10px] uppercase font-black tracking-widest"
+                                  [class]="'text-' + colorAccion(log.accion) + '-400'">{{ log.accion }}</span>
+                            <p class="text-xs text-slate-800 font-bold mt-0.5">{{ log.usuarioId }}</p>
+                            <p class="text-[10px] text-brand-muted">{{ log.fechaTimestamp | date:'dd/MM/yy HH:mm' }}</p>
+                          </div>
+                          <span class="px-2 py-1 text-[10px] font-bold rounded-lg whitespace-nowrap"
+                                [class]="'bg-' + colorAccion(log.accion) + '-500/10 text-' + colorAccion(log.accion) + '-300 border border-' + colorAccion(log.accion) + '-500/20'">
+                            {{ nombreDepartamento(log.departamentoId) }}
+                          </span>
+                        </div>
+
+                        <div class="p-3">
+                          @if (entradasDictamen(log).length > 0) {
+                            <div class="space-y-2">
+                              @for (e of entradasDictamen(log); track e.id) {
+                                <div class="flex justify-between items-start gap-2 text-xs">
+                                  <span class="text-brand-muted shrink-0">{{ e.etiqueta }}:</span>
+                                  <span class="text-slate-800 text-right wrap-break-word">
+                                    @switch (e.tipo) {
+                                      @case ('archivo') {
+                                        @if (e.valor?.url) {
+                                          <a [href]="urlArchivoCompleta(e.valor.url)" target="_blank" class="text-amber-400 hover:underline flex items-center gap-1">
+                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/></svg>
+                                            Ver archivo
+                                          </a>
+                                        } @else { — }
+                                      }
+                                      @case ('imagen') {
+                                        @if (e.valor?.url) {
+                                          <a [href]="urlArchivoCompleta(e.valor.url)" target="_blank" class="text-amber-400 hover:underline">Ver imagen</a>
+                                        } @else { — }
+                                      }
+                                      @default { {{ formatearValor(e.valor, e.tipo) }} }
+                                    }
+                                  </span>
+                                </div>
+                              }
+                            </div>
+                          } @else {
+                            <p class="text-[10px] text-brand-muted italic">Solo se registró el dictamen, sin campos adicionales.</p>
+                          }
+                          @if (log.detalle) {
+                            <p class="text-[10px] text-brand-muted italic mt-2 pt-2 border-t border-brand-border">"{{ log.detalle }}"</p>
+                          }
+                        </div>
+                      </div>
+                    }
+                  </div>
+                } @else {
+                  <div class="text-center py-8">
+                    <div class="w-12 h-12 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-3 border border-brand-border">
+                      <svg class="w-6 h-6 text-slate-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25z"/>
+                      </svg>
+                    </div>
+                    <p class="text-xs text-brand-muted italic">Aún no hay dictámenes de funcionarios previos.</p>
+                    <p class="text-[10px] text-brand-muted mt-1">Este es el primer paso del flujo.</p>
+                  </div>
+                }
+              }
+
+            </div>
+          }
+        </div>
+
+        <!-- Hoja de Ruta / Timeline -->
+        <div class="bg-brand-surface rounded-2xl border border-brand-border overflow-hidden shadow-lg">
+          <div class="px-5 py-4 border-b border-brand-border flex items-center gap-2.5">
+            <div class="w-7 h-7 bg-sky-100 rounded-lg flex items-center justify-center">
+              <svg class="w-3.5 h-3.5 text-sky-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 6.75V15m6-6v8.25m.503 3.498l4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 00-1.006 0L3.622 5.689C3.24 5.88 3 6.27 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c.317-.159.69-.159 1.006 0l4.994 2.497c.317.158.69.158 1.006 0z"/>
+              </svg>
+            </div>
+            <h4 class="text-sm font-bold text-slate-800">Hoja de Ruta</h4>
+          </div>
+
+          <div class="p-4">
+            @if (historialAuditoria().length > 0) {
+              <div class="relative ml-3">
+                <div class="absolute left-0 top-0 bottom-0 w-px bg-brand-border"></div>
+                <div class="space-y-4">
+                  @for (log of historialAuditoria(); track log.id) {
+                    <div class="pl-6 relative">
+                      <div class="absolute w-3 h-3 rounded-full -left-[6.5px] top-1 ring-2 ring-brand-surface"
+                           [class]="'bg-' + colorAccion(log.accion) + '-500'"></div>
+                      <div class="flex items-start justify-between gap-2">
+                        <div>
+                          <span class="text-[10px] font-black uppercase tracking-wider"
+                                [class]="'text-' + colorAccion(log.accion) + '-400'">{{ log.accion }}</span>
+                          <p class="text-[10px] text-slate-600 mt-0.5">{{ log.usuarioId }}</p>
+                        </div>
+                        <span class="text-[9px] text-brand-muted whitespace-nowrap shrink-0 mt-0.5">
+                          {{ log.fechaTimestamp | date:'dd/MM · HH:mm' }}
+                        </span>
+                      </div>
+                    </div>
+                  }
+                </div>
+              </div>
+            } @else {
+              <p class="text-xs text-brand-muted italic py-2">Sin movimientos previos.</p>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- ── RIGHT COLUMN ─────────────────────────────────────────────── -->
+      <div class="lg:col-span-7 space-y-5">
+
+        <!-- Formulario de Etapa -->
+        @if (camposPasoActual().length > 0) {
+          <div class="bg-brand-surface rounded-2xl border border-amber-500/20 overflow-hidden shadow-lg">
+            <div class="px-6 py-5 border-b border-amber-500/15 flex items-center justify-between flex-wrap gap-4">
+              <div>
+                <p class="text-[10px] text-amber-400/80 uppercase tracking-[0.2em] font-black mb-1">Formulario de Etapa</p>
+                <h3 class="text-lg font-bold text-slate-800">{{ nombrePasoActual() }}</h3>
+              </div>
+
+              <div class="flex items-center gap-3">
+                <!-- CU21: Dictar datos por voz (FIX #6: solo si hay campos rellenables) -->
+                @if (vozNlpService.esSoportado() && tieneCamposRellenables()) {
+                  <button type="button" (click)="abrirModalVoz()"
+                          class="flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-lg active:scale-95
+                                 bg-white border border-violet-300 text-violet-700 hover:bg-violet-50">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z"/>
+                    </svg>
+                    Dictar datos
+                  </button>
+                }
+                <button type="button" (click)="solicitarSugerenciaIA()" [disabled]="iaLoading() === 'formulario_completo'"
+                        class="flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-lg active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed
+                               bg-linear-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white border border-purple-500/50">
+                  @if (iaLoading() === 'formulario_completo') {
+                    <svg class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Analizando...
+                  } @else {
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/>
+                    </svg>
+                    Auto-Completar con IA
+                  }
+                </button>
+                <span class="text-xs text-amber-700 bg-amber-50 px-3 py-2 rounded-xl border border-amber-200 font-bold whitespace-nowrap">
+                  {{ camposPasoActual().length }} campo{{ camposPasoActual().length !== 1 ? 's' : '' }}
+                </span>
+              </div>
+            </div>
+
+            <!-- FIX: El pipe campoGrid distribuye las columnas visualmente -->
+            <div class="p-6 grid grid-cols-12 gap-4">
+              @for (campo of camposPasoActual(); track campo.id) {
+                <div [class]="campo | campoGrid">
+
+                  @if (campo.tipo === 'titulo') {
+                    <h2 class="text-2xl font-black text-blue-600 mt-4 mb-2">{{ campo.contenidoTexto || campo.etiqueta }}</h2>
+                  } @else if (campo.tipo === 'subtitulo') {
+                    <h3 class="text-lg font-bold text-blue-950 mt-3 mb-2">{{ campo.contenidoTexto || campo.etiqueta }}</h3>
+                  } @else if (campo.tipo === 'parrafo') {
+                    <p class="text-sm text-brand-muted leading-relaxed">{{ campo.contenidoTexto || campo.etiqueta }}</p>
+                  } @else if (campo.tipo === 'separador') {
+                    <hr class="border-t border-brand-border my-2">
+                  } @else {
+
+                    <label class="block text-blue-900 text-sm font-bold mb-2">
+                      {{ campo.etiqueta }}
+                      @if (campo.requerido) { <span class="text-red-400 ml-1">*</span> }
+                    </label>
+
+                    @if (campo.descripcion) {
+                      <p class="text-xs text-brand-muted mb-2 italic">{{ campo.descripcion }}</p>
+                    }
+
+                    @switch (campo.tipo) {
+                      @case ('texto') {
+                        <div class="relative w-full">
+                          <!-- FIX: Atributos minlength/maxlength limitan entrada -->
+                          <input type="text" [ngModel]="getValorCampo(campo.id)" (ngModelChange)="actualizarCampo(campo.id, $event)"
+                                 [ngModelOptions]="{standalone: true}" [placeholder]="campo.placeholder || ''"
+                                 [attr.minlength]="campo.minLongitud" [attr.maxlength]="campo.maxLongitud"
+                                 class="w-full p-3 pr-12 bg-brand-bg border border-brand-border text-slate-900 rounded-xl focus:border-brand-primary outline-none transition-all">
+                          @if (vozService.estaSoportado()) {
+                            <button type="button" (click)="toggleDictadoCampo(campo.id)"
+                                    class="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-full transition-all focus:outline-none"
+                                    [class]="campoEscuchando() === campo.id ? 'bg-red-500 text-white animate-pulse shadow-[0_0_10px_rgba(239,68,68,0.3)]' : 'bg-brand-surface text-brand-muted hover:text-amber-400 border border-brand-border hover:border-amber-500/50'"
+                                    [title]="campoEscuchando() === campo.id ? 'Detener dictado' : 'Dictar por voz'">
+                              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                @if (campoEscuchando() === campo.id) {
+                                  <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z"/>
+                                } @else {
+                                  <path stroke-linecap="round" stroke-linejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/>
+                                }
+                              </svg>
+                            </button>
+                          }
+                        </div>
+                      }
+                      @case ('textarea') {
+                        <div class="relative w-full">
+                          <!-- FIX: Atributos minlength/maxlength limitan entrada -->
+                          <textarea rows="4" [ngModel]="getValorCampo(campo.id)" (ngModelChange)="actualizarCampo(campo.id, $event)"
+                                    [ngModelOptions]="{standalone: true}" [placeholder]="campo.placeholder || ''"
+                                    [attr.minlength]="campo.minLongitud" [attr.maxlength]="campo.maxLongitud"
+                                    class="w-full p-3 pr-12 bg-brand-bg border border-brand-border text-slate-900 rounded-xl focus:border-brand-primary outline-none resize-none transition-all"></textarea>
+                          @if (vozService.estaSoportado()) {
+                            <button type="button" (click)="toggleDictadoCampo(campo.id)"
+                                    class="absolute right-2 bottom-2 p-2 rounded-full transition-all focus:outline-none"
+                                    [class]="campoEscuchando() === campo.id ? 'bg-red-500 text-white animate-pulse' : 'bg-brand-surface text-brand-muted hover:text-amber-400 border border-brand-border hover:border-amber-500/50'"
+                                    [title]="campoEscuchando() === campo.id ? 'Detener dictado' : 'Dictar por voz'">
+                              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                @if (campoEscuchando() === campo.id) {
+                                  <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z"/>
+                                } @else {
+                                  <path stroke-linecap="round" stroke-linejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/>
+                                }
+                              </svg>
+                            </button>
+                          }
+                        </div>
+                      }
+                      @case ('numero') {
+                        <!-- FIX: Límites de Min y Max casteando undefined a null -->
+                        <input type="number" [ngModel]="getValorCampo(campo.id)" (ngModelChange)="actualizarCampo(campo.id, $event)"
+                               [ngModelOptions]="{standalone: true}" [placeholder]="campo.placeholder || '0'"
+                               [min]="campo.minValor ?? null" [max]="campo.maxValor ?? null"
+                               step="1"
+                               class="w-full p-3 bg-brand-bg border border-brand-border text-slate-900 rounded-xl focus:border-brand-primary outline-none">
+                      }
+                      @case ('decimal') {
+                        <input type="number" [ngModel]="getValorCampo(campo.id)" (ngModelChange)="actualizarCampo(campo.id, $event)"
+                               [ngModelOptions]="{standalone: true}" [placeholder]="campo.placeholder || '0.00'"
+                               [min]="campo.minValor ?? null" [max]="campo.maxValor ?? null"
+                               step="0.01"
+                               class="w-full p-3 bg-brand-bg border border-brand-border text-slate-900 rounded-xl focus:border-brand-primary outline-none">
+                      }
+                      @case ('email') {
+                        <input type="email" [ngModel]="getValorCampo(campo.id)" (ngModelChange)="actualizarCampo(campo.id, $event)"
+                               [ngModelOptions]="{standalone: true}" [placeholder]="campo.placeholder || 'correo@ejemplo.com'"
+                               class="w-full p-3 bg-brand-bg border border-brand-border text-slate-900 rounded-xl focus:border-brand-primary outline-none">
+                      }
+                      @case ('telefono') {
+                        <input type="tel" [ngModel]="getValorCampo(campo.id)" (ngModelChange)="actualizarCampo(campo.id, $event)"
+                               [ngModelOptions]="{standalone: true}" [placeholder]="campo.placeholder || '+591 70000000'"
+                               class="w-full p-3 bg-brand-bg border border-brand-border text-slate-900 rounded-xl focus:border-brand-primary outline-none">
+                      }
+                      @case ('fecha') {
+                        <input type="date" [ngModel]="getValorCampo(campo.id)" (ngModelChange)="actualizarCampo(campo.id, $event)"
+                               [ngModelOptions]="{standalone: true}"
+                               class="w-full p-3 bg-brand-bg border border-brand-border text-slate-900 rounded-xl focus:border-brand-primary outline-none">
+                      }
+                      @case ('hora') {
+                        <input type="time" [ngModel]="getValorCampo(campo.id)" (ngModelChange)="actualizarCampo(campo.id, $event)"
+                               [ngModelOptions]="{standalone: true}"
+                               class="w-full p-3 bg-brand-bg border border-brand-border text-slate-900 rounded-xl focus:border-brand-primary outline-none">
+                      }
+                      @case ('fecha_hora') {
+                        <input type="datetime-local" [ngModel]="getValorCampo(campo.id)" (ngModelChange)="actualizarCampo(campo.id, $event)"
+                               [ngModelOptions]="{standalone: true}"
+                               class="w-full p-3 bg-brand-bg border border-brand-border text-slate-900 rounded-xl focus:border-brand-primary outline-none">
+                      }
+                      @case ('si_no') {
+                        <div class="grid grid-cols-2 gap-3">
+                          <button type="button" (click)="actualizarCampo(campo.id, 'SI')"
+                                  class="py-3 rounded-xl font-bold text-sm transition-all border-2 flex items-center justify-center gap-2"
+                                  [class]="getValorCampo(campo.id) === 'SI' ? 'bg-emerald-50 text-emerald-700 border-emerald-500' : 'bg-brand-bg text-brand-muted border-brand-border hover:border-emerald-500/50'">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/>
+                            </svg>
+                            Sí
+                          </button>
+                          <button type="button" (click)="actualizarCampo(campo.id, 'NO')"
+                                  class="py-3 rounded-xl font-bold text-sm transition-all border-2 flex items-center justify-center gap-2"
+                                  [class]="getValorCampo(campo.id) === 'NO' ? 'bg-red-50 text-red-700 border-red-500' : 'bg-brand-bg text-brand-muted border-brand-border hover:border-red-500/50'">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                            No
+                          </button>
+                        </div>
+                      }
+                      @case ('seleccion') {
+                        <select [ngModel]="getValorCampo(campo.id)" (ngModelChange)="actualizarCampo(campo.id, $event)"
+                                [ngModelOptions]="{standalone: true}"
+                                class="w-full p-3 bg-brand-bg border border-brand-border text-slate-900 rounded-xl focus:border-brand-primary outline-none">
+                          <option value="">-- Seleccionar --</option>
+                          @if (campo.opcionesList && campo.opcionesList.length > 0) {
+                            @for (opt of campo.opcionesList; track opt.valor) {
+                              <option [value]="opt.valor">{{ opt.etiqueta }}</option>
+                            }
+                          } @else {
+                            @for (opt of campo.opciones?.split(',') ?? []; track opt) {
+                              <option [value]="opt.trim()">{{ opt.trim() }}</option>
+                            }
+                          }
+                        </select>
+                      }
+                      @case ('radio') {
+                        <div class="space-y-2">
+                          @for (opt of campo.opcionesList ?? []; track opt.valor) {
+                            <label class="flex items-center gap-3 p-3 bg-brand-bg border border-brand-border rounded-xl cursor-pointer hover:border-amber-500/50 transition">
+                              <input type="radio" [name]="campo.id" [value]="opt.valor"
+                                     [checked]="getValorCampo(campo.id) === opt.valor" (change)="actualizarCampo(campo.id, opt.valor)"
+                                     class="w-4 h-4 accent-amber-500">
+                              <span class="text-slate-800 text-sm">{{ opt.etiqueta }}</span>
+                            </label>
+                          }
+                        </div>
+                      }
+                      @case ('checkbox') {
+                        <div class="space-y-2">
+                          @for (opt of campo.opcionesList ?? []; track opt.valor) {
+                            <label class="flex items-center gap-3 p-3 bg-brand-bg border border-brand-border rounded-xl cursor-pointer hover:border-amber-500/50 transition">
+                              <input type="checkbox" [checked]="estaMarcado(campo.id, opt.valor)"
+                                     (change)="toggleCheckbox(campo.id, opt.valor)" class="w-4 h-4 accent-amber-500">
+                              <span class="text-slate-800 text-sm">{{ opt.etiqueta }}</span>
+                            </label>
+                          }
+                        </div>
+                      }
+                      <!-- FIX: Inclusión de módulo Ubicación GPS Faltante -->
+                      @case ('ubicacion') {
+                        <div class="flex flex-col sm:flex-row items-center gap-3">
+                          <input type="text" [ngModel]="getValorCampo(campo.id)" readonly placeholder="Coordenadas GPS (Lat, Lng)"
+                                 class="flex-1 w-full p-3 bg-slate-50 border border-brand-border text-slate-900 rounded-xl outline-none cursor-not-allowed">
+                          <button type="button" (click)="capturarUbicacion(campo.id)"
+                                  class="w-full sm:w-auto px-5 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-bold shadow-md transition-colors flex items-center justify-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                              <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg> Capturar GPS
+                          </button>
+                        </div>
+                      }
+                      @case ('archivo') {
+                        @if (getValorCampo(campo.id)?.url) {
+                          <div class="p-4 bg-brand-bg border border-emerald-500/30 rounded-xl flex items-center gap-3">
+                            <svg class="w-8 h-8 text-emerald-400 shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/>
+                            </svg>
+                            <div class="flex-1 min-w-0">
+                              <p class="text-sm text-slate-800 font-bold truncate">{{ getValorCampo(campo.id).nombreOriginal }}</p>
+                              <a [href]="urlArchivoCompleta(getValorCampo(campo.id).url)" target="_blank" class="text-xs text-amber-400 hover:underline">Ver archivo →</a>
+                            </div>
+                            <button type="button" (click)="actualizarCampo(campo.id, null)"
+                                    class="w-7 h-7 rounded-full bg-red-500/10 hover:bg-red-500/20 text-red-400 flex items-center justify-center transition">
+                              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                            </button>
+                          </div>
+                        } @else {
+                          <label class="flex flex-col items-center justify-center p-8 bg-brand-bg border-2 border-dashed border-brand-border rounded-xl cursor-pointer hover:border-amber-500/50 hover:bg-amber-500/5 transition">
+                            <!-- FIX: Respetar extensiones permitidas nativamente en el navegador -->
+                            <input type="file" class="hidden" [accept]="getAceptaArchivos(campo)" (change)="subirArchivo(campo.id, $event)">
+                            @if (subiendoArchivo() === campo.id) {
+                              <div class="w-6 h-6 border-2 border-amber-500/30 border-t-amber-500 rounded-full animate-spin mb-2"></div>
+                              <span class="text-sm text-amber-400 font-bold">Subiendo...</span>
+                            } @else {
+                              <svg class="w-8 h-8 text-slate-500 mb-2" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M18.375 12.739l-7.693 7.693a4.5 4.5 0 01-6.364-6.364l10.94-10.94A3 3 0 1119.5 7.372L8.552 18.32m.009-.01l-.01.01m5.699-9.941l-7.81 7.81a1.5 1.5 0 002.112 2.13"/>
+                              </svg>
+                              <p class="text-sm text-slate-700 font-bold">Click para adjuntar</p>
+                              <p class="text-xs text-brand-muted mt-1">
+                                {{ campo.tiposArchivoPermitidos?.join(', ') || 'Cualquier formato' }}
+                                @if (campo.tamanoMaxMB) { · Máx {{ campo.tamanoMaxMB }}MB }
+                              </p>
+                            }
+                          </label>
+                        }
+                      }
+                      @case ('imagen') {
+                        @if (getValorCampo(campo.id)?.url) {
+                          <div class="relative group">
+                            <img [src]="urlArchivoCompleta(getValorCampo(campo.id).url)"
+                                 class="w-full max-h-64 object-contain rounded-xl border border-brand-border bg-slate-100">
+                            <button type="button" (click)="actualizarCampo(campo.id, null)"
+                                    class="absolute top-2 right-2 w-8 h-8 bg-red-500 hover:bg-red-600 text-white rounded-full font-bold opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
+                              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                            </button>
+                          </div>
+                        } @else {
+                          <label class="flex flex-col items-center justify-center p-8 bg-brand-bg border-2 border-dashed border-brand-border rounded-xl cursor-pointer hover:border-amber-500/50 transition">
+                            <input type="file" class="hidden" [accept]="getAceptaArchivos(campo) !== '*/*' ? getAceptaArchivos(campo) : 'image/*'" (change)="subirArchivo(campo.id, $event)">
+                            @if (subiendoArchivo() === campo.id) {
+                              <div class="w-6 h-6 border-2 border-amber-500/30 border-t-amber-500 rounded-full animate-spin mb-2"></div>
+                              <span class="text-sm text-amber-400 font-bold">Subiendo...</span>
+                            } @else {
+                              <svg class="w-8 h-8 text-slate-500 mb-2" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"/>
+                              </svg>
+                              <p class="text-sm text-slate-700 font-bold">Subir imagen</p>
+                              <p class="text-xs text-brand-muted mt-1">
+                                {{ campo.tiposArchivoPermitidos?.join(', ') || 'JPG, PNG, WebP' }}
+                              </p>
+                            }
+                          </label>
+                        }
+                      }
+                      @case ('calificacion') {
+                        <div class="flex items-center gap-2">
+                          @for (n of [1,2,3,4,5,6,7,8,9,10].slice(0, campo.escalaMax || 5); track n) {
+                            <button type="button" (click)="setCalificacion(campo.id, n)"
+                                    class="text-3xl transition-all hover:scale-110 focus:outline-none"
+                                    [class]="(getValorCampo(campo.id) ?? 0) >= n ? 'text-amber-400' : 'text-slate-300 hover:text-amber-300'">★</button>
+                          }
+                          @if (getValorCampo(campo.id)) {
+                            <span class="ml-1 text-sm text-amber-400 font-bold">{{ getValorCampo(campo.id) }} / {{ campo.escalaMax || 5 }}</span>
+                          }
+                        </div>
+                      }
+                      @case ('tabla') {
+                        <div class="overflow-x-auto bg-brand-bg border border-brand-border rounded-xl">
+                          <table class="w-full text-sm">
+                            <thead class="bg-brand-surface">
+                              <tr>
+                                @for (col of campo.columnasTabla ?? []; track col.id) {
+                                  <th class="p-2.5 text-left text-[10px] text-brand-muted font-bold uppercase tracking-wider">{{ col.etiqueta }}</th>
+                                }
+                                <th class="w-10"></th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              @for (fila of (getValorCampo(campo.id) || []); track $index; let filaIdx = $index) {
+                                <tr class="border-t border-brand-border">
+                                  @for (col of campo.columnasTabla ?? []; track col.id) {
+                                    <td class="p-1">
+                                      @switch (col.tipo) {
+                                        @case ('select') {
+                                          <select [ngModel]="fila[col.id]" (ngModelChange)="actualizarCeldaTabla(campo.id, filaIdx, col.id, $event)" [ngModelOptions]="{standalone: true}"
+                                            class="w-full p-2 bg-transparent text-slate-900 text-sm outline-none focus:bg-sky-50 rounded border border-transparent focus:border-brand-border">
+                                            <option value="">— elegir —</option>
+                                            @for (opt of col.opciones ?? []; track opt.valor) {
+                                              <option [value]="opt.valor">{{ opt.etiqueta }}</option>
+                                            }
+                                          </select>
+                                        }
+                                        @case ('checkbox') {
+                                          <div class="flex justify-center">
+                                            <input type="checkbox" [checked]="fila[col.id]" (change)="actualizarCeldaTabla(campo.id, filaIdx, col.id, $any($event.target).checked)"
+                                              class="w-4 h-4 rounded border-slate-300 text-brand-primary focus:ring-brand-primary/30">
+                                          </div>
+                                        }
+                                        @case ('booleano') {
+                                          <select [ngModel]="fila[col.id]" (ngModelChange)="actualizarCeldaTabla(campo.id, filaIdx, col.id, $event)" [ngModelOptions]="{standalone: true}"
+                                            class="w-full p-2 bg-transparent text-slate-900 text-sm outline-none focus:bg-sky-50 rounded border border-transparent focus:border-brand-border">
+                                            <option value="">— elegir —</option>
+                                            <option value="si">Sí</option>
+                                            <option value="no">No</option>
+                                          </select>
+                                        }
+                                        @default {
+                                          <input [type]="col.tipo === 'numero' ? 'number' : col.tipo === 'fecha' ? 'date' : 'text'"
+                                                 [ngModel]="fila[col.id]" (ngModelChange)="actualizarCeldaTabla(campo.id, filaIdx, col.id, $event)" [ngModelOptions]="{standalone: true}"
+                                                 [placeholder]="col.placeholder ?? ''"
+                                                 class="w-full p-2 bg-transparent text-slate-900 text-sm outline-none focus:bg-sky-50 rounded">
+                                        }
+                                      }
+                                    </td>
+                                  }
+                                  <td class="p-1 text-center">
+                                    <button type="button" (click)="eliminarFilaTabla(campo.id, filaIdx, campo.filasMinimas || 1)"
+                                            class="w-6 h-6 rounded-full bg-red-500/10 hover:bg-red-500/20 text-red-400 flex items-center justify-center mx-auto transition disabled:opacity-30 disabled:hover:bg-red-500/10"
+                                            [disabled]="(getValorCampo(campo.id) || []).length <= (campo.filasMinimas || 1)">
+                                      <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                                    </button>
+                                  </td>
+                                </tr>
+                              }
+                            </tbody>
+                          </table>
+                          <div class="p-2.5 border-t border-brand-border">
+                            <button type="button" (click)="agregarFilaTabla(campo.id, campo.columnasTabla || [])"
+                                    class="flex items-center gap-1.5 text-xs text-amber-400 hover:text-amber-300 font-bold transition">
+                              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+                              Agregar fila
+                            </button>
+                          </div>
+                        </div>
+                      }
+                      @case ('firma') {
+                        @if (getValorCampo(campo.id)?.url) {
+                          <div class="bg-white p-4 rounded-xl border-2 border-emerald-500/40">
+                            <div class="flex items-center justify-between mb-2">
+                              <span class="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-emerald-700">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+                                Firma confirmada
+                              </span>
+                              <button type="button" (click)="actualizarCampo(campo.id, null)"
+                                      class="text-xs text-red-600 hover:text-red-800 font-bold">Borrar y firmar de nuevo</button>
+                            </div>
+                            <img [src]="urlArchivoCompleta(getValorCampo(campo.id).url)"
+                                 class="w-full max-h-40 object-contain bg-white rounded-lg border border-slate-200">
+                          </div>
+                        } @else {
+                          <div class="bg-white rounded-xl border-2 border-brand-border p-3 space-y-2"
+                               (load)="inicializarCanvasFirma(campo.id)">
+                            <p class="text-[10px] text-slate-500 italic px-1">Firma con el mouse (o tu dedo en táctil) dentro del recuadro</p>
+                            <canvas [id]="'firma-' + campo.id" width="600" height="200"
+                                    class="w-full h-40 bg-white rounded-lg border-2 border-dashed border-slate-300 cursor-crosshair touch-none"
+                                    (mousedown)="iniciarFirma(campo.id, $event)"
+                                    (mousemove)="dibujarFirma(campo.id, $event)"
+                                    (mouseup)="terminarFirma(campo.id)"
+                                    (mouseleave)="terminarFirma(campo.id)"
+                                    (touchstart)="iniciarFirma(campo.id, $event)"
+                                    (touchmove)="dibujarFirma(campo.id, $event)"
+                                    (touchend)="terminarFirma(campo.id)">
+                            </canvas>
+                            <div class="flex gap-2 pt-1">
+                              <button type="button" (click)="limpiarFirma(campo.id)"
+                                      [disabled]="!firmaConTrazos()[campo.id]"
+                                      class="flex-1 px-3 py-2 bg-slate-100 hover:bg-slate-200 disabled:opacity-30 disabled:cursor-not-allowed text-slate-700 text-xs font-bold rounded-lg border border-slate-300 transition-colors">
+                                Limpiar
+                              </button>
+                              <button type="button" (click)="confirmarFirma(campo.id)"
+                                      [disabled]="!firmaConTrazos()[campo.id] || subiendoArchivo() === campo.id"
+                                      class="flex-1 px-3 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-30 disabled:cursor-not-allowed text-white text-xs font-bold rounded-lg transition-colors">
+                                {{ subiendoArchivo() === campo.id ? 'Subiendo...' : 'Confirmar firma' }}
+                              </button>
+                            </div>
+                          </div>
+                        }
+                      }
+                      @case ('documento-texto') {
+                        <app-editor-texto-colaborativo
+                          [documentoId]="tramiteActual()!.id + '_' + campo.id"
+                          [soloLectura]="false"
+                          class="block w-full">
+                        </app-editor-texto-colaborativo>
+                      }
+                      @case ('documento-hoja') {
+                        <app-hoja-calculo-colaborativa
+                          [documentoId]="tramiteActual()!.id + '_' + campo.id"
+                          [soloLectura]="false"
+                          class="block w-full">
+                        </app-hoja-calculo-colaborativa>
+                      }
+                      @default {
+                        <div class="p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-xs text-red-300">
+                          Tipo de campo "{{ campo.tipo }}" no soportado aún.
+                        </div>
+                      }
+                    }
+                  }
+
+                </div>
+              }
+            </div>
+          </div>
+        }
+
+        <!-- Panel de Acciones / Dictamen -->
+        <div class="bg-brand-surface rounded-2xl border border-brand-border overflow-hidden shadow-lg">
+          <div class="px-6 py-5 border-b border-brand-border flex items-center justify-between gap-4">
+            <div>
+              <p class="text-[10px] text-brand-muted uppercase tracking-[0.2em] font-black mb-1">Acciones disponibles</p>
+              <h3 class="text-lg font-bold text-slate-800">
+                @if (accionesDisponibles().length === 1 && accionesDisponibles()[0].tipo === 'finalizar') {
+                  Finalizar trámite
+                } @else if (accionesDisponibles().length === 1) {
+                  Continuar al siguiente paso
+                } @else {
+                  ¿Cuál es tu decisión?
+                }
+              </h3>
+
+            </div>
+            <span class="text-[10px] text-brand-muted bg-brand-bg px-2.5 py-1.5 rounded-lg border border-brand-border font-bold whitespace-nowrap">
+              {{ accionesDisponibles().length }} opción(es)
+            </span>
+          </div>
+
+          <form [formGroup]="resolutionForm" (ngSubmit)="guardarResolucion()" class="p-6 space-y-5" novalidate>
+
+            <div>
+              @if (accionesDisponibles().length > 1) {
+                <label class="block text-white text-sm font-bold mb-3">
+                  Selecciona una opción <span class="text-red-400">*</span>
+                </label>
+              }
+              <div class="grid gap-3"
+                   [class.grid-cols-1]="accionesDisponibles().length === 1"
+                   [class.md:grid-cols-2]="accionesDisponibles().length === 2"
+                   [class.md:grid-cols-3]="accionesDisponibles().length === 3"
+                   [class.md:grid-cols-4]="accionesDisponibles().length >= 4">
+
+                @for (acc of accionesDisponibles(); track acc.accion) {
+                  <button type="button" (click)="seleccionarEstado(acc.accion)"
+                          class="py-4 px-3 rounded-xl font-bold text-sm transition-all border-2 flex flex-col items-center justify-center gap-1.5"
+                          [class]="resolutionForm.get('nuevoEstado')?.value === acc.accion
+                              ? (acc.color === 'emerald' ? 'bg-emerald-50 border-emerald-500 text-emerald-700 shadow-lg shadow-emerald-100' :
+                                 acc.color === 'red'     ? 'bg-red-50 border-red-500 text-red-700 shadow-lg shadow-red-100' :
+                                 acc.color === 'amber'   ? 'bg-amber-50 border-amber-500 text-amber-700 shadow-lg shadow-amber-100' :
+                                 acc.color === 'orange'  ? 'bg-orange-50 border-orange-500 text-orange-700 shadow-lg shadow-orange-100' :
+                                 'bg-blue-50 border-blue-500 text-blue-700 shadow-lg shadow-blue-100')
+                              : 'bg-brand-bg border-brand-border text-brand-muted hover:border-brand-primary hover:text-slate-800'">
+                    <span class="text-2xl">{{ acc.icono }}</span>
+                    <span>{{ acc.label }}</span>
+                  </button>
+                }
+              </div>
+            </div>
+
+            <!-- Campos faltantes -->
+            @if (camposFaltantes().length > 0) {
+              <div class="flex gap-3 p-3.5 bg-red-500/10 border border-red-500/20 rounded-xl">
+                <svg class="w-4 h-4 text-red-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"/>
+                </svg>
+                <div>
+                  <p class="text-xs text-red-300 font-bold mb-1">Campos obligatorios incompletos:</p>
+                  <ul class="text-xs text-red-300/80 list-disc list-inside space-y-0.5">
+                    @for (campo of camposFaltantes(); track campo) {
+                      <li>{{ campo }}</li>
+                    }
+                  </ul>
+                </div>
+              </div>
+            }
+
+            <!-- Error -->
+            @if (errorMsg()) {
+              <div class="flex gap-2.5 p-3.5 bg-red-500/10 border border-red-500/20 rounded-xl">
+                <svg class="w-4 h-4 text-red-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+                <p class="text-xs text-red-300">{{ errorMsg() }}</p>
+              </div>
+            }
+
+            <!-- Submit -->
+            <button type="submit" [disabled]="!puedeGuardar() || isSaving()"
+                    class="w-full py-4 font-black rounded-2xl shadow-xl transition-all active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-3 text-base text-white"
+                    [class]="botonConfirmarClase()">
+              @if (isSaving()) {
+                <svg class="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+                </svg>
+                Guardando...
+              } @else {
+                {{ textoBotonConfirmar() }}
+              }
+            </button>
+
+          </form>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ══ CU22: Documentación del expediente ════════════════════════════════ -->
+    <app-documentacion-tramite
+      [tramiteId]="tramiteActual()!.id!.toString()"
+      [modoEdicion]="true"
+      [paso]="nombrePasoActual()">
+    </app-documentacion-tramite>
+
+  }
+
+</div>
+
+<!-- CU21: Modal Voz/Texto para rellenar formulario -->
+@if (modalVozAbierto()) {
+  <app-voz-formulario
+    [campos]="camposPasoActual()"
+    [valoresActuales]="valoresFormulario()"
+    (camposAplicados)="aplicarCamposVoz($event)"
+    (cerrar)="cerrarModalVoz()">
+  </app-voz-formulario>
+}

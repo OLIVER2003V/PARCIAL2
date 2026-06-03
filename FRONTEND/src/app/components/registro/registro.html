@@ -1,0 +1,111 @@
+<main class="min-h-screen bg-brand-bg flex items-center justify-center p-4 md:p-8 font-sans text-slate-900 relative overflow-hidden antialiased selection:bg-brand-accent/20 selection:text-brand-primary">
+  
+  <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-200/50 via-brand-bg to-brand-bg pointer-events-none"></div>
+  <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-brand-accent/5 rounded-full blur-[100px] pointer-events-none"></div>
+
+  <section class="max-w-md w-full bg-brand-surface p-8 sm:p-10 rounded-2xl border border-brand-border shadow-xl shadow-slate-200/60 relative z-10 transition-all duration-300">
+    
+    <header class="text-center mb-8">
+      <h1 class="text-3xl font-bold text-slate-900 tracking-tight mb-2">
+        BPMS <span class="text-brand-accent">Core</span>
+      </h1>
+      <p class="text-brand-muted text-sm font-medium">Crea tu cuenta de ciudadano</p>
+    </header>
+
+    @if (mensajeExito()) {
+      <div class="mb-6 p-4 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl text-center animate-in zoom-in-95 duration-300">
+        <span class="block font-bold text-sm">✅ Registro completado con éxito</span>
+        <span class="text-xs text-emerald-600/80 mt-1 block">Preparando tu entorno de trabajo...</span>
+      </div>
+    }
+
+    <form [formGroup]="registroForm" (ngSubmit)="registrar()" class="space-y-5" novalidate>
+      
+      <div class="space-y-1.5">
+        <label for="nombreCompleto" class="block text-sm font-medium text-slate-700">Nombre Completo</label>
+        <input 
+          id="nombreCompleto"
+          type="text" 
+          formControlName="nombreCompleto" 
+          placeholder="Ej. Juan Pérez"
+          [class.border-red-400]="isInvalid('nombreCompleto')"
+          [class.focus:ring-red-500/20]="isInvalid('nombreCompleto')"
+          class="w-full px-4 py-3 bg-brand-bg/50 border border-brand-border rounded-xl text-slate-900 focus:border-brand-primary focus:ring-4 focus:ring-brand-primary/10 outline-none hover:border-slate-300 transition-all placeholder:text-slate-400">
+        @if (isInvalid('nombreCompleto')) {
+          <p class="text-xs text-red-500 font-medium mt-1">El nombre es requerido.</p>
+        }
+      </div>
+
+      <div class="space-y-1.5">
+        <label for="email" class="block text-sm font-medium text-slate-700">Correo Electrónico</label>
+        <input 
+          id="email"
+          type="email" 
+          formControlName="email" 
+          placeholder="tu@correo.com"
+          [class.border-red-400]="isInvalid('email')"
+          [class.focus:ring-red-500/20]="isInvalid('email')"
+          class="w-full px-4 py-3 bg-brand-bg/50 border border-brand-border rounded-xl text-slate-900 focus:border-brand-primary focus:ring-4 focus:ring-brand-primary/10 outline-none hover:border-slate-300 transition-all placeholder:text-slate-400">
+        @if (isInvalid('email')) {
+          <p class="text-xs text-red-500 font-medium mt-1">Ingresa un correo válido.</p>
+        }
+      </div>
+
+      <div class="space-y-1.5">
+        <label for="username" class="block text-sm font-medium text-slate-700">Usuario / Documento</label>
+        <input 
+          id="username"
+          type="text" 
+          formControlName="username" 
+          placeholder="Tu identificación"
+          [class.border-red-400]="isInvalid('username')"
+          [class.focus:ring-red-500/20]="isInvalid('username')"
+          class="w-full px-4 py-3 bg-brand-bg/50 border border-brand-border rounded-xl text-slate-900 focus:border-brand-primary focus:ring-4 focus:ring-brand-primary/10 outline-none hover:border-slate-300 transition-all placeholder:text-slate-400">
+        @if (isInvalid('username')) {
+          <p class="text-xs text-red-500 font-medium mt-1">Mínimo 3 caracteres.</p>
+        }
+      </div>
+
+      <div class="space-y-1.5">
+        <label for="password" class="block text-sm font-medium text-slate-700">Contraseña</label>
+        <input 
+          id="password"
+          type="password" 
+          formControlName="password" 
+          placeholder="••••••••"
+          [class.border-red-400]="isInvalid('password')"
+          [class.focus:ring-red-500/20]="isInvalid('password')"
+          class="w-full px-4 py-3 bg-brand-bg/50 border border-brand-border rounded-xl text-slate-900 focus:border-brand-primary focus:ring-4 focus:ring-brand-primary/10 outline-none hover:border-slate-300 transition-all placeholder:text-slate-400">
+        @if (isInvalid('password')) {
+          <p class="text-xs text-red-500 font-medium mt-1">Mínimo 6 caracteres.</p>
+        }
+      </div>
+
+      <button 
+        type="submit" 
+        [disabled]="isLoading()"
+        class="w-full mt-4 bg-brand-primary hover:bg-brand-primary-hover text-white font-medium py-3 rounded-xl transition-all duration-300 shadow-md shadow-brand-primary/20 active:scale-[0.98] disabled:opacity-60 disabled:pointer-events-none flex items-center justify-center focus:outline-none focus:ring-4 focus:ring-brand-primary/20 ring-offset-2 ring-offset-brand-surface">
+        @if (isLoading()) {
+          <span class="flex items-center justify-center gap-2">
+            <svg class="animate-spin h-5 w-5 text-white" viewBox="0 0 24 24" fill="none">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Procesando...
+          </span>
+        } @else {
+          Crear cuenta
+        }
+      </button>
+    </form>
+
+    <footer class="mt-8 pt-6 border-t border-brand-border text-center">
+      <p class="text-brand-muted text-sm font-medium">
+        ¿Ya eres parte de BPMS? 
+        <a routerLink="/login" class="text-brand-accent hover:text-indigo-600 font-medium transition-colors ml-1 focus:outline-none focus:underline rounded">
+          Inicia Sesión
+        </a>
+      </p>
+    </footer>
+  </section>
+</main>

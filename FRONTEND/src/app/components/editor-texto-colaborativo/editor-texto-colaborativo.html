@@ -1,0 +1,480 @@
+<!-- ══ Vista compacta ══════════════════════════════════════════════════════ -->
+<div class="rounded-2xl border border-slate-200 overflow-hidden shadow-sm bg-white">
+
+  <!-- Barra superior -->
+  <div class="flex items-center justify-between gap-2 px-4 py-2.5 bg-[#2B579A]/5 border-b border-[#2B579A]/20">
+    <div class="flex items-center gap-2.5 min-w-0">
+      <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="#2B579A" xmlns="http://www.w3.org/2000/svg">
+        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm-1 1.5L18.5 9H13V3.5zM8 17l-1.8-6h1.3l1.1 4.2 1.2-4.2h1.3l1.1 4.2 1.1-4.2h1.2L12.7 17h-1.2l-1.2-4.3L9.2 17H8z"/>
+      </svg>
+      <span class="text-sm font-semibold text-slate-700 truncate max-w-40">{{ nombre() }}</span>
+      @if (soloLectura) {
+        <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 bg-amber-100 text-amber-700 rounded-full shrink-0">Solo lectura</span>
+      }
+      @if (mongoId() && !cargando()) {
+        <span class="w-2 h-2 bg-emerald-500 rounded-full shrink-0" title="Documento listo"></span>
+      }
+    </div>
+
+    <div class="flex items-center gap-1.5 shrink-0">
+      @if (mongoId()) {
+        <button (click)="descargar('docx')" title="Descargar .doc"
+          class="flex items-center gap-1 px-2.5 py-1.5 bg-white hover:bg-slate-50 border border-slate-200 text-slate-600 text-xs font-medium rounded-lg transition-colors">
+          <svg class="w-3.5 h-3.5 text-[#2B579A]" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm-1 1.5L18.5 9H13V3.5zM8 17l-1.8-6h1.3l1.1 4.2 1.2-4.2h1.3l1.1 4.2 1.1-4.2h1.2L12.7 17h-1.2l-1.2-4.3L9.2 17H8z"/>
+          </svg>
+          .doc
+        </button>
+        <button (click)="descargar('pdf')" title="Descargar PDF"
+          class="flex items-center gap-1 px-2.5 py-1.5 bg-white hover:bg-slate-50 border border-slate-200 text-slate-600 text-xs font-medium rounded-lg transition-colors">
+          <svg class="w-3.5 h-3.5 text-red-500" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm-1 1.5L18.5 9H13V3.5zM9.5 17H8.7v-4h1.5c.9 0 1.4.5 1.4 1.3s-.5 1.3-1.4 1.3H9.5V17zm0-2.1h.5c.4 0 .6-.2.6-.6s-.2-.6-.6-.6H9.5v1.2zm3-.9h1c.9 0 1.5.6 1.5 1.7s-.6 1.8-1.5 1.8h-1V14zm.8.7v2.1h.2c.5 0 .8-.3.8-1.1 0-.7-.3-1-.8-1h-.2zm3-.7h2v.7h-1.2v.8h1.1v.6h-1.1v1.5h-.8V14z"/>
+          </svg>
+          .pdf
+        </button>
+      }
+
+      @if (!cargando() && !error() && !soloLectura) {
+        <button (click)="abrirModal()"
+          class="flex items-center gap-1.5 px-3 py-1.5 bg-[#2B579A] hover:bg-[#1e3f73] text-white text-xs font-bold rounded-lg transition-colors">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+          </svg>
+          Editar
+        </button>
+      }
+
+      <button (click)="toggleColapsado()" [title]="colapsado() ? 'Expandir' : 'Colapsar'"
+        class="p-1.5 bg-white hover:bg-slate-50 border border-slate-200 text-slate-500 rounded-lg transition-colors">
+        <svg class="w-3.5 h-3.5 transition-transform duration-200" [class.rotate-180]="colapsado()"
+          fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  @if (!colapsado()) {
+    @if (cargando()) {
+      <div class="flex flex-col items-center justify-center gap-3 py-12 bg-white">
+        <div class="w-8 h-8 border-[3px] border-[#2B579A]/20 border-t-[#2B579A] rounded-full animate-spin"></div>
+        <p class="text-sm font-medium text-slate-500">Preparando documento...</p>
+      </div>
+    } @else if (error()) {
+      <div class="flex items-start gap-3 p-5 bg-red-50">
+        <svg class="w-5 h-5 text-red-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+        </svg>
+        <div>
+          <p class="text-sm font-bold text-red-700">Error al cargar el documento</p>
+          <p class="text-xs text-red-600 mt-0.5">{{ error() }}</p>
+        </div>
+      </div>
+    } @else {
+      <div class="p-5 bg-white">
+        <div class="flex items-center gap-4 mb-4">
+          <div class="w-14 h-14 bg-[#2B579A]/8 rounded-2xl flex items-center justify-center shrink-0 border border-[#2B579A]/15">
+            <svg class="w-7 h-7" viewBox="0 0 24 24" fill="#2B579A">
+              <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm-1 1.5L18.5 9H13V3.5zM8 17l-1.8-6h1.3l1.1 4.2 1.2-4.2h1.3l1.1 4.2 1.1-4.2h1.2L12.7 17h-1.2l-1.2-4.3L9.2 17H8z"/>
+            </svg>
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-bold text-slate-800 truncate">{{ nombre() }}</p>
+            <div class="flex items-center gap-1.5 mt-1">
+              <span class="w-2 h-2 bg-emerald-500 rounded-full shrink-0"></span>
+              <span class="text-xs text-slate-500">Editor colaborativo · guardado automático</span>
+            </div>
+            @if (editoresActivos().length > 0) {
+              <div class="flex items-center gap-1.5 mt-1.5">
+                @for (ed of editoresActivos(); track ed.usuario) {
+                  <span class="presencia-avatar" [style.background]="ed.color" [title]="ed.usuario">
+                    {{ initials(ed.usuario) }}
+                  </span>
+                }
+                <span class="text-xs text-slate-500">editando ahora</span>
+              </div>
+            }
+            @if (soloLectura) {
+              <span class="inline-block mt-1.5 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 bg-amber-100 text-amber-700 rounded-full">Solo lectura</span>
+            }
+          </div>
+        </div>
+
+        @if (!soloLectura) {
+          <button (click)="abrirModal()"
+            class="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-[#2B579A] hover:bg-[#1e3f73] text-white text-sm font-bold rounded-xl transition-colors shadow-sm shadow-[#2B579A]/25">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+            </svg>
+            Abrir editor completo
+          </button>
+        } @else {
+          <button (click)="abrirModal()"
+            class="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-bold rounded-xl transition-colors">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+            </svg>
+            Ver documento
+          </button>
+        }
+      </div>
+    }
+  }
+</div>
+
+<!-- ══ Modal Word ══════════════════════════════════════════════════════════ -->
+@if (modalAbierto()) {
+<div class="wdoc-modal">
+
+  <!-- ── Barra de título (azul Word) ────────────────────────────────────── -->
+  <div class="wdoc-titlebar">
+    <div class="wdoc-titlebar-left">
+      <!-- Logo W -->
+      <svg class="wdoc-titlebar-logo" viewBox="0 0 24 24" fill="white">
+        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm-1 1.5L18.5 9H13V3.5z"/>
+        <path fill="rgba(255,255,255,.6)" d="M7.5 11L6 17h1.2l1.1-4.3L9.5 17h1.3l1.2-4.3L13.2 17h1.2L12.6 11h-1.2L10.2 15.3 9 11H7.5z"/>
+      </svg>
+      <span class="wdoc-docname">{{ nombre() }}</span>
+      <span class="wdoc-saved-badge">
+        @if (guardando()) {
+          <span class="wdoc-spin"></span> Guardando...
+        } @else {
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+          </svg>
+          Guardado
+        }
+      </span>
+    </div>
+
+    <div class="wdoc-titlebar-right">
+      <!-- Presencia -->
+      @if (editoresActivos().length > 0) {
+        <div class="wdoc-presencia-wrap">
+          @for (ed of editoresActivos(); track ed.usuario) {
+            <span class="wdoc-avatar" [style.background]="ed.color" [title]="ed.usuario">
+              {{ initials(ed.usuario) }}
+            </span>
+          }
+        </div>
+      }
+
+      <!-- Descargar .doc -->
+      <button class="wdoc-title-btn" (click)="descargar('docx')" title="Descargar Word (.doc)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+        </svg>
+        .doc
+      </button>
+      <!-- Descargar PDF -->
+      <button class="wdoc-title-btn" (click)="descargar('pdf')" title="Imprimir / Guardar como PDF">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M17 17H17.01M17 20H17.01M12 20H7a2 2 0 01-2-2V6a2 2 0 012-2h7l5 5v3"/>
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15 8H9m3 4H9m0 4h.01"/>
+        </svg>
+        PDF
+      </button>
+      <!-- Volver -->
+      <button class="wdoc-title-btn wdoc-title-back" (click)="cerrarModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+        </svg>
+        Volver
+      </button>
+    </div>
+  </div>
+
+  <!-- ── Ribbon tabs ─────────────────────────────────────────────────────── -->
+  @if (!soloLectura) {
+    <div class="wdoc-ribbon-tabs">
+      <button class="wdoc-rtab" [class.wdoc-rtab-active]="activeTab() === 'inicio'"
+        (click)="setTab('inicio')">Inicio</button>
+      <button class="wdoc-rtab" [class.wdoc-rtab-active]="activeTab() === 'insertar'"
+        (click)="setTab('insertar')">Insertar</button>
+    </div>
+
+    <!-- ── Ribbon contenido ──────────────────────────────────────────────── -->
+    <div class="wdoc-ribbon">
+
+      @if (activeTab() === 'inicio') {
+
+        <!-- Grupo: Portapapeles -->
+        <div class="wdoc-rgroup">
+          <div class="wdoc-rgroup-btns" style="flex-direction:row; gap:4px; align-items:center">
+            <button class="wdoc-rbtn wdoc-rbtn-lg" (click)="tb('undo')" title="Deshacer (Ctrl+Z)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3"/>
+              </svg>
+              <span>Deshacer</span>
+            </button>
+            <button class="wdoc-rbtn wdoc-rbtn-lg" (click)="tb('redo')" title="Rehacer (Ctrl+Y)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 15l6-6m0 0l-6-6m6 6H9a6 6 0 000 12h3"/>
+              </svg>
+              <span>Rehacer</span>
+            </button>
+          </div>
+          <div class="wdoc-rgroup-label">Portapapeles</div>
+        </div>
+
+        <div class="wdoc-rsep"></div>
+
+        <!-- Grupo: Fuente -->
+        <div class="wdoc-rgroup">
+          <div class="wdoc-rgroup-btns">
+            <!-- Fila 1: estilo de párrafo + B I U S -->
+            <div class="wdoc-rrow">
+              <select class="wdoc-rselect" [value]="currentHeading()" (change)="setHeading($event)" title="Estilo de párrafo">
+                <option value="normal">Texto normal</option>
+                <option value="1">Título 1</option>
+                <option value="2">Título 2</option>
+                <option value="3">Título 3</option>
+                <option value="4">Título 4</option>
+              </select>
+              <button class="wdoc-rbtn" [class.wdoc-active]="isBold()" (click)="tb('bold')" title="Negrita (Ctrl+B)">
+                <b style="font-size:14px;font-family:Arial,sans-serif">N</b>
+              </button>
+              <button class="wdoc-rbtn" [class.wdoc-active]="isItalic()" (click)="tb('italic')" title="Cursiva (Ctrl+I)">
+                <i style="font-size:14px;font-family:Georgia,serif">K</i>
+              </button>
+              <button class="wdoc-rbtn" [class.wdoc-active]="isUnderline()" (click)="tb('underline')" title="Subrayado (Ctrl+U)">
+                <u style="font-size:14px;font-family:Arial,sans-serif">S</u>
+              </button>
+              <button class="wdoc-rbtn" [class.wdoc-active]="isStrike()" (click)="tb('strike')" title="Tachado">
+                <s style="font-size:14px;font-family:Arial,sans-serif">T</s>
+              </button>
+            </div>
+            <!-- Fila 2: colores + sub/super + limpiar -->
+            <div class="wdoc-rrow">
+              <label class="wdoc-color-btn" title="Color de fuente" aria-label="Color de fuente">
+                <svg viewBox="0 0 24 24" fill="currentColor" style="color:#323130" aria-hidden="true">
+                  <path d="M12 3l-7 18h2.5l1.5-4h10l1.5 4H23L12 3zm-2.2 12l2.2-6.2 2.2 6.2H9.8z"/>
+                </svg>
+                <span class="wdoc-color-bar" [style.background]="currentColor()"></span>
+                <input type="color" class="wdoc-color-input" [value]="currentColor()" (input)="setTextColor($event)" aria-label="Seleccionar color de fuente">
+              </label>
+              <label class="wdoc-color-btn" title="Color de resaltado" aria-label="Color de resaltado">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:#323130" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+                </svg>
+                <span class="wdoc-color-bar" [style.background]="currentHighlight()"></span>
+                <input type="color" class="wdoc-color-input" [value]="currentHighlight()" (input)="setHighlightColor($event)" aria-label="Seleccionar color de resaltado">
+              </label>
+              <button class="wdoc-rbtn" [class.wdoc-active]="isSubscript()" (click)="tb('subscript')" title="Subíndice">
+                <span style="font-size:12px;font-family:Arial,sans-serif">x<sub style="font-size:8px">2</sub></span>
+              </button>
+              <button class="wdoc-rbtn" [class.wdoc-active]="isSuperscript()" (click)="tb('superscript')" title="Superíndice">
+                <span style="font-size:12px;font-family:Arial,sans-serif">x<sup style="font-size:8px">2</sup></span>
+              </button>
+              <button class="wdoc-rbtn" (click)="tb('clearFormat')" title="Borrar todo el formato">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+          <div class="wdoc-rgroup-label">Fuente</div>
+        </div>
+
+        <div class="wdoc-rsep"></div>
+
+        <!-- Grupo: Párrafo -->
+        <div class="wdoc-rgroup">
+          <div class="wdoc-rgroup-btns">
+            <!-- Fila 1: Alineación -->
+            <div class="wdoc-rrow">
+              <button class="wdoc-rbtn" [class.wdoc-active]="isAlignLeft()" (click)="tb('alignLeft')" title="Alinear a la izquierda">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" d="M3 6h18M3 11h12M3 16h14"/>
+                </svg>
+              </button>
+              <button class="wdoc-rbtn" [class.wdoc-active]="isAlignCenter()" (click)="tb('alignCenter')" title="Centrar">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" d="M3 6h18M6 11h12M5 16h14"/>
+                </svg>
+              </button>
+              <button class="wdoc-rbtn" [class.wdoc-active]="isAlignRight()" (click)="tb('alignRight')" title="Alinear a la derecha">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" d="M3 6h18M9 11h12M7 16h14"/>
+                </svg>
+              </button>
+              <button class="wdoc-rbtn" [class.wdoc-active]="isAlignJustify()" (click)="tb('alignJustify')" title="Justificar">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" d="M3 6h18M3 11h18M3 16h18"/>
+                </svg>
+              </button>
+            </div>
+            <!-- Fila 2: Listas y especiales -->
+            <div class="wdoc-rrow">
+              <button class="wdoc-rbtn" [class.wdoc-active]="isBulletList()" (click)="tb('bulletList')" title="Lista con viñetas">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="4" cy="7" r="1.5" fill="currentColor" stroke="none"/>
+                  <circle cx="4" cy="12" r="1.5" fill="currentColor" stroke="none"/>
+                  <circle cx="4" cy="17" r="1.5" fill="currentColor" stroke="none"/>
+                  <path stroke-linecap="round" d="M8 7h13M8 12h13M8 17h13"/>
+                </svg>
+              </button>
+              <button class="wdoc-rbtn" [class.wdoc-active]="isOrderedList()" (click)="tb('orderedList')" title="Lista numerada">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" d="M10 7h11M10 12h11M10 17h11"/>
+                  <text x="2" y="9" font-size="5.5" fill="currentColor" stroke="none" font-family="Arial">1.</text>
+                  <text x="2" y="14" font-size="5.5" fill="currentColor" stroke="none" font-family="Arial">2.</text>
+                  <text x="2" y="19" font-size="5.5" fill="currentColor" stroke="none" font-family="Arial">3.</text>
+                </svg>
+              </button>
+              <button class="wdoc-rbtn" [class.wdoc-active]="isTaskList()" (click)="tb('taskList')" title="Lista de tareas">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="5" width="5" height="5" rx="1"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 7.5l1.5 1.5 2-2.5"/>
+                  <path stroke-linecap="round" d="M10 8h11M10 14h11M10 20h11"/>
+                  <rect x="3" y="11" width="5" height="5" rx="1"/>
+                  <rect x="3" y="17" width="5" height="5" rx="1"/>
+                </svg>
+              </button>
+              <button class="wdoc-rbtn" [class.wdoc-active]="isBlockquote()" (click)="tb('blockquote')" title="Cita">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M6 17h3l2-4V7H5v6h3zm8 0h3l2-4V7h-6v6h3z"/>
+                </svg>
+              </button>
+              <button class="wdoc-rbtn" [class.wdoc-active]="isCode()" (click)="tb('codeBlock')" title="Bloque de código">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+          <div class="wdoc-rgroup-label">Párrafo</div>
+        </div>
+
+        <div class="wdoc-rsep"></div>
+
+        <!-- Grupo: Estilos -->
+        <div class="wdoc-rgroup">
+          <div class="wdoc-rgroup-btns" style="flex-direction:row; gap:4px; align-items:center">
+            <div class="wdoc-style-gallery">
+              <button class="wdoc-style-btn" [class.wdoc-active]="currentHeading()==='normal'"
+                (click)="applyHeading('normal')">
+                <span class="wdoc-style-preview" style="font-size:11px;font-family:Calibri,Arial,sans-serif">Aa</span>
+                <span class="wdoc-style-name">Normal</span>
+              </button>
+              <button class="wdoc-style-btn" [class.wdoc-active]="currentHeading()==='1'"
+                (click)="applyHeading('1')">
+                <span class="wdoc-style-preview" style="font-size:14px;font-weight:700;color:#2e74b5;font-family:Calibri,Arial,sans-serif">T1</span>
+                <span class="wdoc-style-name">Título 1</span>
+              </button>
+              <button class="wdoc-style-btn" [class.wdoc-active]="currentHeading()==='2'"
+                (click)="applyHeading('2')">
+                <span class="wdoc-style-preview" style="font-size:13px;font-weight:700;color:#2e74b5;font-family:Calibri,Arial,sans-serif">T2</span>
+                <span class="wdoc-style-name">Título 2</span>
+              </button>
+              <button class="wdoc-style-btn" [class.wdoc-active]="currentHeading()==='3'"
+                (click)="applyHeading('3')">
+                <span class="wdoc-style-preview" style="font-size:12px;font-weight:700;color:#1f3864;font-family:Calibri,Arial,sans-serif">T3</span>
+                <span class="wdoc-style-name">Título 3</span>
+              </button>
+            </div>
+          </div>
+          <div class="wdoc-rgroup-label">Estilos</div>
+        </div>
+
+      } @else {
+
+        <!-- ── TAB INSERTAR ────────────────────────────────────────────── -->
+
+        <!-- Grupo: Tabla -->
+        <div class="wdoc-rgroup">
+          <div class="wdoc-rgroup-btns" style="flex-direction:row; align-items:center">
+            <button class="wdoc-rbtn wdoc-rbtn-lg" (click)="tb('insertTable')" title="Insertar tabla 3×3">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="3" width="18" height="18" rx="1"/>
+                <path d="M3 9h18M3 15h18M9 3v18M15 3v18"/>
+              </svg>
+              <span>Tabla</span>
+            </button>
+            <div style="display:flex;flex-direction:column;gap:1px">
+              <button class="wdoc-rbtn" (click)="tb('addColAfter')" title="Agregar columna a la derecha" style="font-size:10px">+col</button>
+              <button class="wdoc-rbtn" (click)="tb('addRowAfter')" title="Agregar fila abajo" style="font-size:10px">+fila</button>
+              <button class="wdoc-rbtn" (click)="tb('deleteTable')" title="Eliminar tabla" style="font-size:10px;color:#d13438">✕tab</button>
+            </div>
+          </div>
+          <div class="wdoc-rgroup-label">Tablas</div>
+        </div>
+
+        <div class="wdoc-rsep"></div>
+
+        <!-- Grupo: Ilustraciones -->
+        <div class="wdoc-rgroup">
+          <div class="wdoc-rgroup-btns" style="flex-direction:row; align-items:center">
+            <button class="wdoc-rbtn wdoc-rbtn-lg" (click)="tb('insertImage')" title="Insertar imagen por URL">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="3" width="18" height="18" rx="2"/>
+                <path stroke-linecap="round" d="M3 17l5-5 4 4 3-3 6 6"/>
+                <circle cx="8.5" cy="8.5" r="1.5"/>
+              </svg>
+              <span>Imagen</span>
+            </button>
+          </div>
+          <div class="wdoc-rgroup-label">Ilustraciones</div>
+        </div>
+
+        <div class="wdoc-rsep"></div>
+
+        <!-- Grupo: Vínculos -->
+        <div class="wdoc-rgroup">
+          <div class="wdoc-rgroup-btns" style="flex-direction:row; align-items:center">
+            <button class="wdoc-rbtn wdoc-rbtn-lg" (click)="tb('insertLink')" title="Insertar hipervínculo">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
+              </svg>
+              <span>Vínculo</span>
+            </button>
+          </div>
+          <div class="wdoc-rgroup-label">Vínculos</div>
+        </div>
+
+        <div class="wdoc-rsep"></div>
+
+        <!-- Grupo: Texto especial -->
+        <div class="wdoc-rgroup">
+          <div class="wdoc-rgroup-btns" style="flex-direction:row; align-items:center; gap:4px">
+            <button class="wdoc-rbtn wdoc-rbtn-lg" (click)="tb('hr')" title="Línea horizontal">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" d="M3 12h18"/>
+                <path stroke-linecap="round" d="M3 8h18M3 16h18" stroke-opacity=".3"/>
+              </svg>
+              <span>Línea</span>
+            </button>
+          </div>
+          <div class="wdoc-rgroup-label">Texto</div>
+        </div>
+
+      }
+    </div>
+  }
+
+  <!-- ── Área del editor ───────────────────────────────────────────────── -->
+  <div class="wdoc-editor-area">
+    <div class="wdoc-page" tabindex="-1"
+         (click)="focusEditor($event)"
+         (keydown.enter)="focusEditor($event)">
+      <div #editorHost></div>
+    </div>
+  </div>
+
+  <!-- ── Barra de estado ───────────────────────────────────────────────── -->
+  <div class="wdoc-statusbar">
+    <span>{{ wordCount() }} palabras</span>
+    <span>{{ charCount() }} caracteres</span>
+    <span class="wdoc-statusbar-right">
+      @if (soloLectura) {
+        <span style="color:#ffd700;font-weight:600">Solo lectura</span>
+      }
+      @if (editoresActivos().length > 0) {
+        <span>{{ editoresActivos().length }} colaborador{{ editoresActivos().length > 1 ? 'es' : '' }} activo{{ editoresActivos().length > 1 ? 's' : '' }}</span>
+      }
+    </span>
+  </div>
+
+</div>
+}

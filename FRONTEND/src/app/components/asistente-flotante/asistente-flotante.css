@@ -1,0 +1,218 @@
+/* ── Contenedor principal ───────────────────────────────────────────────── */
+.af-wrapper {
+  position: fixed;
+  bottom: 7rem;   /* Se ubica sobre el botón del chatbot (bottom-6 + h-14 ≈ 80px) */
+  right: 1.5rem;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.5rem;
+  pointer-events: none; /* Los hijos gestionan sus propios eventos */
+}
+
+/* ── Burbuja de mensaje ─────────────────────────────────────────────────── */
+.af-bubble {
+  pointer-events: auto;
+  background: #ffffff;
+  padding: 0.75rem 1rem;
+  border-radius: 1rem;
+  border-bottom-right-radius: 0.2rem;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.12);
+  border: 1px solid #e5e7eb;
+  max-width: 17rem;
+  animation: afBubbleIn 0.18s ease-out;
+}
+
+.af-transcript {
+  font-size: 0.7rem;
+  color: #6b7280;
+  font-style: italic;
+  margin: 0 0 0.3rem 0;
+  line-height: 1.3;
+}
+
+.af-msg {
+  font-size: 0.8rem;
+  color: #111827;
+  line-height: 1.4;
+  margin: 0;
+}
+
+/* ── Barra de nivel de audio ────────────────────────────────────────────── */
+.af-nivel-wrap {
+  width: 4rem;
+  height: 0.2rem;
+  background: #bfdbfe;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.af-nivel-bar {
+  height: 100%;
+  background: #3b82f6;
+  border-radius: 999px;
+  transition: width 50ms linear;
+  min-width: 4px;
+}
+
+/* ── Botón del micrófono ────────────────────────────────────────────────── */
+.af-btn {
+  pointer-events: auto;
+  width: 3.75rem;
+  height: 3.75rem;
+  border-radius: 9999px;
+  background: #2563eb;
+  color: #ffffff;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.45);
+  transition: transform 0.1s ease, background 0.2s ease;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.af-btn:hover:not(:disabled) {
+  transform: scale(1.06);
+}
+
+.af-btn:active:not(:disabled) {
+  transform: scale(0.94);
+}
+
+.af-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.85;
+}
+
+.af-btn--grabando {
+  background: #dc2626;
+  box-shadow: 0 6px 20px rgba(220, 38, 38, 0.45);
+  animation: afPulse 1.4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.af-btn--cargando {
+  background: #7c3aed;
+  box-shadow: 0 6px 20px rgba(124, 58, 237, 0.45);
+}
+
+/* ── Fila de botones (texto + micrófono) ────────────────────────────────── */
+.af-btn-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+/* ── Botón de texto (lápiz) ─────────────────────────────────────────────── */
+.af-btn-text {
+  pointer-events: auto;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 9999px;
+  background: #f3f4f6;
+  color: #374151;
+  border: 1px solid #e5e7eb;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.af-btn-text:hover:not(:disabled) {
+  background: #e5e7eb;
+}
+
+.af-btn-text--activo {
+  background: #dbeafe;
+  color: #1d4ed8;
+  border-color: #93c5fd;
+}
+
+.af-btn-text:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── Panel de input de texto ────────────────────────────────────────────── */
+.af-input-panel {
+  pointer-events: auto;
+  display: flex;
+  gap: 0.4rem;
+  align-items: flex-end;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.75rem;
+  border-bottom-right-radius: 0.2rem;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.12);
+  padding: 0.5rem;
+  width: 17rem;
+  animation: afBubbleIn 0.18s ease-out;
+}
+
+.af-input-field {
+  flex: 1;
+  font-size: 0.8rem;
+  color: #111827;
+  border: none;
+  outline: none;
+  resize: none;
+  background: transparent;
+  line-height: 1.4;
+  font-family: inherit;
+}
+
+.af-input-field::placeholder {
+  color: #9ca3af;
+}
+
+.af-input-send {
+  flex-shrink: 0;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 9999px;
+  background: #2563eb;
+  color: #ffffff;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s ease;
+}
+
+.af-input-send:hover:not(:disabled) {
+  background: #1d4ed8;
+}
+
+.af-input-send:disabled {
+  background: #93c5fd;
+  cursor: not-allowed;
+}
+
+/* ── Tooltip de instrucción ─────────────────────────────────────────────── */
+.af-hint {
+  pointer-events: none;
+  font-size: 0.65rem;
+  color: #6b7280;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-align: center;
+  margin: 0;
+}
+
+/* ── Animaciones ────────────────────────────────────────────────────────── */
+@keyframes afBubbleIn {
+  from { opacity: 0; transform: translateY(6px) scale(0.96); }
+  to   { opacity: 1; transform: translateY(0)   scale(1);    }
+}
+
+@keyframes afPulse {
+  0%, 100% { box-shadow: 0 6px 20px rgba(220, 38, 38, 0.45); }
+  50%       { box-shadow: 0 6px 32px rgba(220, 38, 38, 0.75); transform: scale(1.04); }
+}

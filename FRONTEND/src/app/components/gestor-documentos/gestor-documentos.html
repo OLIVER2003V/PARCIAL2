@@ -1,0 +1,328 @@
+<div class="flex flex-col h-full bg-white">
+
+  <!-- ═══ CABECERA ══════════════════════════════════════════════════════════ -->
+  <div class="flex items-center gap-3 px-4 py-3 border-b border-slate-200 shrink-0">
+    <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round"
+        d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"/>
+    </svg>
+    <h2 class="text-sm font-bold text-slate-800">Gestión Documental</h2>
+
+    <!-- Tabs -->
+    <div class="ml-auto flex gap-1 bg-slate-100 p-0.5 rounded-lg text-xs">
+      <button (click)="tabActiva.set('documentos')"
+        [class]="tabActiva() === 'documentos'
+          ? 'px-3 py-1 bg-white rounded-md font-semibold text-slate-800 shadow-sm'
+          : 'px-3 py-1 text-slate-500 hover:text-slate-700'">
+        Docs colaborativos
+      </button>
+      <button (click)="tabActiva.set('archivos')"
+        [class]="tabActiva() === 'archivos'
+          ? 'px-3 py-1 bg-white rounded-md font-semibold text-slate-800 shadow-sm'
+          : 'px-3 py-1 text-slate-500 hover:text-slate-700'">
+        Archivos adjuntos
+      </button>
+    </div>
+  </div>
+
+  <!-- ═══ ERROR ════════════════════════════════════════════════════════════ -->
+  @if (errorMsg()) {
+    <div class="mx-4 mt-3 px-3 py-2 bg-red-50 border border-red-200 rounded-lg text-xs text-red-600">
+      {{ errorMsg() }}
+      <button (click)="errorMsg.set(null)" class="ml-2 font-bold">✕</button>
+    </div>
+  }
+
+  <!-- ═══ TAB: DOCUMENTOS COLABORATIVOS ════════════════════════════════════ -->
+  @if (tabActiva() === 'documentos') {
+
+    <!-- Si hay un documento abierto, mostrar el editor a pantalla completa -->
+    @if (documentoAbierto(); as doc) {
+      <div class="flex flex-col flex-1 overflow-hidden">
+
+        <!-- Barra del editor abierto -->
+        <div class="flex items-center gap-2 px-3 py-2 bg-indigo-50 border-b border-indigo-200 shrink-0">
+          <button (click)="cerrarDocumento()"
+            class="w-6 h-6 flex items-center justify-center rounded hover:bg-indigo-100 text-indigo-600">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+            </svg>
+          </button>
+          <span class="text-xs font-semibold text-indigo-800">{{ doc.nombre }}</span>
+          <span class="text-[10px] px-1.5 py-0.5 rounded-full font-medium"
+            [class]="doc.tipo === 'texto'
+              ? 'bg-blue-100 text-blue-700'
+              : 'bg-emerald-100 text-emerald-700'">
+            {{ doc.tipo === 'texto' ? 'Texto' : 'Hoja de cálculo' }}
+          </span>
+          @if (doc.ultimoEditor) {
+            <span class="text-[10px] text-indigo-400 ml-auto">
+              Editado por {{ doc.ultimoEditor }}
+            </span>
+          }
+        </div>
+
+        <!-- Editor según tipo -->
+        <div class="flex-1 overflow-hidden">
+          @if (doc.tipo === 'texto') {
+            <app-editor-texto-colaborativo
+              [documentoId]="doc.id"
+              [contenidoInicial]="doc.contenido"
+              [estadoYjsInicial]="doc.estadoYjs ?? ''"
+              [soloLectura]="soloLectura"
+              class="h-full flex flex-col">
+            </app-editor-texto-colaborativo>
+          } @else {
+            <app-hoja-calculo-colaborativa
+              [documentoId]="doc.id"
+              [contenidoInicial]="doc.contenido"
+              [estadoYjsInicial]="doc.estadoYjs ?? ''"
+              [soloLectura]="soloLectura"
+              class="h-full flex flex-col">
+            </app-hoja-calculo-colaborativa>
+          }
+        </div>
+      </div>
+
+    } @else {
+
+      <!-- Lista de documentos colaborativos -->
+      <div class="flex-1 overflow-y-auto p-4">
+
+        <!-- Botón crear (solo si no es solo lectura) -->
+        @if (!soloLectura) {
+          @if (creandoDocumento()) {
+            <div class="mb-4 p-3 bg-slate-50 border border-slate-200 rounded-xl">
+              <p class="text-xs font-bold text-slate-600 mb-2">Nuevo documento</p>
+              <input type="text" [value]="nuevoDocNombre()" (input)="nuevoDocNombre.set($any($event.target).value)" placeholder="Nombre del documento"
+                class="w-full mb-2 px-2 py-1.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:border-indigo-400"/>
+              <div class="flex gap-2 mb-2">
+                <button (click)="nuevoDocTipo.set('texto')"
+                  [class]="nuevoDocTipo() === 'texto'
+                    ? 'flex-1 py-1 text-xs font-semibold bg-blue-600 text-white rounded-lg'
+                    : 'flex-1 py-1 text-xs font-semibold bg-white border border-slate-200 text-slate-600 rounded-lg hover:bg-slate-50'">
+                  📝 Texto (Word)
+                </button>
+                <button (click)="nuevoDocTipo.set('hoja')"
+                  [class]="nuevoDocTipo() === 'hoja'
+                    ? 'flex-1 py-1 text-xs font-semibold bg-emerald-600 text-white rounded-lg'
+                    : 'flex-1 py-1 text-xs font-semibold bg-white border border-slate-200 text-slate-600 rounded-lg hover:bg-slate-50'">
+                  📊 Hoja (Excel)
+                </button>
+              </div>
+              <div class="flex gap-2">
+                <button (click)="crearDocumento()"
+                  class="flex-1 py-1.5 text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors">
+                  Crear
+                </button>
+                <button (click)="creandoDocumento.set(false)"
+                  class="py-1.5 px-3 text-xs text-slate-500 hover:bg-slate-100 rounded-lg">
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          } @else {
+            <button (click)="creandoDocumento.set(true)"
+              class="w-full mb-4 py-2 border-2 border-dashed border-slate-300 hover:border-indigo-400 hover:bg-indigo-50/40 rounded-xl text-xs font-semibold text-slate-500 hover:text-indigo-600 transition-colors flex items-center justify-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+              </svg>
+              Nuevo documento colaborativo
+            </button>
+          }
+        }
+
+        <!-- Lista -->
+        @if (documentos().length === 0 && !cargando()) {
+          <div class="text-center py-10 text-slate-400">
+            <svg class="w-10 h-10 mx-auto mb-2 opacity-30" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/>
+            </svg>
+            <p class="text-xs">Sin documentos colaborativos aún.</p>
+          </div>
+        } @else {
+          <div class="space-y-2">
+            @for (doc of documentos(); track doc.id) {
+              <button type="button" (click)="abrirDocumento(doc)"
+                class="w-full text-left flex items-center gap-3 p-3 bg-white border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50/30 rounded-xl cursor-pointer transition-colors group">
+                <span class="text-xl">{{ doc.tipo === 'texto' ? '📝' : '📊' }}</span>
+                <div class="flex-1 min-w-0">
+                  <p class="text-sm font-semibold text-slate-800 truncate">{{ doc.nombre }}</p>
+                  <p class="text-[10px] text-slate-400">
+                    Editado por {{ doc.ultimoEditor ?? doc.creadoPor }}
+                    @if (doc.actualizadoEn) { · {{ doc.actualizadoEn | date:'dd/MM HH:mm' }} }
+                  </p>
+                </div>
+                <span class="text-[10px] px-1.5 py-0.5 rounded-full"
+                  [class]="doc.tipo === 'texto' ? 'bg-blue-100 text-blue-600' : 'bg-emerald-100 text-emerald-600'">
+                  {{ doc.tipo === 'texto' ? 'Texto' : 'Hoja' }}
+                </span>
+                @if (!soloLectura) {
+                  <button (click)="eliminarDocumento(doc, $event)"
+                    class="opacity-0 group-hover:opacity-100 w-6 h-6 flex items-center justify-center text-red-400 hover:text-red-600 rounded transition-all">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M1 7h22M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3"/>
+                    </svg>
+                  </button>
+                }
+              </button>
+            }
+          </div>
+        }
+      </div>
+    }
+  }
+
+  <!-- ═══ TAB: ARCHIVOS ADJUNTOS ════════════════════════════════════════════ -->
+  @if (tabActiva() === 'archivos') {
+    <div class="flex-1 overflow-y-auto p-4">
+
+      <!-- Zona de subida -->
+      @if (!soloLectura) {
+        <div class="mb-4 p-4 border-2 border-dashed border-slate-300 hover:border-indigo-400 rounded-xl bg-slate-50 hover:bg-indigo-50/30 transition-colors">
+          <input type="text" [value]="comentarioSubida()" (input)="comentarioSubida.set($any($event.target).value)"
+            placeholder="Comentario de versión (opcional)"
+            class="w-full mb-2 px-2 py-1.5 text-xs border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-400 bg-white"/>
+
+          <label class="flex flex-col items-center gap-2 cursor-pointer">
+            @if (subiendoArchivo()) {
+              <svg class="w-6 h-6 text-indigo-400 animate-spin" fill="none" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" stroke-dasharray="31.4" stroke-dashoffset="10"/>
+              </svg>
+              <span class="text-xs text-slate-500">Subiendo…</span>
+            } @else {
+              <svg class="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+              </svg>
+              <span class="text-xs text-slate-500 font-medium">Haz clic o arrastra un archivo</span>
+              <span class="text-[10px] text-slate-400">PDF, Word, Excel, Imágenes — cualquier formato</span>
+              <input type="file" class="hidden" (change)="seleccionarArchivo($event)"/>
+            }
+          </label>
+        </div>
+      }
+
+      <!-- Lista de archivos -->
+      @if (archivos().length === 0 && !cargando()) {
+        <div class="text-center py-10 text-slate-400">
+          <p class="text-xs">Sin archivos adjuntos.</p>
+        </div>
+      } @else {
+        <div class="space-y-2">
+          @for (archivo of archivos(); track archivo.id) {
+            <div class="border border-slate-200 rounded-xl overflow-hidden">
+
+              <!-- Cabecera del registro -->
+              <button type="button"
+                class="w-full text-left flex items-center gap-3 p-3 bg-white hover:bg-slate-50 cursor-pointer"
+                (click)="abrirPreview(archivo)">
+                <span class="text-2xl">{{ iconoArchivo(archivo.tipoMime) }}</span>
+                <div class="flex-1 min-w-0">
+                  <p class="text-sm font-semibold text-slate-800 truncate">{{ archivo.nombreOriginal }}</p>
+                  <p class="text-[10px] text-slate-400">
+                    v{{ archivo.versiones.length }} ·
+                    {{ formatBytes(archivo.versiones[archivo.versiones.length - 1]?.tamano ?? 0) }} ·
+                    {{ archivo.versiones[archivo.versiones.length - 1]?.subidoPor }}
+                  </p>
+                </div>
+                <div class="flex gap-1">
+                  <button (click)="toggleVersiones(archivo.id); $event.stopPropagation()"
+                    class="text-[10px] px-2 py-0.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded font-medium">
+                    Versiones ({{ archivo.versiones.length }})
+                  </button>
+                  <a [href]="archivo.urlActual" target="_blank" download
+                    (click)="$event.stopPropagation()"
+                    class="text-[10px] px-2 py-0.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 rounded font-medium">
+                    Descargar
+                  </a>
+                </div>
+              </button>
+
+              <!-- Historial de versiones (expandible) -->
+              @if (mostrarVersiones() === archivo.id) {
+                <div class="border-t border-slate-100 bg-slate-50 px-3 py-2">
+                  <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Historial de versiones</p>
+                  @for (ver of archivo.versiones.slice().reverse(); track ver.numero) {
+                    <div class="flex items-center gap-2 py-1 border-b border-slate-100 last:border-0 text-[11px]">
+                      <span class="text-[10px] px-1.5 py-0.5 bg-white border border-slate-200 rounded font-bold text-slate-500">
+                        v{{ ver.numero }}
+                      </span>
+                      <span class="text-slate-600 font-medium flex-1">{{ ver.subidoPor }}</span>
+                      <span class="text-slate-400">{{ ver.fechaSubida | date:'dd/MM/yy HH:mm' }}</span>
+                      @if (ver.comentario) {
+                        <span class="text-slate-500 italic">— {{ ver.comentario }}</span>
+                      }
+                      <a [href]="ver.url" target="_blank" download
+                        class="text-indigo-500 hover:text-indigo-700 font-semibold">↓</a>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+</div>
+
+<!-- ═══ MODAL PREVIEW ═══════════════════════════════════════════════════════ -->
+@if (archivoPreview(); as preview) {
+  <!-- backdrop -->
+  <div class="fixed inset-0 z-100 bg-black/60 flex items-center justify-center p-4"
+       (click)="cerrarPreview()" (keydown.escape)="cerrarPreview()">
+    <dialog open
+      class="relative bg-white rounded-2xl shadow-2xl w-full max-w-5xl h-[85vh] flex flex-col p-0 border-0"
+      (click)="$event.stopPropagation()" (keydown.escape)="cerrarPreview()">
+
+      <!-- Header -->
+      <div class="flex items-center gap-3 px-4 py-3 border-b border-slate-200 shrink-0">
+        <span class="text-xl">{{ iconoArchivo(preview.tipoMime) }}</span>
+        <span class="text-sm font-bold text-slate-800 flex-1 truncate">{{ preview.nombreOriginal }}</span>
+        <a [href]="preview.urlActual" target="_blank" download
+          class="text-xs px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium transition-colors">
+          Descargar
+        </a>
+        <button (click)="cerrarPreview()" title="Cerrar"
+          class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-100 text-slate-500">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Contenido del preview -->
+      <div class="flex-1 overflow-hidden">
+        @switch (vistaPreview()) {
+          @case ('pdf') {
+            <iframe [src]="preview.urlActual" title="Vista previa PDF" class="w-full h-full border-0"></iframe>
+          }
+          @case ('imagen') {
+            <div class="w-full h-full flex items-center justify-center bg-slate-100 p-4">
+              <img [src]="preview.urlActual" [alt]="preview.nombreOriginal"
+                   class="max-w-full max-h-full object-contain rounded-lg shadow"/>
+            </div>
+          }
+          @case ('office') {
+            <iframe [src]="officeViewerUrl(preview.urlActual)"
+                    title="Vista previa Office" class="w-full h-full border-0"></iframe>
+          }
+          @default {
+            <div class="flex flex-col items-center justify-center h-full gap-4 text-slate-400">
+              <svg class="w-16 h-16 opacity-30" fill="none" stroke="currentColor" stroke-width="1" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+              </svg>
+              <p class="text-sm font-medium">Vista previa no disponible</p>
+              <a [href]="preview.urlActual" target="_blank" download
+                class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition-colors">
+                Descargar archivo
+              </a>
+            </div>
+          }
+        }
+      </div>
+    </dialog>
+  </div>
+}

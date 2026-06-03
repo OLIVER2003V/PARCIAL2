@@ -1,0 +1,190 @@
+<div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[70] flex items-center justify-center p-4 animate-in fade-in duration-200"
+  (click)="cerrarModal()">
+  <div class="bg-white border border-slate-200 rounded-3xl max-w-xl w-full shadow-2xl animate-in zoom-in-95 max-h-[90vh] flex flex-col"
+    (click)="$event.stopPropagation()">
+
+    <div class="flex items-center gap-4 p-6 border-b border-slate-100 bg-slate-50 rounded-t-3xl flex-shrink-0">
+      <div class="w-12 h-12 bg-purple-50 rounded-xl flex items-center justify-center border border-purple-100 shadow-sm">
+        <span class="text-2xl">🤝</span>
+      </div>
+      <div class="flex-1 min-w-0">
+        <h3 class="text-xl font-black text-slate-900 tracking-tight">Co-editar política</h3>
+        <p class="text-xs font-medium text-slate-500 truncate mt-0.5">{{ nombreProceso }}</p>
+      </div>
+      <button (click)="cerrarModal()"
+        class="w-10 h-10 flex items-center justify-center rounded-xl bg-white border border-slate-200 hover:bg-slate-100 text-slate-500 hover:text-slate-800 transition-colors shadow-sm focus:outline-none focus:ring-4 focus:ring-slate-100"
+        aria-label="Cerrar modal">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+
+    <div class="flex border-b border-slate-200 bg-white">
+      <button (click)="cambiarTab('link')"
+        class="flex-1 px-4 py-3.5 text-sm font-bold transition-all border-b-[3px] focus:outline-none"
+        [class]="tabActiva() === 'link' ? 'text-purple-700 border-purple-500 bg-purple-50/50' : 'text-slate-500 border-transparent hover:text-slate-800 hover:bg-slate-50'">
+        🔗 Link compartible
+      </button>
+      <button (click)="cambiarTab('admins')"
+        class="flex-1 px-4 py-3.5 text-sm font-bold transition-all border-b-[3px] focus:outline-none"
+        [class]="tabActiva() === 'admins' ? 'text-purple-700 border-purple-500 bg-purple-50/50' : 'text-slate-500 border-transparent hover:text-slate-800 hover:bg-slate-50'">
+        👥 Invitar a admins
+      </button>
+    </div>
+
+    <div class="flex-1 overflow-y-auto p-6 md:p-8 custom-scrollbar">
+
+      @if (tabActiva() === 'link') {
+      <div class="space-y-6 animate-in fade-in duration-200">
+        <div>
+          <p class="text-sm text-slate-800 font-bold mb-1">Comparte este link con quien quieras invitar</p>
+          <p class="text-xs font-medium text-slate-500 leading-relaxed">
+            Cualquier admin con este enlace podrá unirse automáticamente a la sesión colaborativa de este diagrama.
+            <br>Expira por seguridad en <strong class="text-slate-700">24 horas</strong>.
+          </p>
+        </div>
+
+        @if (generandoLink()) {
+        <div class="flex flex-col items-center justify-center py-10 bg-slate-50 rounded-2xl border border-slate-100">
+          <svg class="animate-spin w-8 h-8 text-purple-500 mb-3" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+            </path>
+          </svg>
+          <span class="text-sm font-bold text-slate-600">Generando link seguro...</span>
+        </div>
+        } @else if (linkGenerado(); as url) {
+        
+        <div class="bg-white border-2 border-slate-200 rounded-xl p-2 flex items-center gap-2 shadow-sm focus-within:border-purple-400 focus-within:ring-4 focus-within:ring-purple-500/10 transition-all">
+          <div class="px-2 text-slate-400 flex-shrink-0">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+          </div>
+          <input type="text" readonly [value]="url"
+            class="flex-1 bg-transparent text-slate-900 text-sm font-medium outline-none truncate"
+            (click)="$any($event.target).select()">
+          <button (click)="copiarLink()"
+            class="px-4 py-2.5 text-xs font-bold rounded-lg transition-all flex items-center gap-2 whitespace-nowrap shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-1"
+            [class]="copiado() ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 focus:ring-emerald-500' : 'bg-purple-600 hover:bg-purple-700 text-white focus:ring-purple-500'">
+            @if (copiado()) {
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+              <span>¡Copiado!</span>
+            } @else {
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+              <span>Copiar</span>
+            }
+          </button>
+        </div>
+
+        <div class="bg-indigo-50 border border-indigo-100 rounded-xl p-4 flex items-start gap-3 shadow-sm">
+          <span class="text-xl">💡</span>
+          <p class="text-xs font-medium text-indigo-800 leading-relaxed">
+            Pégalo en tu chat de equipo, email o cualquier app de mensajería. Quien lo abra entrará
+            automáticamente a co-editar contigo.
+          </p>
+        </div>
+
+        <button (click)="generarLink()"
+          class="w-full py-3 bg-white hover:bg-slate-50 text-slate-600 hover:text-slate-900 text-xs font-bold rounded-xl border border-slate-200 shadow-sm transition-all focus:outline-none focus:ring-4 focus:ring-slate-100">
+          🔄 Generar un nuevo link <span class="font-medium opacity-70 ml-1">(Invalida el anterior)</span>
+        </button>
+        }
+      </div>
+      }
+
+      @if (tabActiva() === 'admins') {
+      <div class="space-y-5 animate-in fade-in duration-200">
+        <div>
+          <p class="text-sm text-slate-800 font-bold mb-1">Invita a otros admins directamente</p>
+          <p class="text-xs font-medium text-slate-500">Recibirán una notificación emergente dentro del sistema para unirse a tu sala.</p>
+        </div>
+
+        @if (cargandoAdmins()) {
+        <div class="flex flex-col items-center justify-center py-10 bg-slate-50 rounded-2xl border border-slate-100">
+          <svg class="animate-spin w-8 h-8 text-purple-500 mb-3" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+            </path>
+          </svg>
+          <span class="text-sm font-bold text-slate-600">Buscando administradores...</span>
+        </div>
+        } @else if (admins().length === 0) {
+        <div class="text-center py-10 bg-slate-50 border border-slate-200 border-dashed rounded-2xl">
+          <span class="text-4xl opacity-50 block mb-2">👥</span>
+          <p class="text-sm font-bold text-slate-700">No hay otros admins disponibles.</p>
+          <p class="text-xs text-slate-500 mt-1">Eres el único administrador registrado por ahora.</p>
+        </div>
+        } @else {
+
+        <div class="space-y-2 max-h-60 overflow-y-auto p-1 custom-scrollbar">
+          @for (admin of admins(); track admin.username) {
+          <button (click)="toggleAdmin(admin.username)"
+            class="w-full flex items-center gap-4 p-3.5 rounded-xl text-left border-2 transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-purple-500/20"
+            [class]="estaSeleccionado(admin.username)
+                       ? 'bg-purple-50 border-purple-500 text-purple-900 shadow-sm'
+                       : 'bg-white border-slate-200 text-slate-600 hover:border-purple-300 hover:bg-purple-50/50 hover:text-slate-900'">
+            
+            <div class="w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 transition-colors"
+              [class]="estaSeleccionado(admin.username) ? 'bg-purple-600 border-purple-600' : 'bg-white border-slate-300'">
+              @if (estaSeleccionado(admin.username)) {
+              <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" stroke-width="3.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+              }
+            </div>
+            
+            <div class="flex-1 min-w-0">
+              <p class="font-bold text-sm truncate">{{ admin.nombreCompleto || admin.username }}</p>
+              <p class="text-[11px] font-medium text-slate-500 truncate mt-0.5">
+                <span class="font-mono bg-slate-100 px-1 rounded text-slate-600 border border-slate-200">&#64;{{ admin.username }}</span> 
+                @if (admin.email) { <span class="mx-1 opacity-50">•</span> {{ admin.email }} }
+              </p>
+            </div>
+          </button>
+          }
+        </div>
+
+        <div class="pt-2">
+          <label class="block text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-2">
+            Mensaje (opcional)
+          </label>
+          <textarea rows="2" [ngModel]="mensajeOpcional()" (ngModelChange)="mensajeOpcional.set($event)"
+            placeholder="Ej: Necesito tu ayuda revisando la compuerta de aprobación de este flujo..."
+            class="w-full px-4 py-3 bg-white border border-slate-200 text-slate-900 rounded-xl text-sm font-medium resize-none focus:outline-none focus:border-purple-500 focus:ring-4 focus:ring-purple-500/10 shadow-sm transition-all"></textarea>
+        </div>
+        }
+      </div>
+      }
+    </div>
+
+    @if (tabActiva() === 'admins' && admins().length > 0) {
+    <div class="px-6 py-5 border-t border-slate-100 bg-slate-50 rounded-b-3xl flex items-center justify-between gap-4 flex-shrink-0">
+      <span class="text-xs font-bold text-slate-500">
+        @if (totalSeleccionados() === 0) {
+          Selecciona al menos un admin
+        } @else {
+          <span class="text-purple-700 bg-purple-100 px-2 py-0.5 rounded-md border border-purple-200">{{ totalSeleccionados() }}</span> 
+          {{ totalSeleccionados() === 1 ? 'seleccionado' : 'seleccionados' }}
+        }
+      </span>
+      <button (click)="enviarInvitaciones()" [disabled]="!hayAdminSeleccionado() || enviando()"
+        class="flex items-center gap-2 px-6 py-3 bg-purple-600 hover:bg-purple-700 disabled:bg-slate-300 disabled:text-slate-500 disabled:cursor-not-allowed text-white text-sm font-bold rounded-xl shadow-lg shadow-purple-500/30 transition-all active:scale-[0.98] focus:outline-none focus:ring-4 focus:ring-purple-200">
+        @if (enviando()) {
+        <svg class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor"
+            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+          </path>
+        </svg>
+        Enviando...
+        } @else {
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+        Enviar invitaciones
+        }
+      </button>
+    </div>
+    }
+  </div>
+</div>

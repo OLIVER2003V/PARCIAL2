@@ -1,0 +1,470 @@
+<!-- ── Vista compacta ──────────────────────────────────────────────────────── -->
+<div class="rounded-2xl border border-slate-200 overflow-hidden shadow-sm bg-white">
+  <div class="flex items-center justify-between gap-2 px-4 py-2.5 bg-[#1D6F42]/5 border-b border-[#1D6F42]/20">
+    <div class="flex items-center gap-2.5 min-w-0">
+      <svg class="w-5 h-5 shrink-0" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+        <path d="M28 4H10C7.8 4 6 5.8 6 8v32c0 2.2 1.8 4 4 4h28c2.2 0 4-1.8 4-4V20L28 4z" fill="#1D6F42"/>
+        <path d="M28 4v16h16L28 4z" fill="#82C49F"/>
+        <path d="M14 18h8v2h-8v-2zm10 0h10v2H24v-2zm-10 5h8v2h-8v-2zm10 0h10v2H24v-2zm-10 5h8v2h-8v-2zm10 0h10v2H24v-2z" fill="white"/>
+      </svg>
+      <span class="text-sm font-semibold text-slate-700 truncate max-w-40">{{ nombre() }}</span>
+      @if (soloLectura) {
+        <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 bg-amber-100 text-amber-700 rounded-full shrink-0">Solo lectura</span>
+      }
+      @if (mongoId() && !cargando()) {
+        <span class="w-2 h-2 bg-emerald-500 rounded-full shrink-0"></span>
+      }
+    </div>
+    <div class="flex items-center gap-1.5 shrink-0">
+      @if (editoresActivos().length > 0) {
+        <div class="wsheet-presencia-card">
+          @for (ed of editoresActivos(); track ed.usuario) {
+            <div class="wsheet-presencia-pill" [style.background-color]="ed.color" [title]="ed.usuario">{{ initials(ed.usuario) }}</div>
+          }
+        </div>
+      }
+      @if (!cargando() && !error()) {
+        <button (click)="descargar()" title="Descargar CSV"
+          class="flex items-center gap-1 px-2.5 py-1.5 bg-white hover:bg-slate-50 border border-slate-200 text-slate-600 text-xs font-medium rounded-lg transition-colors">
+          <svg class="w-3.5 h-3.5 text-[#1D6F42]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+          </svg>CSV
+        </button>
+      }
+      @if (!cargando() && !error() && !soloLectura) {
+        <button (click)="abrirModal()"
+          class="flex items-center gap-1.5 px-3 py-1.5 bg-[#1D6F42] hover:bg-[#155233] text-white text-xs font-bold rounded-lg transition-colors">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+          </svg>Editar
+        </button>
+      }
+      <button (click)="toggleColapsado()" [title]="colapsado() ? 'Expandir' : 'Colapsar'"
+        class="p-1.5 bg-white hover:bg-slate-50 border border-slate-200 text-slate-500 rounded-lg transition-colors">
+        <svg class="w-3.5 h-3.5 transition-transform duration-200" [class.rotate-180]="colapsado()" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+  @if (!colapsado()) {
+    @if (cargando()) {
+      <div class="flex flex-col items-center justify-center gap-3 py-12 bg-white">
+        <div class="w-8 h-8 border-[3px] border-[#1D6F42]/20 border-t-[#1D6F42] rounded-full animate-spin"></div>
+        <p class="text-sm font-medium text-slate-500">Preparando hoja de cálculo...</p>
+      </div>
+    } @else if (error()) {
+      <div class="flex items-start gap-3 p-5 bg-red-50">
+        <svg class="w-5 h-5 text-red-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+        </svg>
+        <div><p class="text-sm font-bold text-red-700">Error al cargar</p><p class="text-xs text-red-600 mt-0.5">{{ error() }}</p></div>
+      </div>
+    } @else {
+      <div class="p-4 bg-white">
+        <div class="flex items-center gap-4 mb-3">
+          <div class="w-12 h-12 bg-[#1D6F42]/8 rounded-xl flex items-center justify-center shrink-0 border border-[#1D6F42]/15">
+            <svg class="w-6 h-6" viewBox="0 0 48 48"><path d="M28 4H10C7.8 4 6 5.8 6 8v32c0 2.2 1.8 4 4 4h28c2.2 0 4-1.8 4-4V20L28 4z" fill="#1D6F42"/><path d="M28 4v16h16L28 4z" fill="#82C49F"/><path d="M14 18h8v2h-8v-2zm10 0h10v2H24v-2zm-10 5h8v2h-8v-2zm10 0h10v2H24v-2zm-10 5h8v2h-8v-2zm10 0h10v2H24v-2z" fill="white"/></svg>
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-bold text-slate-800">{{ nombre() }}</p>
+            <p class="text-xs text-slate-500 mt-0.5">{{ getCellCount() }} celda(s) con datos · {{ ROWS }} × {{ COLS }}</p>
+            @if (editoresActivos().length > 0) {
+              <div class="flex items-center gap-1.5 mt-1">
+                <span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
+                <span class="text-xs text-emerald-600 font-medium">{{ editoresActivos().length }} editor(es) activo(s)</span>
+              </div>
+            }
+          </div>
+        </div>
+        @if (!soloLectura) {
+          <button (click)="abrirModal()"
+            class="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-[#1D6F42] hover:bg-[#155233] text-white text-sm font-bold rounded-xl transition-colors shadow-sm shadow-[#1D6F42]/25">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+            Abrir editor completo
+          </button>
+        } @else {
+          <button (click)="abrirModal()"
+            class="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-bold rounded-xl transition-colors">
+            Ver hoja de cálculo
+          </button>
+        }
+      </div>
+    }
+  }
+</div>
+
+<!-- ── Modal pantalla completa ──────────────────────────────────────────────── -->
+@if (modalAbierto()) {
+  <div class="wsheet-modal">
+
+    <!-- Barra de título -->
+    <div class="wsheet-titlebar">
+      <div class="wsheet-titlebar-left">
+        <svg class="w-5 h-5 shrink-0" viewBox="0 0 48 48"><path d="M28 4H10C7.8 4 6 5.8 6 8v32c0 2.2 1.8 4 4 4h28c2.2 0 4-1.8 4-4V20L28 4z" fill="#fff" fill-opacity=".25"/><path d="M14 18h8v2h-8v-2zm10 0h10v2H24v-2zm-10 5h8v2h-8v-2zm10 0h10v2H24v-2zm-10 5h8v2h-8v-2zm10 0h10v2H24v-2z" fill="white"/></svg>
+        <span class="wsheet-docname">{{ nombre() }}</span>
+        <span class="wsheet-saved-badge">
+          @if (guardando()) { <span class="wsheet-spin"></span> Guardando... }
+          @else { <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg> Guardado }
+        </span>
+      </div>
+      <div class="wsheet-titlebar-right">
+        @if (editoresActivos().length > 0) {
+          <div class="wsheet-presencia">
+            @for (ed of editoresActivos(); track ed.usuario) {
+              <div class="wsheet-avatar" [style.background-color]="ed.color" [title]="ed.usuario">{{ initials(ed.usuario) }}</div>
+            }
+          </div>
+        }
+        <button (click)="descargar()" class="wsheet-title-btn" title="Descargar CSV">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
+          CSV
+        </button>
+        <button (click)="cerrarModal()" class="wsheet-title-btn">
+          <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"/></svg>
+          Volver
+        </button>
+      </div>
+    </div>
+
+    <!-- ── Ribbon ─────────────────────────────────────────────────────────── -->
+    <div class="wsheet-ribbon">
+      <!-- Pestañas -->
+      <div class="wsheet-ribbon-tabs">
+        <button (click)="tabActiva.set('inicio')"   [class.wsr-tab-active]="tabActiva()==='inicio'"   class="wsr-tab">Inicio</button>
+        <button (click)="tabActiva.set('insertar')" [class.wsr-tab-active]="tabActiva()==='insertar'" class="wsr-tab">Insertar</button>
+        <button (click)="tabActiva.set('formulas')" [class.wsr-tab-active]="tabActiva()==='formulas'" class="wsr-tab">Fórmulas</button>
+        <button (click)="tabActiva.set('datos')"    [class.wsr-tab-active]="tabActiva()==='datos'"    class="wsr-tab">Datos</button>
+      </div>
+
+      <!-- Contenido pestaña Inicio -->
+      @if (tabActiva() === 'inicio') {
+        <div class="wsr-panel">
+
+          <!-- Grupo: Deshacer -->
+          <div class="wsr-group">
+            <div class="wsr-group-btns">
+              <button (click)="undo()" class="wsr-btn" title="Deshacer (Ctrl+Z)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h10a8 8 0 018 8v2M3 10l6 6M3 10l6-6"/></svg>
+              </button>
+              <button (click)="redo()" class="wsr-btn" title="Rehacer (Ctrl+Y)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 10H11a8 8 0 00-8 8v2M21 10l-6 6M21 10l-6-6"/></svg>
+              </button>
+            </div>
+            <span class="wsr-group-label">Deshacer</span>
+          </div>
+          <div class="wsr-sep"></div>
+
+          <!-- Grupo: Fuente -->
+          <div class="wsr-group">
+            <div class="wsr-group-btns">
+              <select class="wsr-select" [value]="activeFmt()?.fs ?? 11" (change)="setFontSize(+$any($event.target).value)" title="Tamaño de fuente">
+                @for (sz of FONT_SIZES; track sz) {
+                  <option [value]="sz">{{ sz }}</option>
+                }
+              </select>
+              <button (click)="toggleBold()"          [class.wsr-active]="activeFmt()?.b"  class="wsr-btn wsr-btn-b"  title="Negrita (Ctrl+B)">B</button>
+              <button (click)="toggleItalic()"        [class.wsr-active]="activeFmt()?.i"  class="wsr-btn wsr-btn-i"  title="Cursiva (Ctrl+I)">I</button>
+              <button (click)="toggleUnderline()"     [class.wsr-active]="activeFmt()?.u"  class="wsr-btn wsr-btn-u"  title="Subrayado (Ctrl+U)">U</button>
+              <button (click)="toggleStrikethrough()" [class.wsr-active]="activeFmt()?.s"  class="wsr-btn wsr-btn-s"  title="Tachado">S</button>
+            </div>
+            <span class="wsr-group-label">Fuente</span>
+          </div>
+          <div class="wsr-sep"></div>
+
+          <!-- Grupo: Colores -->
+          <div class="wsr-group">
+            <div class="wsr-group-btns">
+              <!-- Color de fondo -->
+              <div class="wsr-color-wrap">
+                <button class="wsr-btn wsr-color-btn" (click)="showBgPicker.set(!showBgPicker()); showFgPicker.set(false)" title="Color de fondo">
+                  <svg viewBox="0 0 20 20" fill="currentColor"><text x="2" y="15" font-size="13" font-weight="bold" font-family="Arial">A</text></svg>
+                  <span class="wsr-color-bar" [style.background]="activeFmt()?.bg || '#ffff00'"></span>
+                </button>
+                @if (showBgPicker()) {
+                  <div class="wsr-color-picker">
+                    <button class="wsr-color-none" (click)="setBgColor('')">Sin color</button>
+                    <div class="wsr-color-grid">
+                      @for (c of PALETTE; track c) {
+                        <button class="wsr-swatch" [style.background]="c" [title]="c" (click)="setBgColor(c)"></button>
+                      }
+                    </div>
+                  </div>
+                }
+              </div>
+              <!-- Color de texto -->
+              <div class="wsr-color-wrap">
+                <button class="wsr-btn wsr-color-btn" (click)="showFgPicker.set(!showFgPicker()); showBgPicker.set(false)" title="Color de texto">
+                  <svg viewBox="0 0 20 20" fill="currentColor"><text x="2" y="15" font-size="13" font-weight="bold" font-family="Arial" [attr.fill]="activeFmt()?.fg || '#e02020'">A</text></svg>
+                  <span class="wsr-color-bar" [style.background]="activeFmt()?.fg || '#e02020'"></span>
+                </button>
+                @if (showFgPicker()) {
+                  <div class="wsr-color-picker">
+                    <button class="wsr-color-none" (click)="setFgColor('')">Color auto</button>
+                    <div class="wsr-color-grid">
+                      @for (c of PALETTE; track c) {
+                        <button class="wsr-swatch" [style.background]="c" [title]="c" (click)="setFgColor(c)"></button>
+                      }
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+            <span class="wsr-group-label">Color</span>
+          </div>
+          <div class="wsr-sep"></div>
+
+          <!-- Grupo: Alineación -->
+          <div class="wsr-group">
+            <div class="wsr-group-btns">
+              <button (click)="setAlign('l')" [class.wsr-active]="activeFmt()?.a==='l' || !activeFmt()?.a" class="wsr-btn" title="Alinear izquierda">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="15" y2="12"/><line x1="3" y1="18" x2="18" y2="18"/></svg>
+              </button>
+              <button (click)="setAlign('c')" [class.wsr-active]="activeFmt()?.a==='c'" class="wsr-btn" title="Centrar">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="7" y1="12" x2="17" y2="12"/><line x1="5" y1="18" x2="19" y2="18"/></svg>
+              </button>
+              <button (click)="setAlign('r')" [class.wsr-active]="activeFmt()?.a==='r'" class="wsr-btn" title="Alinear derecha">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="9" y1="12" x2="21" y2="12"/><line x1="6" y1="18" x2="21" y2="18"/></svg>
+              </button>
+              <button (click)="toggleWrap()" [class.wsr-active]="activeFmt()?.wrap" class="wsr-btn" title="Ajustar texto">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" d="M3 6h18M3 12h13a3 3 0 010 6H3M3 18h7"/></svg>
+              </button>
+            </div>
+            <span class="wsr-group-label">Alineación</span>
+          </div>
+          <div class="wsr-sep"></div>
+
+          <!-- Grupo: Número -->
+          <div class="wsr-group">
+            <div class="wsr-group-btns">
+              <select class="wsr-select wsr-select-wide" [value]="activeFmt()?.fmt ?? 'general'" (change)="setFormat($any($event.target).value)" title="Formato de número">
+                <option value="general">General</option>
+                <option value="number">Número</option>
+                <option value="currency">Moneda</option>
+                <option value="percent">Porcentaje</option>
+                <option value="date">Fecha</option>
+              </select>
+            </div>
+            <span class="wsr-group-label">Número</span>
+          </div>
+          <div class="wsr-sep"></div>
+
+          <!-- Grupo: Bordes -->
+          <div class="wsr-group">
+            <div class="wsr-group-btns">
+              <button (click)="setBorder('none')"   [class.wsr-active]="activeFmt()?.bd==='none'"   class="wsr-btn" title="Sin borde">
+                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="3 2"><rect x="3" y="3" width="14" height="14" rx="1"/></svg>
+              </button>
+              <button (click)="setBorder('all')"    [class.wsr-active]="activeFmt()?.bd==='all'"    class="wsr-btn" title="Todos los bordes">
+                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="14" height="14" rx="1"/><line x1="10" y1="3" x2="10" y2="17"/><line x1="3" y1="10" x2="17" y2="10"/></svg>
+              </button>
+              <button (click)="setBorder('outer')"  [class.wsr-active]="activeFmt()?.bd==='outer'"  class="wsr-btn" title="Borde exterior">
+                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="14" height="14" rx="1"/></svg>
+              </button>
+              <button (click)="setBorder('bottom')" [class.wsr-active]="activeFmt()?.bd==='bottom'" class="wsr-btn" title="Solo borde inferior">
+                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="17" x2="17" y2="17" stroke-width="2.5"/><line x1="3" y1="3" x2="17" y2="3" stroke-dasharray="3 2"/><line x1="3" y1="10" x2="17" y2="10" stroke-dasharray="3 2"/></svg>
+              </button>
+            </div>
+            <span class="wsr-group-label">Bordes</span>
+          </div>
+          <div class="wsr-sep"></div>
+
+          <!-- Grupo: Edición -->
+          <div class="wsr-group">
+            <div class="wsr-group-btns">
+              <button (click)="autoSuma()" class="wsr-btn wsr-btn-text" title="AutoSuma (suma las celdas de arriba)">Σ</button>
+              <button (click)="clearContenido()" class="wsr-btn" title="Borrar contenido">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+              </button>
+              <button (click)="clearFormato()" class="wsr-btn" title="Borrar formato">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+              </button>
+            </div>
+            <span class="wsr-group-label">Edición</span>
+          </div>
+
+        </div>
+      }
+
+      <!-- Contenido pestaña Insertar -->
+      @if (tabActiva() === 'insertar') {
+        <div class="wsr-panel">
+          <!-- Grupo: Filas -->
+          <div class="wsr-group">
+            <div class="wsr-group-btns wsr-group-col">
+              <button (click)="insertarFila(true)"  class="wsr-btn-row" title="Insertar fila arriba">
+                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="11" width="16" height="7" rx="1"/><path stroke-linecap="round" stroke-linejoin="round" d="M10 8V2M7 5l3-3 3 3"/></svg>
+                Insertar fila arriba
+              </button>
+              <button (click)="insertarFila(false)" class="wsr-btn-row" title="Insertar fila abajo">
+                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="2" width="16" height="7" rx="1"/><path stroke-linecap="round" stroke-linejoin="round" d="M10 12v6M7 15l3 3 3-3"/></svg>
+                Insertar fila abajo
+              </button>
+              <button (click)="eliminarFila()"      class="wsr-btn-row wsr-btn-danger" title="Eliminar fila seleccionada">
+                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="6" width="16" height="5" rx="1"/><path stroke-linecap="round" d="M6 4h8M6 16h8"/><line x1="5" y1="9" x2="15" y2="9"/></svg>
+                Eliminar fila
+              </button>
+            </div>
+            <span class="wsr-group-label">Filas</span>
+          </div>
+          <div class="wsr-sep"></div>
+
+          <!-- Grupo: Columnas -->
+          <div class="wsr-group">
+            <div class="wsr-group-btns wsr-group-col">
+              <button (click)="insertarColumna(true)"  class="wsr-btn-row" title="Insertar columna a la izquierda">
+                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="11" y="2" width="7" height="16" rx="1"/><path stroke-linecap="round" stroke-linejoin="round" d="M8 10H2M5 7l-3 3 3 3"/></svg>
+                Columna a la izquierda
+              </button>
+              <button (click)="insertarColumna(false)" class="wsr-btn-row" title="Insertar columna a la derecha">
+                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="2" width="7" height="16" rx="1"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 10h6M15 7l3 3-3 3"/></svg>
+                Columna a la derecha
+              </button>
+              <button (click)="eliminarColumna()"      class="wsr-btn-row wsr-btn-danger" title="Eliminar columna seleccionada">
+                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="7" y="2" width="6" height="16" rx="1"/><path stroke-linecap="round" d="M4 6v8M16 6v8"/><line x1="10" y1="4" x2="10" y2="16"/></svg>
+                Eliminar columna
+              </button>
+            </div>
+            <span class="wsr-group-label">Columnas</span>
+          </div>
+        </div>
+      }
+
+      <!-- Contenido pestaña Fórmulas -->
+      @if (tabActiva() === 'formulas') {
+        <div class="wsr-panel">
+          <div class="wsr-group">
+            <div class="wsr-group-btns">
+              @for (fn of FN_RAPIDAS; track fn) {
+                <button (click)="insertarFuncion(fn)" class="wsr-btn wsr-fn-btn" [title]="'Insertar ' + fn + '()'">{{ fn }}</button>
+              }
+            </div>
+            <span class="wsr-group-label">Funciones rápidas</span>
+          </div>
+          <div class="wsr-sep"></div>
+          <div class="wsr-group">
+            <div class="wsr-group-btns wsr-group-col">
+              <span class="wsr-formula-hint">Matemáticas: SUM, AVERAGE, MIN, MAX, COUNT, ROUND, ABS, MOD, SQRT, POWER, INT, MEDIAN</span>
+              <span class="wsr-formula-hint">Lógicas: IF, AND, OR, NOT, IFERROR</span>
+              <span class="wsr-formula-hint">Texto: LEN, LEFT, RIGHT, MID, UPPER, LOWER, TRIM, CONCAT</span>
+              <span class="wsr-formula-hint">Fecha: TODAY, NOW, YEAR, MONTH, DAY, DATE, DAYS</span>
+            </div>
+            <span class="wsr-group-label">Referencia</span>
+          </div>
+        </div>
+      }
+
+      <!-- Contenido pestaña Datos -->
+      @if (tabActiva() === 'datos') {
+        <div class="wsr-panel">
+          <div class="wsr-group">
+            <div class="wsr-group-btns wsr-group-col">
+              <button (click)="ordenarColumna(true)"  class="wsr-btn-row">
+                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="4" y1="6" x2="12" y2="6"/><line x1="4" y1="10" x2="10" y2="10"/><line x1="4" y1="14" x2="8" y2="14"/><path stroke-linecap="round" stroke-linejoin="round" d="M16 4v12M13 13l3 3 3-3"/></svg>
+                Ordenar A → Z
+              </button>
+              <button (click)="ordenarColumna(false)" class="wsr-btn-row">
+                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="4" y1="6" x2="8" y2="6"/><line x1="4" y1="10" x2="10" y2="10"/><line x1="4" y1="14" x2="12" y2="14"/><path stroke-linecap="round" stroke-linejoin="round" d="M16 16V4M13 7l3-3 3 3"/></svg>
+                Ordenar Z → A
+              </button>
+            </div>
+            <span class="wsr-group-label">Ordenar</span>
+          </div>
+        </div>
+      }
+    </div>
+    <!-- /Ribbon -->
+
+    <!-- Barra de fórmula -->
+    <div class="wsheet-formulabar">
+      <div class="wsheet-cell-ref-box">{{ selectedRef() }}</div>
+      <div class="wsheet-fx-label">fx</div>
+      <input class="wsheet-formula-input"
+        [value]="formulaValue()"
+        [readonly]="soloLectura"
+        (focus)="onFormulaFocus()"
+        (input)="onFormulaInput($any($event.target).value)"
+        (keydown)="onFormulaKeydown($event)"
+        (blur)="onFormulaBlur()"
+        placeholder="Escribe un valor o fórmula (ej: =SUM(A1:A10))"/>
+    </div>
+
+    <!-- Área de la grilla -->
+    <div class="wsheet-grid-area">
+      <table class="wsheet-table">
+        <colgroup>
+          <col style="width:48px">
+          @for (col of colIndices; track col) {
+            <col [style.width.px]="colWidths()[col]">
+          }
+        </colgroup>
+        <thead>
+          <tr>
+            <th class="wsheet-corner" scope="col"></th>
+            @for (col of colIndices; track col) {
+              <th class="wsheet-col-hdr" scope="col"
+                [class.wsheet-col-active]="selectedCell().col === col">
+                {{ colLabels[col] }}
+                <div class="wsheet-resize-handle" (mousedown)="onColResizeStart($event, col)"></div>
+              </th>
+            }
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of rowIndices; track row) {
+            <tr>
+              <th class="wsheet-row-hdr" scope="row"
+                [class.wsheet-row-active]="selectedCell().row === row">
+                {{ row + 1 }}
+              </th>
+              @for (col of colIndices; track col) {
+                <td class="wsheet-cell"
+                  tabindex="-1"
+                  [class.wsheet-selected]="isSelected(row, col)"
+                  [class.wsheet-remote-cursor]="!!remoteCursorAt(row, col)"
+                  [style.--rc-color]="remoteCursorAt(row, col)?.color"
+                  [style]="getCellStyle(row, col)"
+                  (click)="selectCell(row, col)"
+                  (dblclick)="startEdit(row, col)"
+                  (keydown)="onCellDivKeydown($event, row, col)">
+
+                  @if (isEditing(row, col)) {
+                    <input class="wsheet-cell-input"
+                      [value]="editValue()"
+                      (input)="editValue.set($any($event.target).value)"
+                      (keydown)="onCellKeydown($event, row, col)"/>
+                  } @else {
+                    <span class="wsheet-cell-text" [class.wsheet-wrap]="getCellData(row,col)?.wrap">
+                      {{ displayValue(row, col) }}
+                    </span>
+                    @if (remoteCursorAt(row, col); as rc) {
+                      <div class="wsheet-rc-label" [style.background-color]="rc.color">
+                        <span class="wsheet-rc-avatar" [style.background-color]="rc.color">{{ initials(rc.nombre) }}</span>
+                        {{ rc.nombre }}
+                      </div>
+                    }
+                  }
+                </td>
+              }
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Barra de estado -->
+    <div class="wsheet-statusbar">
+      <span>{{ selectedRef() }}</span>
+      @if (!soloLectura) {
+        <span class="wsheet-statusbar-hint">Enter/F2 editar · Flechas navegar · Delete limpiar · Ctrl+Z deshacer</span>
+      }
+      <div class="wsheet-statusbar-right">
+        @if (editoresActivos().length > 0) {
+          <span>{{ editoresActivos().length }} editor(es) conectado(s)</span>
+        }
+        <span>{{ ROWS }} × {{ COLS }}</span>
+      </div>
+    </div>
+
+  </div>
+}

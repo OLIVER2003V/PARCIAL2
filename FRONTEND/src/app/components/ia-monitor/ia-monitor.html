@@ -1,0 +1,560 @@
+<div class="max-w-7xl mx-auto space-y-6 animate-in fade-in duration-500 p-4 md:p-8">
+
+  <!-- ── Header ─────────────────────────────────────────────────────────── -->
+  <div class="relative overflow-hidden rounded-2xl bg-linear-to-br from-violet-600 via-purple-700 to-indigo-800 p-6 md:p-8 shadow-xl shadow-violet-500/25">
+    <div class="absolute inset-0 opacity-10"
+         style="background-image:radial-gradient(circle, white 1px, transparent 1px); background-size:24px 24px;"></div>
+    <div class="absolute -top-12 -right-12 w-48 h-48 bg-white/5 rounded-full blur-2xl"></div>
+    <div class="absolute -bottom-8 -left-8  w-40 h-40 bg-violet-400/10 rounded-full blur-2xl"></div>
+
+    <div class="relative flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+      <div class="flex items-center gap-4">
+        <div class="w-14 h-14 bg-white/15 border border-white/20 rounded-2xl flex items-center justify-center shadow-inner shrink-0">
+          <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M14.25 3.104c.251.023.501.05.75.082M19.8 15.3l-1.57.393A9.065 9.065 0 0112 15a9.065 9.065 0 00-6.23-.693L5 14.5m14.8.8l1.402 1.402c1 1 .03 2.798-1.332 2.798H4.13c-1.361 0-2.332-1.797-1.332-2.798L4.2 15.3"/>
+          </svg>
+        </div>
+        <div>
+          <h2 class="text-2xl sm:text-3xl font-bold text-white tracking-tight">Monitor IA</h2>
+          <p class="text-violet-200 text-sm mt-0.5">Seguimiento de trámites con riesgo de demora detectado por el modelo</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3 shrink-0">
+        @if (!isLoading()) {
+          <div class="flex items-center gap-2 px-4 py-2 rounded-xl border text-sm font-bold"
+               [class]="estado()?.servicioOnline
+                 ? 'bg-emerald-400/20 border-emerald-400/30 text-emerald-200'
+                 : 'bg-red-400/20 border-red-400/30 text-red-200'">
+            <span class="w-2 h-2 rounded-full"
+                  [class]="estado()?.servicioOnline ? 'bg-emerald-400 animate-pulse' : 'bg-red-400'"></span>
+            {{ estado()?.servicioOnline ? 'IA Activa' : 'IA Offline' }}
+          </div>
+        }
+        <button (click)="cargar()"
+                class="p-2.5 bg-white/10 border border-white/20 rounded-xl text-violet-200 hover:text-white hover:bg-white/20 transition-all"
+                title="Refrescar">
+          <svg class="w-5 h-5" [class.animate-spin]="isLoading()" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Stats strip -->
+    @if (!isLoading()) {
+      <div class="relative mt-6 grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div class="bg-white/10 border border-white/15 rounded-xl px-4 py-3">
+          <p class="text-2xl font-black text-white leading-none">{{ distribucion()?.total ?? '—' }}</p>
+          <p class="text-violet-200 text-xs font-medium mt-0.5">Total trámites</p>
+        </div>
+        <div class="bg-white/10 border border-white/15 rounded-xl px-4 py-3">
+          <p class="text-2xl font-black text-white leading-none">{{ distribucion()?.critico ?? '—' }}</p>
+          <p class="text-red-200 text-xs font-medium mt-0.5">Críticos ahora</p>
+        </div>
+        <div class="bg-white/10 border border-white/15 rounded-xl px-4 py-3">
+          <p class="text-2xl font-black text-white leading-none">{{ distribucion()?.anomalias ?? '—' }}</p>
+          <p class="text-amber-200 text-xs font-medium mt-0.5">Anomalías detectadas</p>
+        </div>
+        <div class="bg-white/10 border border-white/15 rounded-xl px-4 py-3">
+          <p class="text-2xl font-black text-white leading-none">{{ alertas().length }}</p>
+          <p class="text-violet-200 text-xs font-medium mt-0.5">Alertas activas</p>
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- ── Loading ─────────────────────────────────────────────────────────── -->
+  @if (isLoading()) {
+    <div class="space-y-4 animate-pulse">
+      <div class="h-6 w-36 bg-slate-100 rounded-lg"></div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+        @for (i of [1,2,3]; track i) {
+          <div class="bg-white rounded-2xl border border-slate-200 p-5 h-36"></div>
+        }
+      </div>
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        @for (i of [1,2]; track i) {
+          <div class="bg-white rounded-2xl border border-slate-200 p-6 h-72"></div>
+        }
+      </div>
+    </div>
+
+  <!-- ── Error ───────────────────────────────────────────────────────────── -->
+  } @else if (errorMsg()) {
+    <div class="p-8 bg-red-50 border border-red-200 rounded-2xl text-center">
+      <p class="text-red-700 font-semibold">{{ errorMsg() }}</p>
+      <button (click)="cargar()"
+              class="mt-4 px-5 py-2 bg-red-600 text-white text-sm font-bold rounded-xl hover:bg-red-700 transition-all">
+        Reintentar
+      </button>
+    </div>
+
+  } @else {
+
+    <!-- ── Banner: entrenando ─────────────────────────────────────────────── -->
+    @if (entrenando()) {
+      <div class="bg-violet-50 border border-violet-200 rounded-2xl p-5 flex items-center gap-4">
+        <svg class="w-5 h-5 text-violet-600 animate-spin shrink-0" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
+        </svg>
+        <div>
+          <p class="font-bold text-violet-800 text-sm">Entrenando modelo de IA...</p>
+          <p class="text-violet-600 text-xs mt-0.5">
+            {{ msgEntrenar() ?? 'Generando muestras y ajustando el modelo. La página se actualizará en ~35 s.' }}
+          </p>
+        </div>
+      </div>
+    }
+
+    <!-- ════════════════════════════════════════════════════════════════════ -->
+    <!--  SECCIÓN 1 — ALERTAS ACTIVAS                                        -->
+    <!-- ════════════════════════════════════════════════════════════════════ -->
+    <section>
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="text-sm font-bold text-slate-700 uppercase tracking-widest flex items-center gap-2">
+          @if (alertas().length > 0) {
+            <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse inline-block"></span>
+          }
+          Alertas Activas
+        </h3>
+        <span class="text-xs text-slate-400">{{ alertas().length }} alerta(s)</span>
+      </div>
+
+      @if (alertas().length === 0) {
+        <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-8 flex flex-col items-center gap-3">
+          <div class="w-12 h-12 bg-emerald-100 rounded-2xl flex items-center justify-center border border-emerald-200">
+            <svg class="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+          </div>
+          <p class="text-emerald-800 font-semibold text-sm">Todo en orden</p>
+          <p class="text-emerald-600 text-xs text-center max-w-xs">
+            El modelo no detectó trámites críticos ni anomalías en este momento.
+          </p>
+        </div>
+
+      } @else {
+        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+          @for (a of alertas(); track a.id) {
+            <div class="bg-white rounded-xl border shadow-sm hover:shadow-md transition-shadow flex flex-col gap-3 p-4"
+                 [class]="a.nivelPrioridad === 'CRITICO' ? 'border-red-200' : 'border-amber-200'">
+
+              <!-- Chip + código -->
+              <div class="flex items-start justify-between gap-2">
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold rounded-md border"
+                      [class]="a.nivelPrioridad === 'CRITICO'
+                        ? 'bg-red-50 text-red-700 border-red-200'
+                        : 'bg-amber-50 text-amber-700 border-amber-200'">
+                  {{ a.nivelPrioridad === 'CRITICO' ? '🔴 Crítico' : '🟡 Alto' }}
+                </span>
+                <span class="text-[10px] font-mono text-slate-400 shrink-0">
+                  {{ a.codigoSeguimiento || '—' }}
+                </span>
+              </div>
+
+              <!-- Nombre del proceso -->
+              <p class="text-sm font-semibold text-slate-800 leading-tight">
+                {{ a.nombreProceso || 'Sin nombre' }}
+              </p>
+
+              <!-- Motivo legible -->
+              <p class="text-xs text-slate-500 leading-relaxed flex-1">
+                {{ a.motivoPrediccion || 'Sin detalle disponible.' }}
+              </p>
+
+              <!-- Barra de riesgo + botón -->
+              <div class="flex items-center justify-between gap-3 pt-2 border-t border-slate-100">
+                <div class="flex items-center gap-2 flex-1 min-w-0">
+                  <div class="flex-1 bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                    <div class="h-full rounded-full transition-all"
+                         [style.width]="pct(a.riesgoDemora)"
+                         [class]="a.riesgoDemora > 0.7 ? 'bg-red-500' : 'bg-amber-400'">
+                    </div>
+                  </div>
+                  <span class="text-xs font-bold shrink-0"
+                        [class]="a.riesgoDemora > 0.7 ? 'text-red-600' : 'text-amber-600'">
+                    {{ pct(a.riesgoDemora) }}
+                  </span>
+                </div>
+                <a [routerLink]="['/tramite', a.id]"
+                   class="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-white rounded-lg transition-all"
+                   [class]="a.nivelPrioridad === 'CRITICO'
+                     ? 'bg-red-600 hover:bg-red-700'
+                     : 'bg-amber-500 hover:bg-amber-600'">
+                  Revisar
+                  <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/>
+                  </svg>
+                </a>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </section>
+
+    <!-- ════════════════════════════════════════════════════════════════════ -->
+    <!--  SECCIÓN 2 — GRÁFICOS                                               -->
+    <!-- ════════════════════════════════════════════════════════════════════ -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+      <!-- Distribución general (doughnut) -->
+      <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+        <div class="flex items-center gap-3 mb-5">
+          <div class="w-9 h-9 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center shrink-0">
+            <svg class="w-4.5 h-4.5 text-indigo-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6a7.5 7.5 0 107.5 7.5h-7.5V6z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5H21A7.5 7.5 0 0013.5 3v7.5z"/>
+            </svg>
+          </div>
+          <div>
+            <h3 class="font-bold text-slate-800 text-base">Distribución de Riesgo</h3>
+            <p class="text-slate-400 text-xs">Niveles en todos los trámites del sistema</p>
+          </div>
+        </div>
+
+        @if (distribucion() && distribucion()!.total > 0) {
+          <div class="relative h-52 flex items-center justify-center">
+            <canvas #distCanvas></canvas>
+            <div class="absolute pointer-events-none text-center">
+              <p class="text-3xl font-black text-slate-800">{{ distribucion()!.total }}</p>
+              <p class="text-slate-400 text-xs font-medium">trámites</p>
+            </div>
+          </div>
+          <div class="mt-4 grid grid-cols-3 gap-2 text-center text-xs font-semibold">
+            <div class="bg-emerald-50 rounded-xl p-2 border border-emerald-100">
+              <p class="text-emerald-700 text-base font-black">{{ distribucion()!.normal }}</p>
+              <p class="text-emerald-600">Normal</p>
+            </div>
+            <div class="bg-amber-50 rounded-xl p-2 border border-amber-100">
+              <p class="text-amber-700 text-base font-black">{{ distribucion()!.alto }}</p>
+              <p class="text-amber-600">Alto</p>
+            </div>
+            <div class="bg-red-50 rounded-xl p-2 border border-red-100">
+              <p class="text-red-700 text-base font-black">{{ distribucion()!.critico }}</p>
+              <p class="text-red-600">Crítico</p>
+            </div>
+          </div>
+        } @else {
+          <div class="h-52 flex items-center justify-center text-slate-400 text-sm">
+            Sin datos de trámites aún
+          </div>
+        }
+      </div>
+
+      <!-- Riesgo por departamento (stacked bar) -->
+      <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+        <div class="flex items-center gap-3 mb-5">
+          <div class="w-9 h-9 rounded-xl bg-violet-50 border border-violet-100 flex items-center justify-center shrink-0">
+            <svg class="w-4.5 h-4.5 text-violet-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008z"/>
+            </svg>
+          </div>
+          <div>
+            <h3 class="font-bold text-slate-800 text-base">Riesgo por Departamento</h3>
+            <p class="text-slate-400 text-xs">Distribución de niveles en cada área</p>
+          </div>
+        </div>
+
+        @if (porDep().length > 0) {
+          <div class="h-52">
+            <canvas #deptCanvas></canvas>
+          </div>
+        } @else {
+          <div class="h-52 flex flex-col items-center justify-center gap-3 text-slate-400">
+            <svg class="w-8 h-8 text-slate-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008z"/>
+            </svg>
+            <p class="text-sm">Sin departamentos con trámites activos</p>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════════════════ -->
+    <!--  SECCIÓN 3 — TABLA DE ANOMALÍAS                                     -->
+    <!-- ════════════════════════════════════════════════════════════════════ -->
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+      <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+        <div>
+          <h3 class="font-bold text-slate-800">Trámites con Anomalía</h3>
+          <p class="text-slate-400 text-xs mt-0.5">
+            Patrones atípicos detectados por el modelo — últimos 20 registros
+          </p>
+        </div>
+        <span class="px-3 py-1 bg-amber-50 text-amber-700 text-xs font-bold rounded-lg border border-amber-100">
+          {{ anomalias().length }} anomalía(s)
+        </span>
+      </div>
+
+      @if (anomalias().length === 0) {
+        <div class="py-12 text-center">
+          <div class="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center mx-auto mb-3 border border-emerald-100">
+            <svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+          </div>
+          <p class="text-slate-600 font-semibold text-sm">Sin anomalías detectadas</p>
+          <p class="text-slate-400 text-xs mt-1 max-w-xs mx-auto">
+            El modelo no encontró patrones atípicos en los trámites actuales.
+          </p>
+        </div>
+
+      } @else {
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="bg-slate-50 border-b border-slate-100">
+                <th class="px-5 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-slate-400">Código</th>
+                <th class="px-5 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-slate-400">Proceso</th>
+                <th class="px-5 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-slate-400">Riesgo</th>
+                <th class="px-5 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-slate-400">Nivel</th>
+                <th class="px-5 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-slate-400">Motivo</th>
+                <th class="px-5 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-slate-400">Actualización</th>
+                <th class="px-5 py-3"></th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-50">
+              @for (a of anomalias(); track a.id) {
+                <tr class="hover:bg-slate-50 transition-colors">
+                  <td class="px-5 py-3.5 font-mono text-xs font-bold text-slate-600">
+                    {{ a.codigoSeguimiento || '—' }}
+                  </td>
+                  <td class="px-5 py-3.5 text-slate-700 font-medium text-xs">{{ a.nombreProceso || '—' }}</td>
+
+                  <!-- Barra de riesgo -->
+                  <td class="px-5 py-3.5">
+                    <div class="flex items-center gap-2">
+                      <div class="w-16 bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                        <div class="h-full rounded-full"
+                             [style.width]="pct(a.riesgoDemora)"
+                             [class]="a.riesgoDemora > 0.7 ? 'bg-red-500' : 'bg-amber-400'">
+                        </div>
+                      </div>
+                      <span class="text-xs font-bold text-slate-600">{{ pct(a.riesgoDemora) }}</span>
+                    </div>
+                  </td>
+
+                  <!-- Chip nivel -->
+                  <td class="px-5 py-3.5">
+                    <span class="inline-flex items-center px-2 py-0.5 text-[10px] font-bold rounded-md border"
+                          [class]="a.nivelPrioridad === 'CRITICO'
+                            ? 'bg-red-50 text-red-700 border-red-200'
+                            : 'bg-amber-50 text-amber-700 border-amber-200'">
+                      {{ a.nivelPrioridad === 'CRITICO' ? '🔴 Crítico' : '🟡 Alto' }}
+                    </span>
+                  </td>
+
+                  <td class="px-5 py-3.5 text-slate-500 text-xs max-w-xs truncate" [title]="a.motivoPrediccion">
+                    {{ a.motivoPrediccion || '—' }}
+                  </td>
+                  <td class="px-5 py-3.5 text-slate-400 text-xs whitespace-nowrap">
+                    {{ a.fechaUltimaActualizacion | date:'dd MMM · HH:mm' }}
+                  </td>
+                  <td class="px-5 py-3.5">
+                    <a [routerLink]="['/tramite', a.id]"
+                       class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-bold text-indigo-600 hover:text-white hover:bg-indigo-600 border border-indigo-200 hover:border-indigo-600 rounded-lg transition-all">
+                      Revisar
+                    </a>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════════════════ -->
+    <!--  SECCIÓN 4 — ESTADO DEL MODELO (collapsable)                        -->
+    <!-- ════════════════════════════════════════════════════════════════════ -->
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+
+      <!-- Cabecera / toggle -->
+      <button (click)="toggleModelo()"
+              class="w-full px-6 py-4 flex items-center justify-between hover:bg-slate-50 transition-colors text-left">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center shrink-0">
+            <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M14.25 3.104c.251.023.501.05.75.082M19.8 15.3l-1.57.393A9.065 9.065 0 0112 15a9.065 9.065 0 00-6.23-.693L5 14.5m14.8.8l1.402 1.402c1 1 .03 2.798-1.332 2.798H4.13c-1.361 0-2.332-1.797-1.332-2.798L4.2 15.3"/>
+            </svg>
+          </div>
+          <span class="font-bold text-slate-700 text-sm">Estado del Modelo de IA</span>
+          @if (estado()?.servicio?.modelo_cargado) {
+            <span class="px-2 py-0.5 text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-md">
+              Activo
+            </span>
+          } @else {
+            <span class="px-2 py-0.5 text-[10px] font-bold bg-slate-100 text-slate-500 border border-slate-200 rounded-md">
+              Sin modelo
+            </span>
+          }
+        </div>
+        <svg class="w-4 h-4 text-slate-400 transition-transform duration-200 shrink-0"
+             [class.rotate-180]="modeloExpandido()"
+             fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+        </svg>
+      </button>
+
+      @if (modeloExpandido()) {
+        <div class="border-t border-slate-100 p-6 space-y-6 animate-in fade-in duration-200">
+
+          <!-- Botón entrenar -->
+          @if (estado()?.servicioOnline) {
+            <div class="flex items-center justify-between gap-4 p-4 bg-violet-50 rounded-xl border border-violet-100">
+              <div>
+                <p class="text-sm font-semibold text-violet-800">Reentrenar el modelo</p>
+                <p class="text-xs text-violet-600 mt-0.5">
+                  Genera nuevas muestras sintéticas y optimiza los pesos de la red neuronal.
+                </p>
+                @if (msgEntrenar()) {
+                  <p class="text-xs text-violet-700 font-medium mt-1">{{ msgEntrenar() }}</p>
+                }
+              </div>
+              <button (click)="entrenar()" [disabled]="entrenando()"
+                      class="shrink-0 inline-flex items-center gap-2 px-4 py-2 bg-violet-600 hover:bg-violet-700 disabled:opacity-60 text-white text-xs font-bold rounded-xl transition-all shadow-sm">
+                @if (entrenando()) {
+                  <svg class="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
+                  </svg>
+                  Entrenando...
+                } @else {
+                  Entrenar Modelo
+                }
+              </button>
+            </div>
+          } @else {
+            <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 text-sm text-slate-500">
+              El microservicio Python está offline. Inícialo para poder entrenar el modelo.
+            </div>
+          }
+
+          <!-- Métricas de entrenamiento -->
+          @if (estado()?.entrenamiento; as ent) {
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+              <!-- Columna: Precisión del modelo -->
+              <div class="space-y-2.5">
+                <h4 class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Precisión</h4>
+                <div class="flex justify-between">
+                  <span class="text-xs text-slate-500">Val-Loss final</span>
+                  <span class="text-xs font-bold text-slate-700">{{ ent.val_loss_final }}</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-xs text-slate-500">Val-MAE final</span>
+                  <span class="text-xs font-bold text-slate-700">{{ ent.val_mae_final }}</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-xs text-slate-500">Épocas ejecutadas</span>
+                  <span class="text-xs font-bold text-slate-700">{{ ent.epochs_ejecutados }}</span>
+                </div>
+              </div>
+
+              <!-- Columna: Datos de entrenamiento -->
+              <div class="space-y-2.5">
+                <h4 class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Datos</h4>
+                <div class="flex justify-between">
+                  <span class="text-xs text-slate-500">Total muestras</span>
+                  <span class="text-xs font-bold text-slate-700">{{ ent.muestras_total }}</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-xs text-slate-500">Entrenamiento</span>
+                  <span class="text-xs font-bold text-slate-700">{{ ent.muestras_entrenamiento }}</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-xs text-slate-500">Validación</span>
+                  <span class="text-xs font-bold text-slate-700">{{ ent.muestras_validacion }}</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-xs text-slate-500">Fecha entrenamiento</span>
+                  <span class="text-xs font-bold text-slate-700">{{ ent.fecha_entrenamiento }}</span>
+                </div>
+              </div>
+
+              <!-- Columna: Umbrales de decisión -->
+              <div class="space-y-2.5">
+                <h4 class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Umbrales</h4>
+                <div class="flex justify-between items-center">
+                  <span class="text-xs text-slate-500">Normal</span>
+                  <span class="px-2 py-0.5 text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-100 rounded">riesgo ≤ 0.40</span>
+                </div>
+                <div class="flex justify-between items-center">
+                  <span class="text-xs text-slate-500">Alto</span>
+                  <span class="px-2 py-0.5 text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-100 rounded">riesgo 0.41–0.70</span>
+                </div>
+                <div class="flex justify-between items-center">
+                  <span class="text-xs text-slate-500">Crítico</span>
+                  <span class="px-2 py-0.5 text-[10px] font-bold bg-red-50 text-red-700 border border-red-100 rounded">riesgo > 0.70</span>
+                </div>
+                <div class="flex justify-between items-center">
+                  <span class="text-xs text-slate-500">Anomalía</span>
+                  <span class="px-2 py-0.5 text-[10px] font-bold bg-slate-50 text-slate-600 border border-slate-200 rounded">
+                    > 0.72 + 5 días parado
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Arquitectura de la red -->
+            <div>
+              <h4 class="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-3">Arquitectura de la red neuronal</h4>
+              <div class="flex flex-wrap gap-2">
+                @for (capa of ent.arquitectura; track $index) {
+                  <div class="flex items-center gap-1.5">
+                    <span class="px-2.5 py-1 bg-violet-50 border border-violet-100 text-violet-700 text-[11px] font-mono font-semibold rounded-lg">
+                      {{ capa }}
+                    </span>
+                    @if ($index < ent.arquitectura.length - 1) {
+                      <svg class="w-3 h-3 text-slate-300 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+                      </svg>
+                    }
+                  </div>
+                }
+              </div>
+            </div>
+
+            <!-- Curvas de entrenamiento (TensorFlow) -->
+            @if (ent.loss_history.length) {
+              <div>
+                <h4 class="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-3">
+                  Curvas de entrenamiento · TensorFlow
+                </h4>
+                <div class="h-52">
+                  <canvas #lossCanvas></canvas>
+                </div>
+                <div class="mt-3 flex items-center gap-5 text-xs font-semibold text-slate-500">
+                  <span class="flex items-center gap-1.5">
+                    <span class="w-4 h-0.5 bg-indigo-500 inline-block rounded-full"></span>
+                    Loss entrenamiento
+                  </span>
+                  <span class="flex items-center gap-1.5">
+                    <span class="w-4 h-0.5 bg-amber-400 inline-block rounded-full"></span>
+                    Val-Loss validación
+                  </span>
+                  <span class="ml-auto text-slate-400 font-normal">
+                    Objetivo: curvas descendentes y cercanas entre sí
+                  </span>
+                </div>
+              </div>
+            }
+
+          } @else {
+            <p class="text-sm text-slate-400 text-center py-4">
+              No hay métricas de entrenamiento disponibles.
+              @if (estado()?.servicioOnline) {
+                Usa el botón <strong>Entrenar Modelo</strong> para generar el modelo inicial.
+              }
+            </p>
+          }
+
+        </div>
+      }
+    </div>
+
+  } <!-- end @else -->
+</div>

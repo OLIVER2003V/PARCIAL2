@@ -1,0 +1,227 @@
+<div class="space-y-8 animate-in fade-in duration-500 max-w-7xl mx-auto p-4 md:p-8">
+
+  <header class="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-brand-border pb-6">
+    <div>
+      <h2 class="text-3xl md:text-4xl font-black tracking-tight text-slate-900">
+        @if (esAdmin()) {
+          Panel de <span class="text-brand-primary">Control</span>
+        } @else if (esFuncionario()) {
+          Mi <span class="text-emerald-600">Espacio</span> de Trabajo
+        } @else {
+          Portal del <span class="text-brand-accent">Ciudadano</span>
+        }
+      </h2>
+      <p class="text-brand-muted mt-2 text-sm font-medium">
+        Bienvenido, <span class="text-slate-800 font-bold">{{ nombreUsuario() }}</span>.
+      </p>
+    </div>
+
+    <div class="px-4 py-2 bg-brand-surface border border-brand-border shadow-sm rounded-xl flex items-center gap-3">
+      <div class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
+      <span class="text-slate-600 text-xs font-bold uppercase tracking-widest">Sistema en línea</span>
+    </div>
+  </header>
+
+  @if (isLoading()) {
+    <div class="flex justify-center py-20">
+      <div class="w-12 h-12 border-4 border-slate-200 border-t-brand-primary rounded-full animate-spin"></div>
+    </div>
+  } @else {
+
+  @if (esAdmin()) {
+  
+  <div class="bg-brand-surface border border-brand-border p-5 rounded-2xl mb-8 flex flex-col md:flex-row items-end gap-4 shadow-sm">
+    <div class="flex-1 w-full">
+      <label class="text-[10px] text-brand-muted uppercase font-bold tracking-widest block mb-1.5">Fecha Inicio</label>
+      <input type="date" [(ngModel)]="fechaInicio" class="w-full bg-slate-50 border border-brand-border text-slate-800 rounded-lg px-3 py-2 text-sm focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/20 outline-none transition-all">
+    </div>
+    <div class="flex-1 w-full">
+      <label class="text-[10px] text-brand-muted uppercase font-bold tracking-widest block mb-1.5">Fecha Fin</label>
+      <input type="date" [(ngModel)]="fechaFin" class="w-full bg-slate-50 border border-brand-border text-slate-800 rounded-lg px-3 py-2 text-sm focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/20 outline-none transition-all">
+    </div>
+    <button (click)="cargarDatosDashboard()" class="w-full md:w-auto bg-brand-primary hover:bg-brand-primary-hover text-white font-medium px-6 py-2 rounded-lg transition-all shadow-md shadow-brand-primary/20 flex items-center justify-center gap-2 focus:ring-4 focus:ring-brand-primary/20 ring-offset-2 ring-offset-brand-surface">
+      <span>Actualizar</span>
+    </button>
+  </div>
+
+  @if (stats().total === 0) {
+    <div class="bg-slate-50 border border-dashed border-slate-300 p-12 rounded-3xl text-center">
+      <div class="text-5xl mb-4 opacity-50">📊</div>
+      <h3 class="text-xl font-bold text-slate-800 mb-2">Data insuficiente</h3>
+      <p class="text-slate-500 text-sm max-w-md mx-auto">No hay registros de trámites en el sistema para el rango de fechas seleccionado. Ajusta los filtros o espera a que se inicie nueva actividad.</p>
+    </div>
+  } @else {
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      
+      <div class="bg-brand-surface p-6 rounded-3xl border border-brand-border shadow-md shadow-slate-200/50 col-span-1 lg:col-span-1 flex flex-col relative min-h-[300px]">
+        <h3 class="text-[10px] font-bold text-brand-muted uppercase tracking-widest mb-6">Volumen General</h3>
+        <div class="relative w-full flex-1 flex items-center justify-center min-h-[220px]">
+          <canvas #statsChart></canvas>
+        </div>
+      </div>
+
+      <div class="col-span-1 lg:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="bg-blue-50 p-6 rounded-3xl border border-blue-100 relative overflow-hidden flex flex-col justify-center shadow-sm">
+          <div class="absolute -right-4 -top-4 text-7xl opacity-10">⏳</div>
+          <p class="text-[10px] text-blue-600 uppercase font-bold tracking-widest mb-1">En Revisión</p>
+          <h3 class="text-5xl font-black text-blue-900">{{ stats().enProceso }}</h3>
+          <p class="text-xs text-blue-700 mt-2 font-medium">{{ getPorcentaje(stats().enProceso) }}% del volumen</p>
+        </div>
+    
+        <div class="bg-emerald-50 p-6 rounded-3xl border border-emerald-100 relative overflow-hidden flex flex-col justify-center shadow-sm">
+          <div class="absolute -right-4 -top-4 text-7xl opacity-10">✅</div>
+          <p class="text-[10px] text-emerald-600 uppercase font-bold tracking-widest mb-1">Aprobados</p>
+          <h3 class="text-5xl font-black text-emerald-900">{{ stats().aprobados }}</h3>
+          <p class="text-xs text-emerald-700 mt-2 font-medium">{{ getPorcentaje(stats().aprobados) }}% tasa éxito</p>
+        </div>
+    
+        <div class="bg-red-50 p-6 rounded-3xl border border-red-100 relative overflow-hidden flex flex-col justify-center shadow-sm">
+          <div class="absolute -right-4 -top-4 text-7xl opacity-10">❌</div>
+          <p class="text-[10px] text-red-600 uppercase font-bold tracking-widest mb-1">Rechazados</p>
+          <h3 class="text-5xl font-black text-red-900">{{ stats().rechazados }}</h3>
+          <p class="text-xs text-red-700 mt-2 font-medium">{{ getPorcentaje(stats().rechazados) }}% observados</p>
+        </div>
+      </div>
+    </div>
+
+    @if (statsPorPolitica().length > 0) {
+    <div class="bg-brand-surface p-6 md:p-8 rounded-3xl border border-brand-border mt-8 shadow-md shadow-slate-200/50">
+      <h3 class="text-base font-bold text-slate-800 mb-6 border-b border-brand-border pb-4 uppercase tracking-wider">
+        Carga por Departamento / Política
+      </h3>
+  
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="border-b border-brand-border">
+              <th class="py-3 px-4 text-[10px] text-brand-muted font-bold uppercase tracking-widest">Política</th>
+              <th class="text-center py-3 px-4 text-[10px] text-brand-muted font-bold uppercase tracking-widest">Total</th>
+              <th class="text-center py-3 px-4 text-[10px] text-blue-600 font-bold uppercase tracking-widest">En Proceso</th>
+              <th class="text-center py-3 px-4 text-[10px] text-emerald-600 font-bold uppercase tracking-widest">Aprobados</th>
+              <th class="text-center py-3 px-4 text-[10px] text-red-600 font-bold uppercase tracking-widest">Rechazados</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of statsPorPolitica(); track row.proceso.id) {
+            <tr class="border-b border-brand-border/50 hover:bg-slate-50 transition-colors">
+              <td class="py-4 px-4">
+                <p class="text-slate-800 font-semibold text-sm">{{ row.proceso.nombre }}</p>
+                <p class="text-slate-500 text-xs mt-0.5">{{ row.proceso.codigo }}</p>
+              </td>
+              <td class="py-4 px-4 text-center"><span class="text-slate-900 font-black text-base">{{ row.total }}</span></td>
+              <td class="py-4 px-4 text-center"><span class="text-blue-600 font-bold">{{ row.enProceso }}</span></td>
+              <td class="py-4 px-4 text-center"><span class="text-emerald-600 font-bold">{{ row.aprobados }}</span></td>
+              <td class="py-4 px-4 text-center"><span class="text-red-600 font-bold">{{ row.rechazados }}</span></td>
+            </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+    }
+  }
+
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mt-8">
+     <a routerLink="/admin-procesos" class="group bg-brand-surface border border-brand-border hover:border-brand-primary hover:shadow-md p-6 rounded-2xl transition-all duration-300">
+      <div class="w-12 h-12 bg-slate-100 text-brand-primary rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+          <path stroke-linecap="round" stroke-linejoin="round" d="M7 4v16M12 4v16M17 4v16" />
+        </svg>
+      </div>
+      <h4 class="font-bold text-slate-800 group-hover:text-brand-primary transition-colors">Diseñar Políticas</h4>
+      <p class="text-xs text-slate-500 mt-1">Crear y editar flujos de trabajo</p>
+    </a>
+    
+    <a routerLink="/usuarios" class="group bg-brand-surface border border-brand-border hover:border-blue-500 hover:shadow-md p-6 rounded-2xl transition-all duration-300">
+      <div class="w-12 h-12 bg-slate-100 text-blue-500 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+        </svg>
+      </div>
+      <h4 class="font-bold text-slate-800 group-hover:text-blue-600 transition-colors">Gestionar Usuarios</h4>
+      <p class="text-xs text-slate-500 mt-1">Administrar funcionarios y clientes</p>
+    </a>
+    
+    <a routerLink="/departamentos" class="group bg-brand-surface border border-brand-border hover:border-emerald-500 hover:shadow-md p-6 rounded-2xl transition-all duration-300">
+      <div class="w-12 h-12 bg-slate-100 text-emerald-500 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+        </svg>
+      </div>
+      <h4 class="font-bold text-slate-800 group-hover:text-emerald-600 transition-colors">Departamentos</h4>
+      <p class="text-xs text-slate-500 mt-1">Estructura organizacional</p>
+    </a>
+  </div>
+  }
+
+  @if (esFuncionario()) {
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <a routerLink="/bandeja"
+      class="group bg-brand-surface border border-brand-border hover:border-emerald-400 p-8 rounded-3xl transition-all duration-300 shadow-sm hover:shadow-md">
+      <div class="flex items-start justify-between mb-4">
+        <div class="w-14 h-14 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center text-3xl">📥</div>
+        <span class="text-emerald-500 group-hover:translate-x-2 transition-transform text-2xl">→</span>
+      </div>
+      <h4 class="text-2xl font-bold text-slate-900 mb-2 group-hover:text-emerald-600 transition-colors">Mi Bandeja de Entrada</h4>
+      <p class="text-sm text-slate-500">Atiende los trámites pendientes asignados a tu departamento.</p>
+    </a>
+
+    <div class="bg-brand-surface border border-brand-border p-8 rounded-3xl shadow-sm">
+      <div class="w-14 h-14 bg-slate-100 text-slate-600 rounded-2xl flex items-center justify-center text-3xl mb-4">💼</div>
+      <h4 class="text-2xl font-bold text-slate-900 mb-2">Tu rol</h4>
+      <p class="text-sm text-slate-500 mb-6">
+        Como funcionario, recibes automáticamente los trámites que el sistema te asigna según las políticas configuradas.
+      </p>
+      <div class="grid grid-cols-2 gap-4">
+        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+          <p class="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Tu usuario</p>
+          <p class="text-slate-800 font-bold text-sm mt-1">{{ nombreUsuario() }}</p>
+        </div>
+        <div class="bg-emerald-50 p-4 rounded-xl border border-emerald-100">
+          <p class="text-[10px] text-emerald-600 uppercase font-bold tracking-wider">Rol</p>
+          <p class="text-emerald-700 font-bold text-sm mt-1">FUNCIONARIO</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  }
+
+  @if (esCliente()) {
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <a routerLink="/nuevo-tramite"
+      class="group bg-brand-surface border border-brand-border hover:border-brand-accent p-8 rounded-3xl transition-all duration-300 shadow-sm hover:shadow-md">
+      <div class="flex items-start justify-between mb-4">
+        <div class="w-14 h-14 bg-indigo-50 text-brand-accent rounded-2xl flex items-center justify-center text-3xl">📝</div>
+        <span class="text-brand-accent group-hover:translate-x-2 transition-transform text-2xl">→</span>
+      </div>
+      <h4 class="text-2xl font-bold text-slate-900 mb-2 group-hover:text-brand-accent transition-colors">Iniciar Nuevo Trámite</h4>
+      <p class="text-sm text-slate-500">Solicita un servicio o trámite ante la institución.</p>
+    </a>
+
+    <a routerLink="/rastrear"
+      class="group bg-brand-surface border border-brand-border hover:border-brand-primary p-8 rounded-3xl transition-all duration-300 shadow-sm hover:shadow-md">
+      <div class="flex items-start justify-between mb-4">
+        <div class="w-14 h-14 bg-blue-50 text-brand-primary rounded-2xl flex items-center justify-center text-3xl">🔍</div>
+        <span class="text-brand-primary group-hover:translate-x-2 transition-transform text-2xl">→</span>
+      </div>
+      <h4 class="text-2xl font-bold text-slate-900 mb-2 group-hover:text-brand-primary transition-colors">Rastrear mi Trámite</h4>
+      <p class="text-sm text-slate-500">Consulta el estado de una solicitud usando el código de seguimiento.</p>
+    </a>
+  </div>
+
+  <div class="bg-slate-50 border border-slate-200 p-6 rounded-2xl mt-8 flex items-start gap-4">
+    <div class="text-3xl">💡</div>
+    <div>
+      <h5 class="font-bold text-slate-800 mb-2">¿Cómo funciona?</h5>
+      <ul class="text-sm text-slate-600 leading-relaxed space-y-1">
+        <li><span class="font-semibold text-slate-400 mr-1">1.</span> Inicia un nuevo trámite y guarda tu código de seguimiento.</li>
+        <li><span class="font-semibold text-slate-400 mr-1">2.</span> El sistema enviará tu solicitud al departamento correspondiente.</li>
+        <li><span class="font-semibold text-slate-400 mr-1">3.</span> Consulta el avance en cualquier momento con tu código.</li>
+      </ul>
+    </div>
+  </div>
+  }
+
+  }
+</div>

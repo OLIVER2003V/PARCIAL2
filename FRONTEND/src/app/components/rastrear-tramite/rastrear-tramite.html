@@ -1,0 +1,430 @@
+<div class="min-h-screen bg-slate-50/50">
+<div class="max-w-7xl mx-auto p-4 md:p-6 space-y-5 animate-in fade-in slide-in-from-bottom-4 duration-500">
+
+  <!-- ══ Header ══════════════════════════════════════════════════════════════ -->
+  <div class="relative overflow-hidden rounded-2xl bg-linear-to-br from-slate-800 via-slate-900 to-slate-950 border border-slate-700/50 shadow-xl p-5 md:p-6">
+    <div class="absolute inset-0 opacity-[0.07]"
+         style="background-image:radial-gradient(circle, #38bdf8 1px, transparent 1px); background-size:24px 24px;"></div>
+    <div class="absolute top-0 right-0 w-80 h-80 bg-sky-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+    <div class="relative flex flex-col sm:flex-row sm:items-center justify-between gap-5">
+      <div class="flex items-center gap-4">
+        <div class="w-11 h-11 bg-sky-500/15 border border-sky-500/30 rounded-2xl flex items-center justify-center shrink-0">
+          <svg class="w-5 h-5 text-sky-400" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M3 7.5A2.5 2.5 0 015.5 5H9l2 2h7.5A2.5 2.5 0 0121 9.5v7A2.5 2.5 0 0118.5 19h-13A2.5 2.5 0 013 16.5v-9z"/>
+          </svg>
+        </div>
+        <div>
+          <h2 class="text-xl md:text-2xl font-black text-white tracking-tight">Mis Trámites</h2>
+          <p class="text-slate-400 text-xs font-medium mt-0.5">Consulta el estado, avance y documentos de tus solicitudes.</p>
+        </div>
+      </div>
+
+      <!-- Stats pill -->
+      <div class="flex items-center gap-2 shrink-0">
+        <div class="flex items-center gap-3 bg-slate-800/80 border border-slate-700/60 rounded-2xl px-4 py-2.5">
+          <div class="text-center">
+            <p class="text-[9px] text-slate-500 uppercase tracking-widest font-black">Total</p>
+            <p class="text-xl font-black text-white leading-none">{{ totalTramites() }}</p>
+          </div>
+          <div class="w-px h-8 bg-slate-700"></div>
+          <div class="text-center">
+            <p class="text-[9px] text-slate-500 uppercase tracking-widest font-black">Activos</p>
+            <p class="text-xl font-black text-sky-400 leading-none">{{ tramitesActivos() }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ Content grid ════════════════════════════════════════════════════════ -->
+  <div class="grid grid-cols-1 xl:grid-cols-12 gap-5 items-start">
+
+    <!-- ── Sidebar izquierdo ─────────────────────────────────────────────── -->
+    <aside class="xl:col-span-4 space-y-3">
+
+      <!-- Lista de trámites -->
+      <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+
+        <!-- Card header -->
+        <div class="px-4 py-3 bg-slate-50 border-b border-slate-100 flex items-center justify-between gap-3">
+          <div>
+            <h3 class="text-sm font-black text-slate-800">Solicitudes iniciadas</h3>
+            <p class="text-[10px] text-slate-400 font-medium mt-0.5">Selecciona para ver el expediente completo</p>
+          </div>
+          <button type="button"
+                  (click)="cargarMisTramites()"
+                  [disabled]="cargandoMisTramites()"
+                  title="Actualizar lista"
+                  class="w-8 h-8 rounded-xl border border-slate-200 bg-white text-slate-400
+                         hover:text-sky-600 hover:border-sky-200 hover:bg-sky-50
+                         disabled:opacity-40 flex items-center justify-center transition-all">
+            <svg class="w-3.5 h-3.5" [class.animate-spin]="cargandoMisTramites()"
+                 fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992V4.356M19.07 13A7.5 7.5 0 115.64 8.59"/>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Buscador + filtros (solo cuando hay trámites cargados) -->
+        @if (!cargandoMisTramites() && !errorMisTramites() && misTramites().length > 0) {
+          <div class="px-3 pt-3 pb-2.5 border-b border-slate-100 space-y-2.5">
+
+            <!-- Input de búsqueda -->
+            <div class="flex items-center bg-slate-50 border border-slate-200 rounded-xl px-3 gap-2
+                        focus-within:border-sky-300 focus-within:ring-2 focus-within:ring-sky-100
+                        focus-within:bg-white transition-all">
+              <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+              </svg>
+              <input type="text"
+                     [ngModel]="textoFiltro()"
+                     (ngModelChange)="textoFiltro.set($event)"
+                     placeholder="Buscar por código o nombre…"
+                     class="w-full py-2 bg-transparent text-slate-800 text-sm outline-none
+                            placeholder:text-slate-400 leading-snug">
+              @if (textoFiltro()) {
+                <button type="button" (click)="textoFiltro.set('')"
+                        class="w-4 h-4 rounded-full bg-slate-300 hover:bg-slate-400 flex items-center
+                               justify-center text-white shrink-0 transition-colors">
+                  <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                  </svg>
+                </button>
+              }
+            </div>
+
+            <!-- Chips de estado -->
+            <div class="flex items-center gap-1.5 overflow-x-auto pb-0.5" style="scrollbar-width:none">
+
+              <button type="button" (click)="filtroEstado.set('TODOS')"
+                      class="shrink-0 flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all whitespace-nowrap"
+                      [class.bg-sky-600]="filtroEstado() === 'TODOS'"
+                      [class.text-white]="filtroEstado() === 'TODOS'"
+                      [class.shadow-sm]="filtroEstado() === 'TODOS'"
+                      [class.bg-slate-100]="filtroEstado() !== 'TODOS'"
+                      [class.text-slate-600]="filtroEstado() !== 'TODOS'"
+                      [class.hover:bg-slate-200]="filtroEstado() !== 'TODOS'">
+                Todos
+                <span class="px-1.5 py-0.5 rounded-md text-[9px] font-black leading-none"
+                      [class.bg-sky-500]="filtroEstado() === 'TODOS'"
+                      [class.text-sky-100]="filtroEstado() === 'TODOS'"
+                      [class.bg-slate-200]="filtroEstado() !== 'TODOS'"
+                      [class.text-slate-500]="filtroEstado() !== 'TODOS'">
+                  {{ contadorPorEstado().TODOS }}
+                </span>
+              </button>
+
+              <!-- En revisión -->
+              <button type="button" (click)="filtroEstado.set('EN_REVISION')"
+                      class="shrink-0 flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all whitespace-nowrap"
+                      [class.bg-amber-500]="filtroEstado() === 'EN_REVISION'"
+                      [class.text-white]="filtroEstado() === 'EN_REVISION'"
+                      [class.shadow-sm]="filtroEstado() === 'EN_REVISION'"
+                      [class.bg-slate-100]="filtroEstado() !== 'EN_REVISION'"
+                      [class.text-slate-600]="filtroEstado() !== 'EN_REVISION'"
+                      [class.hover:bg-slate-200]="filtroEstado() !== 'EN_REVISION'">
+                En revisión
+                <span class="px-1.5 py-0.5 rounded-md text-[9px] font-black leading-none"
+                      [class.bg-amber-400]="filtroEstado() === 'EN_REVISION'"
+                      [class.text-amber-100]="filtroEstado() === 'EN_REVISION'"
+                      [class.bg-slate-200]="filtroEstado() !== 'EN_REVISION'"
+                      [class.text-slate-500]="filtroEstado() !== 'EN_REVISION'">
+                  {{ contadorPorEstado().EN_REVISION }}
+                </span>
+              </button>
+
+              <!-- Aprobados -->
+              <button type="button" (click)="filtroEstado.set('APROBADO')"
+                      class="shrink-0 flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all whitespace-nowrap"
+                      [class.bg-emerald-600]="filtroEstado() === 'APROBADO'"
+                      [class.text-white]="filtroEstado() === 'APROBADO'"
+                      [class.shadow-sm]="filtroEstado() === 'APROBADO'"
+                      [class.bg-slate-100]="filtroEstado() !== 'APROBADO'"
+                      [class.text-slate-600]="filtroEstado() !== 'APROBADO'"
+                      [class.hover:bg-slate-200]="filtroEstado() !== 'APROBADO'">
+                Aprobados
+                <span class="px-1.5 py-0.5 rounded-md text-[9px] font-black leading-none"
+                      [class.bg-emerald-500]="filtroEstado() === 'APROBADO'"
+                      [class.text-emerald-100]="filtroEstado() === 'APROBADO'"
+                      [class.bg-slate-200]="filtroEstado() !== 'APROBADO'"
+                      [class.text-slate-500]="filtroEstado() !== 'APROBADO'">
+                  {{ contadorPorEstado().APROBADO }}
+                </span>
+              </button>
+
+              <!-- Rechazados -->
+              <button type="button" (click)="filtroEstado.set('RECHAZADO')"
+                      class="shrink-0 flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all whitespace-nowrap"
+                      [class.bg-red-600]="filtroEstado() === 'RECHAZADO'"
+                      [class.text-white]="filtroEstado() === 'RECHAZADO'"
+                      [class.shadow-sm]="filtroEstado() === 'RECHAZADO'"
+                      [class.bg-slate-100]="filtroEstado() !== 'RECHAZADO'"
+                      [class.text-slate-600]="filtroEstado() !== 'RECHAZADO'"
+                      [class.hover:bg-slate-200]="filtroEstado() !== 'RECHAZADO'">
+                Rechazados
+                <span class="px-1.5 py-0.5 rounded-md text-[9px] font-black leading-none"
+                      [class.bg-red-500]="filtroEstado() === 'RECHAZADO'"
+                      [class.text-red-100]="filtroEstado() === 'RECHAZADO'"
+                      [class.bg-slate-200]="filtroEstado() !== 'RECHAZADO'"
+                      [class.text-slate-500]="filtroEstado() !== 'RECHAZADO'">
+                  {{ contadorPorEstado().RECHAZADO }}
+                </span>
+              </button>
+
+            </div>
+          </div>
+        }
+
+        <!-- Cargando -->
+        @if (cargandoMisTramites()) {
+          <div class="p-10 flex flex-col items-center justify-center gap-3">
+            <div class="w-7 h-7 border-3 border-sky-100 border-t-sky-500 rounded-full animate-spin"></div>
+            <span class="text-xs text-slate-400 font-semibold">Cargando solicitudes…</span>
+          </div>
+        }
+
+        <!-- Error -->
+        @else if (errorMisTramites()) {
+          <div class="p-5 flex items-center gap-3 bg-red-50 border-t border-red-100">
+            <svg class="w-4 h-4 text-red-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"/>
+            </svg>
+            <p class="text-xs text-red-700 font-semibold">{{ errorMisTramites() }}</p>
+          </div>
+        }
+
+        <!-- Sin trámites (primera vez vacío) -->
+        @else if (misTramites().length === 0) {
+          <div class="p-10 flex flex-col items-center text-center gap-3">
+            <div class="w-14 h-14 rounded-2xl bg-sky-50 border border-sky-100 flex items-center justify-center">
+              <svg class="w-7 h-7 text-sky-400" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M19.5 14.25v-2.625A3.375 3.375 0 0016.125 8.25h-1.5A1.125 1.125 0 0113.5 7.125v-1.5A3.375 3.375 0 0010.125 2.25H8.25m0 12.75h7.5m-7.5 3H12"/>
+              </svg>
+            </div>
+            <div>
+              <p class="text-sm font-black text-slate-700">Aún no tienes trámites</p>
+              <p class="text-xs text-slate-400 mt-1">Inicia una solicitud y aparecerá aquí.</p>
+            </div>
+            <a routerLink="/nuevo-tramite"
+               class="mt-1 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold shadow-sm transition-all active:scale-[0.98]">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
+              </svg>
+              Iniciar trámite
+            </a>
+          </div>
+        }
+
+        <!-- Sin resultados para el filtro/búsqueda activos -->
+        @else if (tramitesFiltrados().length === 0) {
+          <div class="p-8 flex flex-col items-center text-center gap-2">
+            <div class="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center mb-1">
+              <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+              </svg>
+            </div>
+            <p class="text-sm font-black text-slate-600">Sin resultados</p>
+            <p class="text-xs text-slate-400">Ajusta el filtro o el texto de búsqueda.</p>
+            <button type="button"
+                    (click)="filtroEstado.set('TODOS'); textoFiltro.set('')"
+                    class="mt-1 text-[11px] text-sky-600 hover:text-sky-700 font-bold underline transition-colors">
+              Limpiar filtros
+            </button>
+          </div>
+        }
+
+        <!-- Lista filtrada -->
+        @else {
+          <div class="divide-y divide-slate-50 max-h-[560px] overflow-y-auto">
+            @for (t of tramitesFiltrados(); track t.id) {
+              <button type="button"
+                      (click)="seleccionarTramite(t)"
+                      class="w-full text-left px-4 py-3.5 transition-all relative group"
+                      [class.bg-sky-50]="tramiteEncontrado()?.id === t.id"
+                      [class.hover:bg-sky-50]="tramiteEncontrado()?.id !== t.id"
+                      [class.hover:bg-slate-50]="tramiteEncontrado()?.id !== t.id">
+
+                <!-- Borde izquierdo activo -->
+                @if (tramiteEncontrado()?.id === t.id) {
+                  <div class="absolute left-0 top-0 bottom-0 w-0.5 bg-sky-500 rounded-r-full"></div>
+                }
+
+                <div class="flex items-start justify-between gap-3">
+                  <div class="min-w-0">
+                    @if (t.nombreProceso) {
+                      <p class="text-[11px] font-bold truncate mb-0.5"
+                         [class.text-sky-600]="tramiteEncontrado()?.id === t.id"
+                         [class.text-slate-500]="tramiteEncontrado()?.id !== t.id">
+                        {{ t.nombreProceso }}
+                      </p>
+                    }
+                    <p class="font-mono text-sm font-black truncate"
+                       [class.text-sky-700]="tramiteEncontrado()?.id === t.id"
+                       [class.text-slate-900]="tramiteEncontrado()?.id !== t.id">
+                      {{ t.codigoSeguimiento }}
+                    </p>
+                    <p class="text-[11px] text-slate-400 font-medium mt-0.5">
+                      {{ t.fechaCreacion | date:'dd MMM yyyy · HH:mm' }}
+                    </p>
+                  </div>
+                  <span class="shrink-0 px-2 py-0.5 rounded-lg border text-[10px] font-black uppercase tracking-wide"
+                        [class]="estadoClases(t.estadoSemaforo)">
+                    {{ estadoIcono(t.estadoSemaforo) }} {{ estadoTexto(t.estadoSemaforo) }}
+                  </span>
+                </div>
+
+                @if (t.pasoActualId) {
+                  <div class="mt-2 flex items-center gap-1.5">
+                    <span class="w-1.5 h-1.5 rounded-full bg-slate-300 shrink-0"></span>
+                    <span class="text-[10px] text-slate-400 truncate font-medium">Paso: {{ t.pasoActualId }}</span>
+                  </div>
+                }
+              </button>
+            }
+          </div>
+        }
+
+      </div>
+
+    </aside>
+
+    <!-- ── Panel de detalle ─────────────────────────────────────────────── -->
+    <section class="xl:col-span-8 space-y-5">
+
+      @if (tramiteEncontrado(); as tramite) {
+
+        <!-- Ficha del trámite -->
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          <!-- Header de la ficha -->
+          <div class="p-5 md:p-6 border-b border-slate-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+              <p class="text-[10px] text-slate-400 uppercase tracking-[0.2em] font-black mb-1">
+                Expediente seleccionado
+              </p>
+              @if (tramite.nombreProceso) {
+                <p class="text-base font-bold text-slate-700 mb-1">{{ tramite.nombreProceso }}</p>
+              }
+              <h3 class="text-2xl md:text-3xl font-mono font-black text-slate-900 tracking-tight">
+                {{ tramite.codigoSeguimiento }}
+              </h3>
+            </div>
+            <div class="px-4 py-2.5 rounded-xl border-2 font-black text-sm uppercase tracking-widest
+                        flex items-center gap-2 shadow-sm"
+                 [class]="estadoClases(tramite.estadoSemaforo)">
+              <span class="text-base">{{ estadoIcono(tramite.estadoSemaforo) }}</span>
+              {{ estadoTexto(tramite.estadoSemaforo) }}
+            </div>
+          </div>
+
+          <!-- Metadata grid -->
+          <div class="p-5 md:p-6 space-y-5">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div class="bg-slate-50 rounded-xl p-4 border border-slate-100 flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-white border border-slate-200 flex items-center justify-center shrink-0">
+                  <svg class="w-4 h-4 text-sky-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"/>
+                  </svg>
+                </div>
+                <div>
+                  <p class="text-[10px] text-slate-400 font-black uppercase tracking-widest">Fecha de apertura</p>
+                  <p class="text-sm text-slate-900 font-bold">{{ tramite.fechaCreacion | date:'fullDate' }}</p>
+                </div>
+              </div>
+              <div class="bg-slate-50 rounded-xl p-4 border border-slate-100 flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-white border border-slate-200 flex items-center justify-center shrink-0">
+                  <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                  </svg>
+                </div>
+                <div>
+                  <p class="text-[10px] text-slate-400 font-black uppercase tracking-widest">Último movimiento</p>
+                  <p class="text-sm text-slate-900 font-bold">{{ tramite.fechaUltimaActualizacion | date:'short' }}</p>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Mapa del proceso -->
+        @if (tramite.procesoDefinicionId) {
+          <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+            <div class="px-5 py-3.5 border-b border-slate-100 flex items-center gap-2.5">
+              <div class="w-7 h-7 bg-indigo-50 border border-indigo-100 rounded-lg flex items-center justify-center shrink-0">
+                <svg class="w-3.5 h-3.5 text-indigo-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/>
+                </svg>
+              </div>
+              <div>
+                <h4 class="text-sm font-black text-slate-800">Mapa del proceso</h4>
+                <p class="text-[10px] text-slate-400 font-medium">Estado actual de tu solicitud en el flujo de trabajo</p>
+              </div>
+            </div>
+            <div class="h-[400px]">
+              <app-timeline-proceso
+                [procesoId]="tramite.procesoDefinicionId"
+                [pasoActualId]="tramite.pasoActualId ?? null"
+                [estado]="tramite.estadoSemaforo">
+              </app-timeline-proceso>
+            </div>
+          </div>
+        }
+
+        <!-- Documentos del expediente (CU22) -->
+        @if (tramite.id) {
+          <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+            <div class="px-5 py-3.5 border-b border-slate-100 flex items-center gap-2.5">
+              <div class="w-7 h-7 bg-blue-50 border border-blue-100 rounded-lg flex items-center justify-center shrink-0">
+                <svg class="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M18.375 12.739l-7.693 7.693a4.5 4.5 0 01-6.364-6.364l10.94-10.94A3 3 0 1119.5 7.372L8.552 18.32"/>
+                </svg>
+              </div>
+              <div>
+                <h4 class="text-sm font-black text-slate-800">Documentos del expediente</h4>
+                <p class="text-[10px] text-slate-400 font-medium">Archivos adjuntos asociados a tu trámite</p>
+              </div>
+            </div>
+            <div class="p-4">
+              <app-documentacion-tramite
+                [tramiteId]="tramite.id.toString()"
+                [modoEdicion]="true"
+                [permiteEliminar]="false"
+                paso="Cliente">
+              </app-documentacion-tramite>
+            </div>
+          </div>
+        }
+
+      } @else {
+
+        <!-- Estado vacío (sin trámite seleccionado) -->
+        <div class="bg-white border border-slate-200 rounded-2xl shadow-sm p-16 flex flex-col items-center text-center">
+          <div class="relative mb-6">
+            <div class="w-20 h-20 rounded-3xl bg-sky-50 border border-sky-100 flex items-center justify-center">
+              <svg class="w-10 h-10 text-sky-400" fill="none" stroke="currentColor" stroke-width="1.3" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M3 7.5A2.5 2.5 0 015.5 5H9l2 2h7.5A2.5 2.5 0 0121 9.5v7A2.5 2.5 0 0118.5 19h-13A2.5 2.5 0 013 16.5v-9z"/>
+              </svg>
+            </div>
+            <div class="absolute -bottom-1 -right-1 w-7 h-7 bg-indigo-500 rounded-xl flex items-center justify-center shadow-md">
+              <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/>
+              </svg>
+            </div>
+          </div>
+          <h3 class="text-lg font-black text-slate-800">Selecciona un trámite</h3>
+          <p class="text-sm text-slate-400 mt-2 max-w-sm">
+            Haz clic en cualquier solicitud del panel izquierdo para ver su detalle, avance en el proceso y documentos adjuntos.
+          </p>
+        </div>
+
+      }
+    </section>
+
+  </div>
+</div>
+</div>

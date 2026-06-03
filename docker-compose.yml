@@ -1,0 +1,36 @@
+services:
+
+  # ── Frontend Angular (Nginx sirve los estáticos) ───────────────────────────
+  frontend:
+    build: ./FRONTEND
+    ports:
+      - "80:80"         # La app web entra por http://IP_EC2
+    restart: unless-stopped
+
+  # ── Backend Spring Boot ────────────────────────────────────────────────────
+  backend:
+    build: ./BACKEND
+    ports:
+      - "8080:8080"
+    env_file: ./BACKEND/.env          # carga Mongo, JWT, AWS, Gemini, etc.
+    environment:
+      # En Docker los servicios se llaman por su nombre de servicio,
+      # no por localhost. Estos valores sobreescriben application.properties
+      - ML_SERVICE_URL=http://ml_service:5001
+      - NLP_SERVICE_URL=http://ia_service:8000/api/v1
+    depends_on:
+      - ia_service
+      - ml_service
+    restart: unless-stopped
+
+  # ── Microservicio NLP (sentence-transformers + STT) ───────────────────────
+  # Solo accesible internamente: el backend lo llama, no el navegador
+  ia_service:
+    build: ./IA_SERVICE
+    restart: unless-stopped
+
+  # ── Microservicio ML (TensorFlow — predicción de demora) ──────────────────
+  # Solo accesible internamente: el backend lo llama, no el navegador
+  ml_service:
+    build: ./ML-SERVICE
+    restart: unless-stopped
