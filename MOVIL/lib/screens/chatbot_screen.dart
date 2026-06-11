@@ -11,6 +11,8 @@
 //  - Auto-scroll al fondo cuando entra mensaje nuevo
 
 import 'package:flutter/material.dart';
+import 'package:speech_to_text/speech_to_text.dart';
+import 'package:speech_to_text/speech_recognition_result.dart';
 import '../core/app_theme.dart';
 import '../models/mensaje_chat.dart';
 import '../services/chatbot_service.dart';
@@ -26,8 +28,13 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
   final ChatbotService _chatbotService = ChatbotService();
   final TextEditingController _inputController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
+  final SpeechToText _stt = SpeechToText();
 
   bool _cargando = false;
+  bool _sttDisponible = false;
+  bool _escuchando = false;
+  double _nivelSonido = 0.0;
+
   List<String> _sugerenciasActuales = [];
 
   // 👇 NUEVO Sugerencias iniciales (alineadas con el frontend web)
@@ -39,9 +46,65 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    _inicializarVoz();
+  }
+
+  Future<void> _inicializarVoz() async {
+    final disponible = await _stt.initialize(
+      onError: (e) {
+        if (mounted) setState(() => _escuchando = false);
+      },
+      onStatus: (status) {
+        if (mounted && (status == 'done' || status == 'notListening')) {
+          setState(() => _escuchando = false);
+        }
+      },
+    );
+    if (mounted) setState(() => _sttDisponible = disponible);
+  }
+
+  void _onSpeechResult(SpeechRecognitionResult result) {
+    setState(() => _inputController.text = result.recognizedWords);
+    // Silencio detectado → enviar automáticamente
+    if (result.finalResult && _escuchando && result.recognizedWords.trim().isNotEmpty) {
+      setState(() => _escuchando = false);
+      _enviar();
+    }
+  }
+
+  Future<void> _toggleVoz() async {
+    if (!_sttDisponible) return;
+    if (_escuchando) {
+      // Parada manual → sólo detiene, deja el texto para que el usuario lo revise
+      setState(() => _escuchando = false);
+      await _stt.stop();
+      return;
+    }
+    setState(() {
+      _escuchando = true;
+      _nivelSonido = 0.0;
+      _inputController.clear();
+    });
+    await _stt.listen(
+      onResult: _onSpeechResult,
+      onSoundLevelChange: (level) =>
+          setState(() => _nivelSonido = level.clamp(0.0, 10.0)),
+      listenOptions: SpeechListenOptions(
+        pauseFor: const Duration(seconds: 2),
+        partialResults: true,
+        cancelOnError: true,
+        listenMode: ListenMode.dictation,
+      ),
+    );
+  }
+
+  @override
   void dispose() {
     _inputController.dispose();
     _scrollController.dispose();
+    _stt.stop();
     super.dispose();
   }
 
@@ -369,52 +432,148 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
   }
 
   Widget _buildInput() {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
-      decoration: const BoxDecoration(
-        color: AppTheme.brandSurface,
-        border: Border(
-          top: BorderSide(color: AppTheme.brandBorder, width: 0.5),
-        ),
-      ),
-      child: SafeArea(
-        top: false,
-        child: Row(
-          children: [
-            Expanded(
-              child: TextField(
-                controller: _inputController,
-                style: const TextStyle(color: Colors.white),
-                textInputAction: TextInputAction.send,
-                onSubmitted: (_) => _enviar(),
-                decoration: InputDecoration(
-                  hintText: 'Escribe tu pregunta...',
-                  hintStyle: const TextStyle(color: AppTheme.brandMuted),
-                  filled: true,
-                  fillColor: AppTheme.brandBg,
-                  contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16, vertical: 12),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(24),
-                    borderSide: BorderSide.none,
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Banner "Escuchando..." visible solo mientras graba
+        if (_escuchando)
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+            decoration: BoxDecoration(
+              color: AppTheme.estadoRojo.withValues(alpha: 0.1),
+              border: const Border(
+                top: BorderSide(color: AppTheme.brandBorder, width: 0.5),
+              ),
+            ),
+            child: Row(children: [
+              const Icon(Icons.graphic_eq,
+                  color: AppTheme.estadoRojo, size: 16),
+              const SizedBox(width: 8),
+              const Text('Escuchando...',
+                  style: TextStyle(
+                      color: AppTheme.estadoRojo,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600)),
+              const Spacer(),
+              const Text('Pausa 2 s → envía solo',
+                  style: TextStyle(
+                      color: AppTheme.brandMuted, fontSize: 10)),
+            ]),
+          ),
+
+        // Fila de entrada
+        Container(
+          padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+          decoration: const BoxDecoration(
+            color: AppTheme.brandSurface,
+            border: Border(
+              top: BorderSide(color: AppTheme.brandBorder, width: 0.5),
+            ),
+          ),
+          child: SafeArea(
+            top: false,
+            child: Row(children: [
+              // Campo de texto
+              Expanded(
+                child: TextField(
+                  controller: _inputController,
+                  style: const TextStyle(color: Colors.white),
+                  textInputAction: TextInputAction.send,
+                  onSubmitted: (_) => _enviar(),
+                  decoration: InputDecoration(
+                    hintText: _escuchando
+                        ? 'Hablando...'
+                        : 'Escribe tu pregunta...',
+                    hintStyle: TextStyle(
+                      color: _escuchando
+                          ? AppTheme.estadoRojo.withValues(alpha: 0.7)
+                          : AppTheme.brandMuted,
+                    ),
+                    filled: true,
+                    fillColor: AppTheme.brandBg,
+                    contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 12),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(24),
+                      borderSide: BorderSide(
+                        color: _escuchando
+                            ? AppTheme.estadoRojo.withValues(alpha: 0.5)
+                            : Colors.transparent,
+                      ),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(24),
+                      borderSide: BorderSide(
+                        color: _escuchando
+                            ? AppTheme.estadoRojo.withValues(alpha: 0.5)
+                            : Colors.transparent,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(24),
+                      borderSide: BorderSide(
+                        color: _escuchando
+                            ? AppTheme.estadoRojo
+                            : AppTheme.brandPrimary,
+                      ),
+                    ),
                   ),
                 ),
               ),
-            ),
-            const SizedBox(width: 8),
-            Container(
-              decoration: BoxDecoration(
-                color: AppTheme.brandPrimary,
-                shape: BoxShape.circle,
+              const SizedBox(width: 8),
+
+              // Botón micrófono (solo si el dispositivo soporta STT)
+              if (_sttDisponible)
+                AnimatedScale(
+                  scale: _escuchando
+                      ? 1.0 + (_nivelSonido / 50).clamp(0.0, 0.25)
+                      : 1.0,
+                  duration: const Duration(milliseconds: 100),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: _escuchando
+                          ? AppTheme.estadoRojo
+                          : AppTheme.brandSurface,
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: _escuchando
+                            ? AppTheme.estadoRojo
+                            : AppTheme.brandBorder,
+                      ),
+                    ),
+                    child: IconButton(
+                      icon: Icon(
+                        _escuchando
+                            ? Icons.mic_rounded
+                            : Icons.mic_none_rounded,
+                        color: _escuchando
+                            ? Colors.white
+                            : AppTheme.brandMuted,
+                      ),
+                      tooltip: _escuchando
+                          ? 'Detener grabación'
+                          : 'Hablar con el asistente',
+                      onPressed: _cargando ? null : _toggleVoz,
+                    ),
+                  ),
+                ),
+              if (_sttDisponible) const SizedBox(width: 8),
+
+              // Botón enviar
+              Container(
+                decoration: const BoxDecoration(
+                  color: AppTheme.brandPrimary,
+                  shape: BoxShape.circle,
+                ),
+                child: IconButton(
+                  icon: const Icon(Icons.send, color: Colors.white),
+                  onPressed: _cargando ? null : () => _enviar(),
+                ),
               ),
-              child: IconButton(
-                icon: const Icon(Icons.send, color: Colors.white),
-                onPressed: _cargando ? null : () => _enviar(),
-              ),
-            ),
-          ],
+            ]),
+          ),
         ),
-      ),
+      ],
     );
   }
 }
