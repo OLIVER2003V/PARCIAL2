@@ -12,7 +12,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Copiar e instalar dependencias Python ANTES del código fuente
 # (si requirements.txt no cambia, Docker reutiliza esta capa cacheada)
 COPY requirements.txt .
-RUN pip install --no-cache-dir torch==2.1.2+cpu --index-url https://download.pytorch.org/whl/cpu \
+RUN pip install --no-cache-dir "numpy<2" \
+    && pip install --no-cache-dir torch==2.4.1+cpu --index-url https://download.pytorch.org/whl/cpu \
     && pip install --no-cache-dir -r requirements.txt \
     && python -c \
         "from sentence_transformers import SentenceTransformer; \
