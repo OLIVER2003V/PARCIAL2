@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../core/app_theme.dart';
 import '../services/notificacion_store.dart';
-import 'catalogo_screen.dart';
+import 'home_screen.dart';
 import 'mis_tramites_screen.dart';
 import 'rastreo_screen.dart';
 import 'chatbot_screen.dart';
@@ -20,7 +20,7 @@ class _MainScreenState extends State<MainScreen> {
   late int _tabActual;
   int _notifNoLeidas = 0;
 
-  static const _titulos = ['Trámites', 'Mis Trámites', 'Rastrear', 'Asistente IA'];
+  static const _titulos = ['Inicio', 'Mis Trámites', 'Rastrear', 'Asistente IA'];
 
   @override
   void initState() {
@@ -34,11 +34,11 @@ class _MainScreenState extends State<MainScreen> {
     if (mounted) setState(() => _notifNoLeidas = count);
   }
 
-  final List<Widget> _tabs = const [
-    CatalogoScreen(),
-    MisTramitesScreen(),
-    RastreoScreen(),
-    ChatbotScreen(),
+  late final List<Widget> _tabs = [
+    HomeScreen(onSwitchTab: (i) => setState(() => _tabActual = i)),
+    const MisTramitesScreen(),
+    const RastreoScreen(),
+    const ChatbotScreen(),
   ];
 
   @override

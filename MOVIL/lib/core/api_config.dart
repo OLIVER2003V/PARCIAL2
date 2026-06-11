@@ -28,4 +28,7 @@ class ApiConfig {
   static String get archivosSubir                    => '$apiUrl/archivos/subir';
   static String archivosTramite(String tramiteId)    => '$apiUrl/archivos/tramite/$tramiteId';
   static String archivoVer(String nombre)            => '$apiHost/api/archivos/ver/$nombre';
+
+  // ── IA ────────────────────────────────────────────────────────────────────
+  static String get iaChatbotCliente => '$apiUrl/ia/chatbot-cliente';
 }
