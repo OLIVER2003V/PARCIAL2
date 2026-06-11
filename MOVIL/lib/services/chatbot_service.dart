@@ -1,20 +1,98 @@
-// 👇 NUEVO Servicio del Asistente IA Cliente (CU17)
-//
-// Mantiene el historial de la conversación en memoria (estilo el frontend web).
-// El backend usa el historial para dar contexto a Gemini en cada respuesta.
-
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../core/api_config.dart';
 import '../models/mensaje_chat.dart';
 
-class ChatbotService {
-  /// Historial de la conversación en memoria.
-  /// Se reinicia cada vez que el usuario cierra y reabre la pantalla.
-  final List<MensajeChat> mensajes = [];
+const _keySesion    = 'bpms_chat_sesion';
+const _keyHistorial = 'bpms_chat_historial';
+const _maxConvs     = 15;
 
-  /// Helper para armar headers con JWT
+class ChatbotService {
+  final List<MensajeChat>           mensajes  = [];
+  final List<ConversacionHistorial> historial = [];
+
+  ChatbotService() {
+    _cargarDesdeStorage();
+  }
+
+  // ── Persistencia ───────────────────────────────────────────────────────────
+
+  Future<void> _cargarDesdeStorage() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    final rawSesion = prefs.getString(_keySesion);
+    if (rawSesion != null) mensajes.addAll(mensajesDesdeJson(rawSesion));
+
+    final rawHist = prefs.getString(_keyHistorial);
+    if (rawHist != null) historial.addAll(historialDesdeJson(rawHist));
+  }
+
+  Future<void> _guardarSesion() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_keySesion, mensajesAJson(mensajes));
+  }
+
+  Future<void> _guardarHistorial() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_keyHistorial, historialAJson(historial));
+  }
+
+  // ── Mensajes ───────────────────────────────────────────────────────────────
+
+  void agregarMensaje(
+    RolMensaje rol,
+    String contenido, {
+    String? accion,
+    String? procesoId,
+    String? procesoNombre,
+    List<RequisitoCampo>? requisitos,
+    List<CandidatoAlternativo>? candidatosAlternativos,
+  }) {
+    mensajes.add(MensajeChat(
+      rol: rol,
+      contenido: contenido,
+      accion: accion,
+      procesoId: procesoId,
+      procesoNombre: procesoNombre,
+      requisitos: requisitos,
+      candidatosAlternativos: candidatosAlternativos,
+    ));
+    _guardarSesion();
+  }
+
+  /// Archiva la conversación en historial y limpia el chat.
+  Future<void> limpiar() async {
+    if (mensajes.any((m) => m.rol == RolMensaje.usuario)) {
+      _archivar();
+    }
+    mensajes.clear();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_keySesion);
+  }
+
+  // ── Historial ──────────────────────────────────────────────────────────────
+
+  void restaurarConversacion(ConversacionHistorial conv) {
+    mensajes
+      ..clear()
+      ..addAll(conv.mensajes);
+    _guardarSesion();
+  }
+
+  Future<void> eliminarConversacion(String id) async {
+    historial.removeWhere((c) => c.id == id);
+    await _guardarHistorial();
+  }
+
+  Future<void> limpiarHistorial() async {
+    historial.clear();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_keyHistorial);
+  }
+
+  // ── Envío HTTP ─────────────────────────────────────────────────────────────
+
   Future<Map<String, String>> _getHeaders() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('token') ?? '';
@@ -24,55 +102,58 @@ class ChatbotService {
     };
   }
 
-  /// Agrega un mensaje al historial local sin llamar al backend.
-  /// Útil para mostrar el mensaje del usuario inmediatamente en la UI.
-  void agregarMensaje(RolMensaje rol, String contenido) {
-    mensajes.add(MensajeChat(rol: rol, contenido: contenido));
-  }
-
-  /// Envía un mensaje al backend y devuelve la respuesta + sugerencias rápidas.
-  /// El backend recibe el historial completo para mantener el contexto.
   Future<ChatbotResponse?> enviar(String mensajeUsuario) async {
     try {
       final headers = await _getHeaders();
-
-      // Construir el payload con el historial actual (excluyendo el mensaje
-      // que se está enviando, ya que va aparte en el campo `mensaje`).
       final payload = {
         'mensaje': mensajeUsuario,
         'historial': mensajes.map((m) => m.toBackendJson()).toList(),
       };
-
       final response = await http.post(
         Uri.parse(ApiConfig.iaChatbotCliente),
         headers: headers,
         body: jsonEncode(payload),
-      );
+      ).timeout(const Duration(seconds: 30));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(utf8.decode(response.bodyBytes));
         return ChatbotResponse.fromJson(data);
       } else {
-        // El backend puede devolver 503 (IA saturada) o 500 (error interno)
-        // con un body tipo { error: "...", tipo: "IA_SATURADA" }
         try {
-          final errData = jsonDecode(utf8.decode(response.bodyBytes));
+          final err = jsonDecode(utf8.decode(response.bodyBytes));
           return ChatbotResponse(
-            respuesta: '⚠️ ${errData['error'] ?? 'El asistente no está disponible'}',
-            sugerenciasRapidas: const [],
+            respuesta: '⚠️ ${err['error'] ?? 'El asistente no está disponible'}',
+            sugerenciasRapidas: [],
           );
         } catch (_) {
           return null;
         }
       }
     } catch (e) {
-      print('Error en chatbot: $e');
       return null;
     }
   }
 
-  /// Limpia el historial (botón "Nueva conversación")
-  void limpiar() {
-    mensajes.clear();
+  // ── Privados ───────────────────────────────────────────────────────────────
+
+  void _archivar() {
+    final primero = mensajes.firstWhere(
+      (m) => m.rol == RolMensaje.usuario,
+      orElse: () => mensajes.first,
+    );
+    final titulo = primero.contenido.length > 55
+        ? '${primero.contenido.substring(0, 55)}…'
+        : primero.contenido;
+
+    final conv = ConversacionHistorial(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      titulo: titulo,
+      fecha: DateTime.now(),
+      mensajes: List.from(mensajes),
+    );
+
+    historial.insert(0, conv);
+    if (historial.length > _maxConvs) historial.removeLast();
+    _guardarHistorial();
   }
 }
