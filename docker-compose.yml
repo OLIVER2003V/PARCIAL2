@@ -4,7 +4,10 @@ services:
   frontend:
     build: ./FRONTEND
     ports:
-      - "80:80"         # La app web entra por http://IP_EC2
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /etc/letsencrypt:/etc/letsencrypt:ro
     restart: unless-stopped
 
   # ── Backend Spring Boot ────────────────────────────────────────────────────

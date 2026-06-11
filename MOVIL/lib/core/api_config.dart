@@ -2,7 +2,7 @@ class ApiConfig {
   static const bool kUsarProduccion = true;
 
   static const String _hostLocal = 'http://192.168.100.148:8080';
-  static const String _hostProd  = 'http://3.14.70.65:8080';
+  static const String _hostProd  = 'https://bpms-parcial.duckdns.org';
 
   static String get apiHost => kUsarProduccion ? _hostProd : _hostLocal;
   static String get apiUrl  => '$apiHost/api';

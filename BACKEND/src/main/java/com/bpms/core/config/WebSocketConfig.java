@@ -34,6 +34,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                     "http://localhost:4200", 
                     "http://3.14.70.65",
                     "http://3.14.70.65:8080",
+                    "https://bpms-parcial.duckdns.org",
                     "https://*.cloudfront.net"
                 );
         // Sin SockJS: usamos WebSocket nativo.

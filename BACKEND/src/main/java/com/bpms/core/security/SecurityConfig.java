@@ -81,6 +81,7 @@ public class SecurityConfig {
                 "http://localhost:4200",
                 "http://3.14.70.65:8080",
                 "http://3.14.70.65",
+                "https://bpms-parcial.duckdns.org",
                 "https://*.cloudfront.net" 
         ));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
