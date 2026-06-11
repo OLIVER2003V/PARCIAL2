@@ -49,5 +49,9 @@
 	<string>La app usa el micrófono para reconocer tu voz en el asistente IA</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
 	<string>La app usa reconocimiento de voz para enviar consultas al asistente IA</string>
+	<key>NSCameraUsageDescription</key>
+	<string>La app usa la cámara para actualizar tu foto de perfil</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>La app accede a tu galería para seleccionar una foto de perfil</string>
 </dict>
 </plist>

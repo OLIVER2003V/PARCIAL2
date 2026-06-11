@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../core/app_theme.dart';
 import '../services/notificacion_store.dart';
+import '../widgets/connectivity_banner.dart';
 import 'home_screen.dart';
 import 'mis_tramites_screen.dart';
 import 'rastreo_screen.dart';
@@ -100,9 +101,11 @@ class _MainScreenState extends State<MainScreen> {
           const SizedBox(width: 4),
         ],
       ),
-      body: IndexedStack(
-        index: _tabActual,
-        children: _tabs,
+      body: ConnectivityBanner(
+        child: IndexedStack(
+          index: _tabActual,
+          children: _tabs,
+        ),
       ),
       bottomNavigationBar: NavigationBar(
         backgroundColor: AppTheme.brandSurface,

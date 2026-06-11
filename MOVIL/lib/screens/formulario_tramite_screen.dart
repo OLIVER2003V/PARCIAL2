@@ -17,18 +17,69 @@ class FormularioTramiteScreen extends StatefulWidget {
 class _FormularioTramiteScreenState extends State<FormularioTramiteScreen> {
   final _formKey = GlobalKey<FormState>();
   final TramiteService _tramiteService = TramiteService();
-  
+
   final Map<String, dynamic> _valoresFormulario = {};
   final TextEditingController _descripcionController = TextEditingController();
-  
+
   bool _isSubmitting = false;
   String? _uploadingFileId;
   List<CampoFormulario> _campos = [];
+
+  String get _draftKey => 'draft_${widget.proceso.codigo}';
 
   @override
   void initState() {
     super.initState();
     _extraerCamposDelPasoInicial();
+    _cargarBorrador();
+  }
+
+  // ── Borrador ──────────────────────────────────────────────────────────────
+  Future<void> _cargarBorrador() async {
+    final prefs = await SharedPreferences.getInstance();
+    final desc = prefs.getString('${_draftKey}_desc') ?? '';
+    if (desc.isEmpty) return;
+
+    if (!mounted) return;
+    final continuar = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        backgroundColor: AppTheme.brandSurface,
+        title: const Text('Borrador guardado',
+            style: TextStyle(color: Colors.white)),
+        content: const Text(
+            '¿Deseas continuar con el borrador guardado anteriormente?',
+            style: TextStyle(color: AppTheme.brandMuted)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Descartar',
+                style: TextStyle(color: AppTheme.brandMuted)),
+          ),
+          ElevatedButton(
+            style: AppTheme.botonPrimario(),
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Continuar'),
+          ),
+        ],
+      ),
+    );
+
+    if (continuar == true) {
+      setState(() => _descripcionController.text = desc);
+    } else {
+      await _eliminarBorrador();
+    }
+  }
+
+  Future<void> _guardarBorrador() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('${_draftKey}_desc', _descripcionController.text);
+  }
+
+  Future<void> _eliminarBorrador() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('${_draftKey}_desc');
   }
 
   void _extraerCamposDelPasoInicial() {
@@ -129,11 +180,12 @@ class _FormularioTramiteScreenState extends State<FormularioTramiteScreen> {
       setState(() => _isSubmitting = false);
 
       if (exito) {
+        await _eliminarBorrador();
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('✅ Trámite iniciado exitosamente.'), backgroundColor: Colors.green),
         );
-        Navigator.pop(context); // Volver al catálogo
+        Navigator.pop(context);
       } else {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
@@ -309,8 +361,23 @@ class _FormularioTramiteScreenState extends State<FormularioTramiteScreen> {
             ),
             onSaved: (val) => _valoresFormulario[campo.id] = val,
             validator: (val) {
-              if (campo.requerido && (val == null || val.isEmpty)) {
+              if (campo.requerido && (val == null || val.trim().isEmpty)) {
                 return campo.mensajeError ?? 'Este campo es obligatorio';
+              }
+              if (val != null && val.isNotEmpty) {
+                if (campo.tipo == 'email') {
+                  final emailRx = RegExp(r'^[\w.+-]+@[\w-]+\.[a-z]{2,}$',
+                      caseSensitive: false);
+                  if (!emailRx.hasMatch(val.trim())) {
+                    return 'Correo electrónico inválido';
+                  }
+                }
+                if (campo.tipo == 'telefono') {
+                  final telRx = RegExp(r'^\+?[0-9]{7,15}$');
+                  if (!telRx.hasMatch(val.replaceAll(RegExp(r'\s'), ''))) {
+                    return 'Teléfono inválido (7-15 dígitos)';
+                  }
+                }
               }
               return null;
             },
@@ -823,6 +890,7 @@ class _FormularioTramiteScreenState extends State<FormularioTramiteScreen> {
                 controller: _descripcionController,
                 maxLines: 3,
                 style: const TextStyle(color: Colors.white),
+                onChanged: (_) => _guardarBorrador(),
                 decoration: InputDecoration(
                   filled: true, fillColor: const Color(0xFF1E293B),
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),

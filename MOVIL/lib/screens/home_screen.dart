@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../core/app_theme.dart';
@@ -15,6 +16,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final TramiteService _service = TramiteService();
+  Timer? _pollingTimer;
 
   String _nombre = '';
   List<dynamic> _tramites = [];
@@ -24,6 +26,20 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _cargar();
+    _pollingTimer = Timer.periodic(const Duration(seconds: 15), (_) => _cargarSilencioso());
+  }
+
+  @override
+  void dispose() {
+    _pollingTimer?.cancel();
+    super.dispose();
+  }
+
+  // Recarga sin mostrar spinner (para polling en background)
+  Future<void> _cargarSilencioso() async {
+    final tramites = await _service.obtenerMisTramites();
+    if (!mounted) return;
+    setState(() => _tramites = tramites);
   }
 
   Future<void> _cargar() async {

@@ -1,7 +1,10 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../core/app_theme.dart';
 import '../services/auth_service.dart';
+import '../services/tramite_service.dart';
 import 'login_screen.dart';
 
 class PerfilScreen extends StatefulWidget {
@@ -14,12 +17,17 @@ class PerfilScreen extends StatefulWidget {
 class _PerfilScreenState extends State<PerfilScreen> {
   final AuthService _auth = AuthService();
 
-  String _username   = '';
-  String _nombre     = '';
-  String _email      = '';
-  String _telefono   = '';
-  bool   _isLoading  = true;
-  bool   _editando   = false;
+  String _username    = '';
+  String _nombre      = '';
+  String _email       = '';
+  String _telefono    = '';
+  String? _avatarUrl;
+  bool   _isLoading   = true;
+  bool   _editando    = false;
+  bool   _subiendoFoto = false;
+
+  final TramiteService _tramiteService = TramiteService();
+  final ImagePicker    _picker         = ImagePicker();
 
   // Controladores de edición
   late final TextEditingController _nombreCtrl;
@@ -60,15 +68,77 @@ class _PerfilScreenState extends State<PerfilScreen> {
     final datos = await _auth.obtenerPerfil();
 
     setState(() {
-      _username = username;
-      _nombre   = datos?['nombre']   ?? username;
-      _email    = datos?['email']    ?? '';
-      _telefono = datos?['telefono'] ?? '';
+      _username  = username;
+      _nombre    = datos?['nombre']    ?? username;
+      _email     = datos?['email']     ?? '';
+      _telefono  = datos?['telefono']  ?? '';
+      _avatarUrl = datos?['avatarUrl'] as String?;
       _nombreCtrl.text   = _nombre;
       _emailCtrl.text    = _email;
       _telefonoCtrl.text = _telefono;
       _isLoading = false;
     });
+  }
+
+  Future<void> _seleccionarFoto() async {
+    final opcion = await showModalBottomSheet<ImageSource>(
+      context: context,
+      backgroundColor: AppTheme.brandSurface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (_) => SafeArea(
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          const SizedBox(height: 8),
+          Container(width: 40, height: 4,
+              decoration: BoxDecoration(
+                  color: AppTheme.brandBorder,
+                  borderRadius: BorderRadius.circular(2))),
+          const SizedBox(height: 16),
+          ListTile(
+            leading: const Icon(Icons.camera_alt_rounded,
+                color: AppTheme.brandPrimary),
+            title: const Text('Tomar foto',
+                style: TextStyle(color: Colors.white)),
+            onTap: () => Navigator.pop(context, ImageSource.camera),
+          ),
+          ListTile(
+            leading: const Icon(Icons.photo_library_rounded,
+                color: AppTheme.brandPrimary),
+            title: const Text('Elegir de galería',
+                style: TextStyle(color: Colors.white)),
+            onTap: () => Navigator.pop(context, ImageSource.gallery),
+          ),
+          const SizedBox(height: 8),
+        ]),
+      ),
+    );
+
+    if (opcion == null) return;
+
+    final picked = await _picker.pickImage(
+        source: opcion, maxWidth: 512, maxHeight: 512, imageQuality: 85);
+    if (picked == null) return;
+
+    setState(() => _subiendoFoto = true);
+    final resultado = await _tramiteService.subirArchivo(File(picked.path));
+    setState(() => _subiendoFoto = false);
+
+    if (resultado != null) {
+      final url = resultado['url'] as String? ?? '';
+      if (url.isNotEmpty) {
+        setState(() => _avatarUrl = url);
+        // Guardar URL en perfil
+        await _auth.actualizarPerfil({
+          'nombre':    _nombre,
+          'email':     _email,
+          'telefono':  _telefono,
+          'avatarUrl': url,
+        });
+        if (mounted) _snack('Foto actualizada', AppTheme.estadoVerde);
+      }
+    } else {
+      if (mounted) _snack('No se pudo subir la foto', AppTheme.estadoRojo);
+    }
   }
 
   Future<void> _guardarPerfil() async {
@@ -184,18 +254,42 @@ class _PerfilScreenState extends State<PerfilScreen> {
                 children: [
                   // Avatar
                   Center(child: Column(children: [
-                    CircleAvatar(
-                      radius: 44,
-                      backgroundColor: AppTheme.brandPrimary.withValues(alpha: 0.15),
-                      child: Text(
-                        _nombre.isNotEmpty
-                            ? _nombre.substring(0, 1).toUpperCase()
-                            : _username.substring(0, 1).toUpperCase(),
-                        style: const TextStyle(
-                          color: AppTheme.brandPrimary,
-                          fontSize: 36, fontWeight: FontWeight.bold,
+                    GestureDetector(
+                      onTap: _subiendoFoto ? null : _seleccionarFoto,
+                      child: Stack(alignment: Alignment.bottomRight, children: [
+                        CircleAvatar(
+                          radius: 44,
+                          backgroundColor: AppTheme.brandPrimary.withValues(alpha: 0.15),
+                          backgroundImage: _avatarUrl != null && _avatarUrl!.isNotEmpty
+                              ? NetworkImage(_avatarUrl!)
+                              : null,
+                          child: _avatarUrl == null || _avatarUrl!.isEmpty
+                              ? Text(
+                                  _nombre.isNotEmpty
+                                      ? _nombre[0].toUpperCase()
+                                      : _username.isNotEmpty
+                                          ? _username[0].toUpperCase()
+                                          : 'U',
+                                  style: const TextStyle(
+                                      color: AppTheme.brandPrimary,
+                                      fontSize: 36,
+                                      fontWeight: FontWeight.bold),
+                                )
+                              : _subiendoFoto
+                                  ? const CircularProgressIndicator(
+                                      color: Colors.white, strokeWidth: 2)
+                                  : null,
                         ),
-                      ),
+                        Container(
+                          padding: const EdgeInsets.all(5),
+                          decoration: const BoxDecoration(
+                            color: AppTheme.brandPrimary,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.camera_alt_rounded,
+                              color: Colors.white, size: 14),
+                        ),
+                      ]),
                     ),
                     const SizedBox(height: 12),
                     Text(_nombre.isNotEmpty ? _nombre : _username,

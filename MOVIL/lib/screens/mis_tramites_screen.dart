@@ -21,6 +21,13 @@ class _MisTramitesScreenState extends State<MisTramitesScreen> {
   String _busqueda      = '';
   String _filtroEstado  = 'TODOS';
 
+  static const int _porPagina = 10;
+  int _paginaActual = 1;
+
+  List<dynamic> get _pagina =>
+      _filtros.take(_paginaActual * _porPagina).toList();
+  bool get _hayMas => _filtros.length > _paginaActual * _porPagina;
+
   Timer? _pollingTimer;
   Map<String, String> _estadosAnteriores = {};
 
@@ -69,6 +76,7 @@ class _MisTramitesScreenState extends State<MisTramitesScreen> {
     }
 
     _filtros = resultado;
+    _paginaActual = 1; // Reinicia paginación al filtrar
   }
 
   void _iniciarPolling() {
@@ -200,9 +208,36 @@ class _MisTramitesScreenState extends State<MisTramitesScreen> {
                   child: _filtros.isEmpty
                       ? _emptyState()
                       : ListView.builder(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                          itemCount: _filtros.length,
-                          itemBuilder: (_, i) => _tarjetaTramite(_filtros[i]),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 4),
+                          itemCount: _pagina.length + (_hayMas ? 1 : 0),
+                          itemBuilder: (_, i) {
+                            if (i == _pagina.length) {
+                              return Padding(
+                                padding: const EdgeInsets.symmetric(
+                                    vertical: 12),
+                                child: Center(
+                                  child: OutlinedButton.icon(
+                                    style: OutlinedButton.styleFrom(
+                                      foregroundColor: AppTheme.brandPrimary,
+                                      side: const BorderSide(
+                                          color: AppTheme.brandPrimary),
+                                      shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                              AppTheme.radius)),
+                                    ),
+                                    onPressed: () => setState(
+                                        () => _paginaActual++),
+                                    icon: const Icon(
+                                        Icons.expand_more_rounded),
+                                    label: Text(
+                                        'Cargar más (${_filtros.length - _pagina.length} restantes)'),
+                                  ),
+                                ),
+                              );
+                            }
+                            return _tarjetaTramite(_pagina[i]);
+                          },
                         ),
                 ),
         ),

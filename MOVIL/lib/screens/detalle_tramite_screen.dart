@@ -125,7 +125,13 @@ class _DetalleTramiteScreenState extends State<DetalleTramiteScreen>
             ])),
           ]),
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 16),
+
+        // Predicción ML (solo si el backend la devuelve)
+        if (_tienePredML(t)) ...[
+          _cardPrediccionML(t),
+          const SizedBox(height: 16),
+        ],
 
         // Info
         _seccion('Información del Trámite', [
@@ -137,6 +143,78 @@ class _DetalleTramiteScreenState extends State<DetalleTramiteScreen>
           if (t['fechaActualizacion'] != null)
             _fila('Última act.', _formatFecha(t['fechaActualizacion'])),
         ]),
+      ]),
+    );
+  }
+
+  bool _tienePredML(Map<String, dynamic> t) =>
+      t['nivelPrioridad'] != null || t['riesgoDemora'] != null;
+
+  Widget _cardPrediccionML(Map<String, dynamic> t) {
+    final nivel  = (t['nivelPrioridad'] ?? 'NORMAL').toString().toUpperCase();
+    final riesgo = t['riesgoDemora'];
+    final motivo = t['motivoPrediccion'] as String?;
+
+    Color nivelColor;
+    IconData nivelIcon;
+    switch (nivel) {
+      case 'CRITICO':
+        nivelColor = AppTheme.estadoRojo;
+        nivelIcon  = Icons.warning_amber_rounded;
+        break;
+      case 'ALTO':
+        nivelColor = AppTheme.estadoAmbar;
+        nivelIcon  = Icons.trending_up_rounded;
+        break;
+      default:
+        nivelColor = AppTheme.estadoVerde;
+        nivelIcon  = Icons.check_circle_outline_rounded;
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppTheme.brandSurface,
+        borderRadius: BorderRadius.circular(AppTheme.radiusGrande),
+        border: Border.all(color: nivelColor.withValues(alpha: 0.4)),
+      ),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Row(children: [
+          Icon(Icons.psychology_rounded, color: AppTheme.brandPrimary, size: 14),
+          const SizedBox(width: 6),
+          const Text('PREDICCIÓN IA',
+              style: TextStyle(color: AppTheme.brandPrimary,
+                  fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
+        ]),
+        const SizedBox(height: 12),
+        Row(children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+            decoration: BoxDecoration(
+              color: nivelColor.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: nivelColor.withValues(alpha: 0.4)),
+            ),
+            child: Row(mainAxisSize: MainAxisSize.min, children: [
+              Icon(nivelIcon, color: nivelColor, size: 14),
+              const SizedBox(width: 5),
+              Text('Prioridad $nivel',
+                  style: TextStyle(color: nivelColor, fontSize: 11,
+                      fontWeight: FontWeight.bold)),
+            ]),
+          ),
+          if (riesgo != null) ...[
+            const SizedBox(width: 10),
+            Text('Riesgo demora: ${(riesgo * 100).toStringAsFixed(0)}%',
+                style: const TextStyle(color: AppTheme.brandMuted, fontSize: 11)),
+          ],
+        ]),
+        if (motivo != null && motivo.isNotEmpty) ...[
+          const SizedBox(height: 8),
+          Text(motivo,
+              style: const TextStyle(color: Colors.white70, fontSize: 11,
+                  fontStyle: FontStyle.italic)),
+        ],
       ]),
     );
   }
@@ -231,11 +309,19 @@ class _DetalleTramiteScreenState extends State<DetalleTramiteScreen>
             ]),
           ])),
           if (ultimaUrl.isNotEmpty)
-            IconButton(
-              icon: const Icon(Icons.open_in_new_rounded, color: AppTheme.brandPrimary),
-              tooltip: 'Ver / Descargar',
-              onPressed: () => _abrirUrl(ultimaUrl),
-            ),
+            _esImagen(nombre)
+                ? IconButton(
+                    icon: const Icon(Icons.image_search_rounded,
+                        color: AppTheme.brandPrimary),
+                    tooltip: 'Ver imagen',
+                    onPressed: () => _verImagen(ultimaUrl),
+                  )
+                : IconButton(
+                    icon: const Icon(Icons.open_in_new_rounded,
+                        color: AppTheme.brandPrimary),
+                    tooltip: 'Abrir / Descargar',
+                    onPressed: () => _abrirUrl(ultimaUrl),
+                  ),
         ]),
       ),
     );
@@ -311,6 +397,56 @@ class _DetalleTramiteScreenState extends State<DetalleTramiteScreen>
           ]),
         )),
       ]),
+    );
+  }
+
+  static const _extImagen = {'jpg', 'jpeg', 'png', 'webp', 'gif', 'bmp'};
+
+  bool _esImagen(String nombre) {
+    final ext = nombre.split('.').last.toLowerCase();
+    return _extImagen.contains(ext);
+  }
+
+  void _verImagen(String url) {
+    final uri = url.startsWith('http') ? url : ApiConfig.archivoVer(url);
+    showDialog(
+      context: context,
+      builder: (_) => Dialog(
+        backgroundColor: Colors.black,
+        insetPadding: EdgeInsets.zero,
+        child: Stack(children: [
+          Center(
+            child: InteractiveViewer(
+              child: Image.network(
+                uri,
+                fit: BoxFit.contain,
+                loadingBuilder: (_, child, progress) => progress == null
+                    ? child
+                    : const Center(
+                        child: CircularProgressIndicator(
+                            color: AppTheme.brandPrimary)),
+                errorBuilder: (_, __, ___) => const Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.broken_image_rounded,
+                        color: AppTheme.brandMuted, size: 48),
+                    SizedBox(height: 8),
+                    Text('No se pudo cargar la imagen',
+                        style: TextStyle(color: AppTheme.brandMuted)),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            top: 12, right: 12,
+            child: IconButton(
+              icon: const Icon(Icons.close_rounded, color: Colors.white),
+              onPressed: () => Navigator.pop(context),
+            ),
+          ),
+        ]),
+      ),
     );
   }
 

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../core/api_config.dart';
+import '../core/auth_client.dart';
 
 class TramiteService {
 
@@ -12,71 +13,46 @@ class TramiteService {
     '.jpg', '.jpeg', '.png', '.webp', '.gif', '.heic', '.heif',
   ];
 
-  Future<Map<String, String>> _getHeaders() async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('token') ?? '';
-    return {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer $token',
-    };
-  }
-
   // ── Subir archivo ─────────────────────────────────────────────────────────
-  Future<Map<String, dynamic>> subirArchivo(File archivo) async {
+  Future<Map<String, dynamic>?> subirArchivo(File archivo) async {
     final sizeInMb = archivo.lengthSync() / (1024 * 1024);
-    if (sizeInMb > _maxMB) {
-      return {
-        'exito': false,
-        'error': 'El archivo excede el límite de ${_maxMB.toInt()} MB '
-            '(${sizeInMb.toStringAsFixed(1)} MB)',
-      };
-    }
+    if (sizeInMb > _maxMB) return null;
 
     final nombre = archivo.path.split(Platform.pathSeparator).last.toLowerCase();
-    final extension = nombre.contains('.')
-        ? '.${nombre.split('.').last}'
-        : '';
-    if (!_extensionesPermitidas.contains(extension)) {
-      return {
-        'exito': false,
-        'error': 'Formato no permitido. Usa PDF, Word, Excel, JPG, PNG o WebP.',
-      };
-    }
+    final extension = nombre.contains('.') ? '.${nombre.split('.').last}' : '';
+    if (!_extensionesPermitidas.contains(extension)) return null;
 
     try {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('token') ?? '';
 
       final request = http.MultipartRequest(
-        'POST',
-        Uri.parse(ApiConfig.archivosSubir),
-      );
+        'POST', Uri.parse(ApiConfig.archivosSubir));
       request.headers['Authorization'] = 'Bearer $token';
-      request.files.add(await http.MultipartFile.fromPath('archivo', archivo.path));
+      request.files.add(
+          await http.MultipartFile.fromPath('archivo', archivo.path));
 
-      final response = await request.send()
-          .timeout(const Duration(seconds: 30));
-
-      if (response.statusCode == 200) {
-        final body = await response.stream.bytesToString();
-        final data = jsonDecode(body) as Map<String, dynamic>;
-        return {'exito': true, ...data};
+      final streamed = await request.send().timeout(const Duration(seconds: 30));
+      if (streamed.statusCode == 401) {
+        appNavigatorKey.currentState
+            ?.pushNamedAndRemoveUntil('/login', (_) => false);
+        return null;
       }
-      return {'exito': false, 'error': 'Error del servidor (${response.statusCode})'};
+      if (streamed.statusCode == 200) {
+        final body = await streamed.stream.bytesToString();
+        return jsonDecode(body) as Map<String, dynamic>;
+      }
+      return null;
     } catch (e) {
-      return {'exito': false, 'error': 'Error de conexión: $e'};
+      return null;
     }
   }
 
   // ── Iniciar trámite ───────────────────────────────────────────────────────
   Future<bool> iniciarTramite(Map<String, dynamic> requestData) async {
     try {
-      final headers  = await _getHeaders();
-      final response = await http.post(
-        Uri.parse(ApiConfig.tramitesIniciar),
-        headers: headers,
-        body: jsonEncode(requestData),
-      ).timeout(const Duration(seconds: 15));
+      final response = await AuthClient.post(
+        ApiConfig.tramitesIniciar, body: requestData);
       return response.statusCode == 200;
     } catch (e) {
       return false;
@@ -86,27 +62,17 @@ class TramiteService {
   // ── Rastrear trámite por código ───────────────────────────────────────────
   Future<Map<String, dynamic>?> rastrearTramite(String codigo) async {
     try {
-      final headers = await _getHeaders();
-
-      final respTramite = await http.get(
-        Uri.parse(ApiConfig.tramiteRastrear(codigo)),
-        headers: headers,
-      ).timeout(const Duration(seconds: 10));
-
+      final respTramite = await AuthClient.get(ApiConfig.tramiteRastrear(codigo));
       if (respTramite.statusCode != 200) return null;
 
-      final tramite    = jsonDecode(utf8.decode(respTramite.bodyBytes));
-      final tramiteId  = tramite['id'] as String;
+      final tramite   = jsonDecode(utf8.decode(respTramite.bodyBytes));
+      final tramiteId = tramite['id'] as String;
 
-      final respHistorial = await http.get(
-        Uri.parse(ApiConfig.tramiteHistorial(tramiteId)),
-        headers: headers,
-      ).timeout(const Duration(seconds: 10));
-
+      final respHistorial =
+          await AuthClient.get(ApiConfig.tramiteHistorial(tramiteId));
       tramite['historial'] = respHistorial.statusCode == 200
           ? jsonDecode(utf8.decode(respHistorial.bodyBytes))
           : [];
-
       return tramite;
     } catch (e) {
       return null;
@@ -116,26 +82,20 @@ class TramiteService {
   // ── Detalle completo de un trámite por ID ─────────────────────────────────
   Future<Map<String, dynamic>?> obtenerDetalleTramite(String id) async {
     try {
-      final headers = await _getHeaders();
-
       final futures = await Future.wait([
-        http.get(Uri.parse(ApiConfig.tramiteDetalle(id)),   headers: headers)
-            .timeout(const Duration(seconds: 10)),
-        http.get(Uri.parse(ApiConfig.tramiteHistorial(id)), headers: headers)
-            .timeout(const Duration(seconds: 10)),
-        http.get(Uri.parse(ApiConfig.archivosTramite(id)),  headers: headers)
-            .timeout(const Duration(seconds: 10)),
+        AuthClient.get(ApiConfig.tramiteDetalle(id)),
+        AuthClient.get(ApiConfig.tramiteHistorial(id)),
+        AuthClient.get(ApiConfig.archivosTramite(id)),
       ]);
 
       if (futures[0].statusCode != 200) return null;
 
-      final tramite = jsonDecode(utf8.decode(futures[0].bodyBytes))
-          as Map<String, dynamic>;
+      final tramite =
+          jsonDecode(utf8.decode(futures[0].bodyBytes)) as Map<String, dynamic>;
 
       tramite['historial'] = futures[1].statusCode == 200
           ? jsonDecode(utf8.decode(futures[1].bodyBytes))
           : [];
-
       tramite['archivos'] = futures[2].statusCode == 200
           ? jsonDecode(utf8.decode(futures[2].bodyBytes))
           : [];
@@ -151,13 +111,9 @@ class TramiteService {
     try {
       final prefs    = await SharedPreferences.getInstance();
       final username = prefs.getString('username') ?? '';
-      final headers  = await _getHeaders();
 
-      final response = await http.get(
-        Uri.parse(ApiConfig.tramitesDelCliente(username)),
-        headers: headers,
-      ).timeout(const Duration(seconds: 10));
-
+      final response =
+          await AuthClient.get(ApiConfig.tramitesDelCliente(username));
       return response.statusCode == 200
           ? jsonDecode(utf8.decode(response.bodyBytes)) as List
           : [];

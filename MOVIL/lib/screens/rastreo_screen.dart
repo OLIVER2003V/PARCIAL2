@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../core/app_theme.dart';
 import '../services/tramite_service.dart';
 
@@ -10,12 +11,22 @@ class RastreoScreen extends StatefulWidget {
 }
 
 class _RastreoScreenState extends State<RastreoScreen> {
-  final _searchCtrl   = TextEditingController();
+  final _searchCtrl    = TextEditingController();
   final TramiteService _service = TramiteService();
 
   bool    _isLoading   = false;
   Map<String, dynamic>? _tramiteData;
   String? _errorMsg;
+  List<String> _recientes = [];
+
+  static const _keyRecientes = 'rastreo_recientes';
+  static const _maxRecientes = 5;
+
+  @override
+  void initState() {
+    super.initState();
+    _cargarRecientes();
+  }
 
   @override
   void dispose() {
@@ -23,13 +34,38 @@ class _RastreoScreenState extends State<RastreoScreen> {
     super.dispose();
   }
 
-  Future<void> _buscar() async {
-    final codigo = _searchCtrl.text.trim().toUpperCase();
+  Future<void> _cargarRecientes() async {
+    final prefs = await SharedPreferences.getInstance();
+    final lista = prefs.getStringList(_keyRecientes) ?? [];
+    if (mounted) setState(() => _recientes = lista);
+  }
+
+  Future<void> _guardarReciente(String codigo) async {
+    final prefs = await SharedPreferences.getInstance();
+    final lista = prefs.getStringList(_keyRecientes) ?? [];
+    lista.remove(codigo);
+    lista.insert(0, codigo);
+    if (lista.length > _maxRecientes) lista.removeLast();
+    await prefs.setStringList(_keyRecientes, lista);
+    if (mounted) setState(() => _recientes = List.from(lista));
+  }
+
+  Future<void> _borrarRecientes() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_keyRecientes);
+    if (mounted) setState(() => _recientes = []);
+  }
+
+  Future<void> _buscar([String? codigoForzado]) async {
+    final codigo = (codigoForzado ?? _searchCtrl.text).trim().toUpperCase();
     if (codigo.isEmpty) return;
 
+    _searchCtrl.text = codigo;
     setState(() { _isLoading = true; _errorMsg = null; _tramiteData = null; });
 
     final data = await _service.rastrearTramite(codigo);
+
+    if (data != null) await _guardarReciente(codigo);
 
     setState(() {
       _isLoading = false;
@@ -44,7 +80,7 @@ class _RastreoScreenState extends State<RastreoScreen> {
       children: [
         // Buscador
         Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
           child: Row(children: [
             Expanded(
               child: TextField(
@@ -56,7 +92,8 @@ class _RastreoScreenState extends State<RastreoScreen> {
                 decoration: InputDecoration(
                   hintText: 'Ej: TRM-ABC123',
                   hintStyle: const TextStyle(color: AppTheme.brandMuted),
-                  prefixIcon: const Icon(Icons.qr_code_scanner_rounded, color: AppTheme.brandMuted),
+                  prefixIcon: const Icon(Icons.qr_code_scanner_rounded,
+                      color: AppTheme.brandMuted),
                   filled: true,
                   fillColor: AppTheme.brandSurface,
                   border: OutlineInputBorder(
@@ -74,21 +111,77 @@ class _RastreoScreenState extends State<RastreoScreen> {
                   backgroundColor: AppTheme.brandPrimary,
                   padding: EdgeInsets.zero,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(AppTheme.radius)),
+                      borderRadius: BorderRadius.circular(AppTheme.radius)),
                 ),
-                onPressed: _isLoading ? null : _buscar,
+                onPressed: _isLoading ? null : () => _buscar(),
                 child: _isLoading
-                    ? const SizedBox(width: 20, height: 20,
-                        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                    : const Icon(Icons.arrow_forward_rounded, color: Colors.white),
+                    ? const SizedBox(
+                        width: 20, height: 20,
+                        child: CircularProgressIndicator(
+                            color: Colors.white, strokeWidth: 2))
+                    : const Icon(Icons.arrow_forward_rounded,
+                        color: Colors.white),
               ),
             ),
           ]),
         ),
 
+        // Búsquedas recientes (solo cuando no hay resultados)
+        if (_recientes.isNotEmpty && _tramiteData == null && !_isLoading)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(children: [
+                  const Text('Recientes',
+                      style: TextStyle(
+                          color: AppTheme.brandMuted,
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 1.1)),
+                  const Spacer(),
+                  GestureDetector(
+                    onTap: _borrarRecientes,
+                    child: const Text('Borrar',
+                        style: TextStyle(
+                            color: AppTheme.brandMuted, fontSize: 11)),
+                  ),
+                ]),
+                const SizedBox(height: 6),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 6,
+                  children: _recientes.map((codigo) => GestureDetector(
+                    onTap: () => _buscar(codigo),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: AppTheme.brandSurface,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: AppTheme.brandBorder),
+                      ),
+                      child: Row(mainAxisSize: MainAxisSize.min, children: [
+                        const Icon(Icons.history_rounded,
+                            size: 13, color: AppTheme.brandMuted),
+                        const SizedBox(width: 5),
+                        Text(codigo,
+                            style: const TextStyle(
+                                color: Colors.white, fontSize: 12)),
+                      ]),
+                    ),
+                  )).toList(),
+                ),
+              ],
+            ),
+          ),
+
         Expanded(
           child: _isLoading
-              ? const Center(child: CircularProgressIndicator(color: AppTheme.brandPrimary))
+              ? const Center(
+                  child: CircularProgressIndicator(
+                      color: AppTheme.brandPrimary))
               : _errorMsg != null
                   ? _errorWidget()
                   : _tramiteData == null

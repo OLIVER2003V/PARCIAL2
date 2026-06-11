@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'core/auth_client.dart';
 import 'screens/login_screen.dart';
+import 'screens/main_screen.dart';
 import 'services/notificacion_store.dart';
 
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -42,7 +44,6 @@ class _BpmsAppState extends State<BpmsApp> {
     );
     if (settings.authorizationStatus != AuthorizationStatus.authorized) return;
 
-    // Primer plano: guardar en store + mostrar snackbar
     FirebaseMessaging.onMessage.listen((RemoteMessage msg) async {
       await NotificacionStore.agregar(AppNotificacion(
         id:     msg.messageId ?? DateTime.now().toString(),
@@ -75,11 +76,28 @@ class _BpmsAppState extends State<BpmsApp> {
     return MaterialApp(
       title: 'BPMS Core',
       debugShowCheckedModeBanner: false,
+      navigatorKey: appNavigatorKey,
+      // Sigue el tema del sistema (claro/oscuro)
+      themeMode: ThemeMode.system,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF9333EA)),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF9333EA),
+          brightness: Brightness.light,
+        ),
         useMaterial3: true,
       ),
-      home: const LoginScreen(),
+      darkTheme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF9333EA),
+          brightness: Brightness.dark,
+        ),
+        useMaterial3: true,
+      ),
+      initialRoute: '/login',
+      routes: {
+        '/login': (_) => const LoginScreen(),
+        '/home':  (_) => const MainScreen(),
+      },
     );
   }
 }
