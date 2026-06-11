@@ -12,10 +12,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Copiar e instalar dependencias Python ANTES del código fuente
 # (si requirements.txt no cambia, Docker reutiliza esta capa cacheada)
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Pre-descargar el modelo NLP para que no lo descargue en cada arranque del contenedor
-RUN python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('paraphrase-multilingual-MiniLM-L12-v2')"
+RUN pip install --no-cache-dir torch==2.1.2+cpu --index-url https://download.pytorch.org/whl/cpu \
+    && pip install --no-cache-dir -r requirements.txt \
+    && python -c \
+        "from sentence_transformers import SentenceTransformer; \
+SentenceTransformer('paraphrase-multilingual-MiniLM-L12-v2')"
 
 # Copiar el código fuente
 COPY main.py nlp_service.py routes.py schemas.py ./
