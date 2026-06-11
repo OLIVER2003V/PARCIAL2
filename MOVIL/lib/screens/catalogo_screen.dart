@@ -5,7 +5,10 @@ import '../services/proceso_service.dart';
 import 'formulario_tramite_screen.dart';
 
 class CatalogoScreen extends StatefulWidget {
-  const CatalogoScreen({super.key});
+  /// [standalone] = true cuando se navega via push (necesita Scaffold propio).
+  /// [standalone] = false cuando se embebe dentro de un IndexedStack con Scaffold externo.
+  const CatalogoScreen({super.key, this.standalone = true});
+  final bool standalone;
 
   @override
   State<CatalogoScreen> createState() => _CatalogoScreenState();
@@ -50,7 +53,7 @@ class _CatalogoScreenState extends State<CatalogoScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    final body = Column(
       children: [
         // Barra de búsqueda
         Padding(
@@ -96,6 +99,20 @@ class _CatalogoScreenState extends State<CatalogoScreen> {
                 ),
         ),
       ],
+    );
+
+    if (!widget.standalone) return body;
+
+    return Scaffold(
+      backgroundColor: AppTheme.brandBg,
+      appBar: AppBar(
+        backgroundColor: AppTheme.brandSurface,
+        elevation: 0,
+        title: const Text('Trámites disponibles',
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        iconTheme: const IconThemeData(color: Colors.white),
+      ),
+      body: body,
     );
   }
 

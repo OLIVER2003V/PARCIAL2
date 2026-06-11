@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'core/auth_client.dart';
 import 'screens/login_screen.dart';
 import 'screens/main_screen.dart';
@@ -20,11 +21,18 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-  runApp(const BpmsApp());
+
+  // Mantener sesión: ir directo a /home si ya hay token guardado.
+  final prefs = await SharedPreferences.getInstance();
+  final token = prefs.getString('token') ?? '';
+  final rutaInicial = token.isNotEmpty ? '/home' : '/login';
+
+  runApp(BpmsApp(rutaInicial: rutaInicial));
 }
 
 class BpmsApp extends StatefulWidget {
-  const BpmsApp({super.key});
+  const BpmsApp({super.key, this.rutaInicial = '/login'});
+  final String rutaInicial;
 
   @override
   State<BpmsApp> createState() => _BpmsAppState();
@@ -93,7 +101,7 @@ class _BpmsAppState extends State<BpmsApp> {
         ),
         useMaterial3: true,
       ),
-      initialRoute: '/login',
+      initialRoute: widget.rutaInicial,
       routes: {
         '/login': (_) => const LoginScreen(),
         '/home':  (_) => const MainScreen(),

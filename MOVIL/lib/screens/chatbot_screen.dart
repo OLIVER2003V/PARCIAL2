@@ -456,20 +456,17 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
 
                 // Tarjetas de acción (solo en mensajes del asistente)
                 if (!esUser) ...[
-                  // Botón Iniciar trámite
-                  if ((m.accion == 'INICIAR_TRAMITE' ||
-                          m.accion == 'REDIRECCIONAR_FORMULARIO') &&
-                      m.procesoId != null)
-                    _buildBotonIniciar(m.procesoId!, m.procesoNombre),
-
-                  // Tarjeta de requisitos
-                  if (m.accion == 'MOSTRAR_REQUISITOS' &&
-                      m.procesoId != null)
+                  // Tarjeta de requisitos (tiene prioridad — incluye botón iniciar)
+                  if (m.accion == 'MOSTRAR_REQUISITOS' && m.procesoId != null)
                     _buildTarjetaRequisitos(m),
 
+                  // Botón Iniciar trámite: acción explícita O cualquier procesoId
+                  // sin tarjeta de requisitos ya mostrada
+                  if (m.procesoId != null && m.accion != 'MOSTRAR_REQUISITOS')
+                    _buildBotonIniciar(m.procesoId!, m.procesoNombre),
+
                   // Botón catálogo
-                  if (m.accion == 'CATALOGO_MANUAL' ||
-                      m.accion == 'NO_RECONOCIDO')
+                  if (m.accion == 'CATALOGO_MANUAL' || m.accion == 'NO_RECONOCIDO')
                     _buildBotonCatalogo(),
 
                   // Candidatos alternativos
