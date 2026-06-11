@@ -95,7 +95,7 @@ The backend is organized into standard Spring Boot layers: `controllers/` → `s
 
 ### Mobile Layer
 
-**Environment switch:** `MOVIL/lib/core/api_config.dart` contains a `kUsarProduccion` boolean that toggles between the local dev IP (`192.168.100.148:8080`) and the production AWS EC2 host (`13.59.124.116:8080`). Set this before building for a target environment.
+**Environment switch:** `MOVIL/lib/core/api_config.dart` contains a `kUsarProduccion` boolean that toggles between the local dev IP (`192.168.100.148:8080`) and the production AWS EC2 host (`3.14.70.65:8080`). Set this before building for a target environment.
 
 **Screen → service mapping** follows the same domain split as the backend: `catalogo_screen` lists published processes, `formulario_tramite_screen` submits forms, `mis_tramites_screen` / `rastreo_screen` track state, `chatbot_screen` wraps the AI endpoint.
 

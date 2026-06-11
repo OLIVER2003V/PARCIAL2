@@ -79,8 +79,8 @@ public class SecurityConfig {
         // 👇 NUEVO: Cambiado obligatoriamente a setAllowedOriginPatterns
         configuration.setAllowedOriginPatterns(Arrays.asList(
                 "http://localhost:4200",
-                "http://13.59.124.116:8080",
-                "http://13.59.124.116",
+                "http://3.14.70.65:8080",
+                "http://3.14.70.65",
                 "https://*.cloudfront.net" 
         ));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));

@@ -32,8 +32,8 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         registry.addEndpoint("/ws-colaboracion")
                 .setAllowedOriginPatterns(
                     "http://localhost:4200", 
-                    "http://13.59.124.116", 
-                    "http://13.59.124.116:8080",
+                    "http://3.14.70.65",
+                    "http://3.14.70.65:8080",
                     "https://*.cloudfront.net"
                 );
         // Sin SockJS: usamos WebSocket nativo.
