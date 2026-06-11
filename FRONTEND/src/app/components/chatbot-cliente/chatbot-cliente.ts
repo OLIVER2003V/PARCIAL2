@@ -4,7 +4,8 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterModule } from '@angular/router';
+import { NavigationEnd, Router, RouterModule } from '@angular/router';
+import { Subscription, filter } from 'rxjs';
 import { ChatbotService } from '../../services/chatbot';
 import { AuthService } from '../../services/auth';
 import { AsistenteVozService, VozResponse } from '../../services/asistente-voz.service';
@@ -52,11 +53,26 @@ export class ChatbotClienteComponent implements OnInit, AfterViewChecked, OnDest
   ];
 
   private hayQueScrollear = false;
+  private routerSub: Subscription | null = null;
 
   // ── Lifecycle ─────────────────────────────────────────────────────────────
 
   ngOnInit(): void {
-    this.visible.set(this.authService.getRol() === 'CLIENTE');
+    const esCliente = this.authService.getRol() === 'CLIENTE';
+    this.actualizarVisibilidad(esCliente);
+
+    if (esCliente) {
+      this.routerSub = this.router.events
+        .pipe(filter(e => e instanceof NavigationEnd))
+        .subscribe(() => this.actualizarVisibilidad(esCliente));
+    }
+  }
+
+  private actualizarVisibilidad(esCliente: boolean): void {
+    const enFormulario = this.router.url.startsWith('/nuevo-tramite');
+    const debeVerse    = esCliente && !enFormulario;
+    this.visible.set(debeVerse);
+    if (!debeVerse && this.abierto()) this.abierto.set(false);
   }
 
   ngAfterViewChecked(): void {
@@ -64,6 +80,7 @@ export class ChatbotClienteComponent implements OnInit, AfterViewChecked, OnDest
   }
 
   ngOnDestroy(): void {
+    this.routerSub?.unsubscribe();
     if (this.grabandoVoz()) this.vozService.cancelarGrabacion();
     if (!this.vozMuteada() && 'speechSynthesis' in globalThis) globalThis.speechSynthesis.cancel();
   }

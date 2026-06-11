@@ -68,14 +68,12 @@ export class SidebarComponent implements OnInit, OnDestroy {
 
     if (rol === 'ADMIN') {
       items.push(
-        { label: 'Gestión de Usuarios', icon: '👥', route: '/usuarios' },
-        { label: 'Departamentos', icon: '🏢', route: '/departamentos' },
+        { label: 'Organización', icon: '👥', route: '/organizacion' },
         { label: 'Motor de Procesos', icon: '🛤️', route: '/admin-procesos' },
-        { label: 'Minería de Procesos', icon: '🔥', route: '/admin/mineria' },
+        { label: 'Análisis de Rendimiento', icon: '🔥', route: '/admin/mineria' },
         { label: 'Reportes', icon: '📊', route: '/reportes' },
-        { label: 'Reportes IA', icon: '✨', route: '/reportes-nlp' },
         { label: 'Log de Auditoría', icon: '🛡️', route: '/auditoria' },
-        { label: 'Monitor IA',       icon: '🧠', route: '/ia-monitor' }
+        { label: 'Predicciones IA',   icon: '🧠', route: '/ia-monitor' }
       );
     } else if (rol === 'FUNCIONARIO') {
       items.push(

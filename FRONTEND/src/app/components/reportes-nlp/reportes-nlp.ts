@@ -1,6 +1,6 @@
 import {
   Component, ElementRef, OnDestroy, ViewChild,
-  inject, signal, computed, AfterViewChecked, effect
+  inject, signal, computed, AfterViewChecked, effect, input
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -23,6 +23,8 @@ interface EntradaHistorial {
   templateUrl: './reportes-nlp.html',
 })
 export class ReportesNlpComponent implements OnDestroy, AfterViewChecked {
+  embebido = input(false);
+
   private readonly nlpService = inject(ReporteNlpService);
   readonly vozService = inject(VozReconocimientoService);
 

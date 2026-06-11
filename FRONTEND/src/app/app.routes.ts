@@ -5,6 +5,7 @@ import { MainLayoutComponent } from './shared/layouts/main-layout';
 import { DashboardComponent } from './components/dashboard/dashboard';
 import { DepartamentosComponent } from './components/departamentos/departamentos';
 import { UsuariosComponent } from './components/usuarios/usuarios';
+import { OrganizacionComponent } from './components/organizacion/organizacion';
 import { NuevoTramiteComponent } from './components/nuevo-tramite/nuevo-tramite';
 import { BandejaEntradaComponent } from './components/bandeja-entrada/bandeja-entrada';
 import { ProcesarTramiteComponent } from './components/procesar-tramite/procesar-tramite';
@@ -13,8 +14,7 @@ import { authGuard } from './guards/auth-guard';
 import { adminGuard } from './guards/admin-guard';
 import { AdminProcesosComponent } from './components/admin-procesos/admin-procesos';
 // 👇 NUEVO CU13: Import
-import { ReportesGerencialesComponent } from './components/reportes-gerenciales/reportes-gerenciales';
-import { ReportesNlpComponent } from './components/reportes-nlp/reportes-nlp';
+import { ReportesComponent } from './components/reportes/reportes';
 import { AuditoriaComponent } from './components/auditoria/auditoria';
 import { IaMonitorComponent } from './components/ia-monitor/ia-monitor';
 import { invitacionGuard } from './guards/invitacion-guard';
@@ -33,11 +33,12 @@ export const routes: Routes = [
       { path: 'dashboard', component: DashboardComponent },
 
       // 👇 RUTAS ADMIN-ONLY (con adminGuard)
-      { path: 'usuarios', component: UsuariosComponent, canActivate: [adminGuard] },
-      { path: 'departamentos', component: DepartamentosComponent, canActivate: [adminGuard] },
+      { path: 'organizacion', component: OrganizacionComponent, canActivate: [adminGuard] },
+      { path: 'usuarios', redirectTo: 'organizacion', pathMatch: 'full' },
+      { path: 'departamentos', redirectTo: 'organizacion', pathMatch: 'full' },
       { path: 'admin-procesos', component: AdminProcesosComponent, canActivate: [adminGuard] },
-      { path: 'reportes', component: ReportesGerencialesComponent, canActivate: [adminGuard] },
-      { path: 'reportes-nlp', component: ReportesNlpComponent, canActivate: [adminGuard] },
+      { path: 'reportes', component: ReportesComponent, canActivate: [adminGuard] },
+      { path: 'reportes-nlp', redirectTo: 'reportes', pathMatch: 'full' },
       // 👇 NUEVO CU16
       { path: 'auditoria', component: AuditoriaComponent, canActivate: [adminGuard] },
       { path: 'ia-monitor', component: IaMonitorComponent, canActivate: [adminGuard] },

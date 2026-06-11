@@ -53,7 +53,8 @@ interface ConfirmacionConfig {
     // 👇 NUEVO Colaboración
     PresenciaToolbarComponent, InvitarColaboradoresComponent
   ],
-  templateUrl: './admin-procesos.html'
+  templateUrl: './admin-procesos.html',
+  styleUrl: './admin-procesos.css'
 })
 export class AdminProcesosComponent implements OnInit {
   private procesoService    = inject(ProcesoService);
@@ -528,6 +529,7 @@ export class AdminProcesosComponent implements OnInit {
 
   @HostListener('document:keydown.escape')
   onEscape(): void {
+    if (this.tourActive()) { this.cerrarTour(); return; }
     if (this.mostrandoBorradorExistente()) { this.mostrandoBorradorExistente.set(false); return; }
     if (this.mostrandoAlertaColaboradores()) { this.mostrandoAlertaColaboradores.set(false); return; }
     if (this.mostrandoVersiones()) { this.cerrarVersiones(); return; }
@@ -1457,6 +1459,69 @@ export class AdminProcesosComponent implements OnInit {
       document.exitFullscreen();
     }
   }
+
+  // ── Tour ─────────────────────────────────────────────────────────────────
+  tourActive = signal(false);
+  tourStep   = signal(0);
+  tourRect   = signal<DOMRect | null>(null);
+
+  readonly tourPasos = [
+    { id: 'tour-ap-nueva',   icono: '➕', titulo: 'Nueva Política',        desc: 'Crea un borrador de proceso BPMN desde cero. Pasarás por 5 pasos: información, diagrama, áreas, formularios y publicación.' },
+    { id: 'tour-ap-stats',   icono: '📊', titulo: 'Resumen de Políticas',  desc: 'Totales en tiempo real: cuántas políticas existen, cuántas están activas, inactivas y el total acumulado de pasos entre todos los flujos.' },
+    { id: 'tour-ap-busqueda',icono: '🔍', titulo: 'Buscar Políticas',      desc: 'Filtra por código, nombre o descripción. La búsqueda es instantánea mientras escribes.' },
+    { id: 'tour-ap-filtros', icono: '🏷️', titulo: 'Filtrar por Estado',    desc: 'Muestra solo Borradores (editables), Activas (en producción) u Obsoletas (reemplazadas por versiones nuevas).' },
+    { id: 'tour-ap-vistas',  icono: '🗂️', titulo: 'Vista Tarjetas / Tabla', desc: 'Cambia entre vista de tarjetas con previsualización del diagrama BPMN o tabla compacta. Tu preferencia se guarda automáticamente.' },
+    { id: 'tour-ap-grid',    icono: '📋', titulo: 'Lista de Políticas',     desc: 'Haz clic en una tarjeta para editarla si es Borrador. Las Activas requieren "Nueva Versión" para editar. Usa "Historial" para ver versiones anteriores.' },
+  ];
+
+  get tourPasoActual()  { return this.tourPasos[this.tourStep()]; }
+  get esUltimoPasoTour(){ return this.tourStep() === this.tourPasos.length - 1; }
+
+  @HostListener('window:resize')
+  @HostListener('window:scroll')
+  onTourLayout(): void { if (this.tourActive()) this.actualizarRectTour(); }
+
+  iniciarTour(): void {
+    this.tourActive.set(true);
+    this.tourStep.set(0);
+    setTimeout(() => this.irAlPasoTour(0), 100);
+  }
+
+  siguientePasoTour(): void {
+    if (this.esUltimoPasoTour) { this.cerrarTour(); return; }
+    const next = this.tourStep() + 1;
+    this.tourStep.set(next);
+    setTimeout(() => this.irAlPasoTour(next), 150);
+  }
+
+  anteriorPasoTour(): void {
+    if (this.tourStep() === 0) return;
+    const prev = this.tourStep() - 1;
+    this.tourStep.set(prev);
+    setTimeout(() => this.irAlPasoTour(prev), 150);
+  }
+
+  cerrarTour(): void {
+    this.tourActive.set(false);
+    this.tourRect.set(null);
+  }
+
+  private irAlPasoTour(paso: number): void {
+    const el = document.getElementById(this.tourPasos[paso].id);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      setTimeout(() => this.actualizarRectTour(), 450);
+    } else {
+      this.tourRect.set(null);
+    }
+  }
+
+  private actualizarRectTour(): void {
+    if (!this.tourActive()) return;
+    const el = document.getElementById(this.tourPasoActual.id);
+    this.tourRect.set(el ? el.getBoundingClientRect() : null);
+  }
+  // ─────────────────────────────────────────────────────────────────────────
 
   irAFormularioDesdeDiagrama(tareaId: string): void {
     const paso = this.pasosDetectados().find(p => p.id === tareaId);

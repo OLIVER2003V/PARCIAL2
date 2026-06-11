@@ -1,7 +1,7 @@
 <div class="max-w-7xl mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 p-4 md:p-6">
 
   <!-- ══ Header ══════════════════════════════════════════════════════════ -->
-  <div class="relative overflow-hidden rounded-2xl bg-linear-to-br from-slate-800 via-slate-900 to-slate-950 border border-slate-700/60 shadow-xl p-6">
+  <div id="tour-pt-header" class="relative overflow-hidden rounded-2xl bg-linear-to-br from-slate-800 via-slate-900 to-slate-950 border border-slate-700/60 shadow-xl p-6">
     <div class="absolute inset-0 opacity-10"
          style="background-image:radial-gradient(circle, #6366f1 1px, transparent 1px); background-size:28px 28px;"></div>
     <div class="absolute top-0 right-0 w-72 h-72 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none"></div>
@@ -28,6 +28,13 @@
         </div>
       </div>
 
+      <div class="flex items-center gap-2 shrink-0">
+        <button class="pt-tour-btn" (click)="iniciarTour()">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="10"/><path stroke-linecap="round" d="M12 16v-4m0-4h.01"/>
+          </svg>
+          Guía
+        </button>
       <a routerLink="/bandeja"
          class="inline-flex items-center gap-2 px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 rounded-xl text-sm font-bold transition-all active:scale-95 shrink-0">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
@@ -35,6 +42,7 @@
         </svg>
         Volver a Bandeja
       </a>
+      </div>
     </div>
   </div>
 
@@ -64,7 +72,7 @@
       <div class="lg:col-span-5 space-y-5">
 
         <!-- Ficha del Trámite -->
-        <div class="bg-brand-surface rounded-2xl border border-brand-border overflow-hidden shadow-lg">
+        <div id="tour-pt-ficha" class="bg-brand-surface rounded-2xl border border-brand-border overflow-hidden shadow-lg">
           <div class="px-5 py-4 border-b border-brand-border flex items-center gap-2.5">
             <div class="w-7 h-7 bg-sky-100 rounded-lg flex items-center justify-center">
               <svg class="w-3.5 h-3.5 text-sky-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -216,7 +224,7 @@
         }
 
         <!-- Expediente -->
-        <div class="bg-brand-surface rounded-2xl border border-purple-500/20 overflow-hidden shadow-lg">
+        <div id="tour-pt-expediente" class="bg-brand-surface rounded-2xl border border-purple-500/20 overflow-hidden shadow-lg">
           <div class="px-5 py-4 border-b border-purple-500/15">
             <div class="flex items-center justify-between mb-3">
               <div class="flex items-center gap-2.5">
@@ -492,7 +500,7 @@
         </div>
 
         <!-- Hoja de Ruta / Timeline -->
-        <div class="bg-brand-surface rounded-2xl border border-brand-border overflow-hidden shadow-lg">
+        <div id="tour-pt-hoja-ruta" class="bg-brand-surface rounded-2xl border border-brand-border overflow-hidden shadow-lg">
           <div class="px-5 py-4 border-b border-brand-border flex items-center gap-2.5">
             <div class="w-7 h-7 bg-sky-100 rounded-lg flex items-center justify-center">
               <svg class="w-3.5 h-3.5 text-sky-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -537,14 +545,14 @@
 
         <!-- Formulario de Etapa -->
         @if (camposPasoActual().length > 0) {
-          <div class="bg-brand-surface rounded-2xl border border-amber-500/20 overflow-hidden shadow-lg">
+          <div id="tour-pt-formulario" class="bg-brand-surface rounded-2xl border border-amber-500/20 overflow-hidden shadow-lg">
             <div class="px-6 py-5 border-b border-amber-500/15 flex items-center justify-between flex-wrap gap-4">
               <div>
                 <p class="text-[10px] text-amber-400/80 uppercase tracking-[0.2em] font-black mb-1">Formulario de Etapa</p>
                 <h3 class="text-lg font-bold text-slate-800">{{ nombrePasoActual() }}</h3>
               </div>
 
-              <div class="flex items-center gap-3">
+              <div id="tour-pt-ia" class="flex items-center gap-3">
                 <!-- CU21: Dictar datos por voz (FIX #6: solo si hay campos rellenables) -->
                 @if (vozNlpService.esSoportado() && tieneCamposRellenables()) {
                   <button type="button" (click)="abrirModalVoz()"
@@ -981,7 +989,7 @@
         }
 
         <!-- Panel de Acciones / Dictamen -->
-        <div class="bg-brand-surface rounded-2xl border border-brand-border overflow-hidden shadow-lg">
+        <div id="tour-pt-acciones" class="bg-brand-surface rounded-2xl border border-brand-border overflow-hidden shadow-lg">
           <div class="px-6 py-5 border-b border-brand-border flex items-center justify-between gap-4">
             <div>
               <p class="text-[10px] text-brand-muted uppercase tracking-[0.2em] font-black mb-1">Acciones disponibles</p>
@@ -1087,6 +1095,67 @@
       [paso]="nombrePasoActual()">
     </app-documentacion-tramite>
 
+  }
+
+  <!-- ══ TOUR ════════════════════════════════════════════════════════════ -->
+  @if (tourActive()) {
+    @if (tourRect(); as rect) {
+      <div class="pt-tour-spotlight"
+           [style.top.px]="rect.top - 8"
+           [style.left.px]="rect.left - 8"
+           [style.width.px]="rect.width + 16"
+           [style.height.px]="rect.height + 16">
+      </div>
+    } @else {
+      <div class="pt-tour-overlay"></div>
+    }
+
+    <dialog class="pt-tour-card" open
+            (click)="$event.stopPropagation()"
+            (keydown)="$event.stopPropagation()"
+            aria-label="Guía interactiva">
+
+      <div class="pt-tour-progress">
+        @for (p of tourPasos; track $index) {
+          <div class="pt-tour-dot"
+               [class.active]="$index === tourStep()"
+               [class.done]="$index < tourStep()">
+          </div>
+        }
+      </div>
+
+      <div class="pt-tour-content">
+        <div class="pt-tour-ico">{{ tourPasoActual.icono }}</div>
+        <div class="pt-tour-info">
+          <div class="pt-tour-meta">Paso {{ tourStep() + 1 }} de {{ tourPasos.length }}</div>
+          <h3 class="pt-tour-titulo">{{ tourPasoActual.titulo }}</h3>
+          <p class="pt-tour-desc">{{ tourPasoActual.desc }}</p>
+        </div>
+      </div>
+
+      <div class="pt-tour-footer">
+        <button class="pt-tour-close" (click)="cerrarTour()">Salir de la guía</button>
+        <div class="pt-tour-nav">
+          @if (tourStep() > 0) {
+            <button class="pt-tour-prev" (click)="anteriorPasoTour()">
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" d="M15 19l-7-7 7-7"/>
+              </svg>
+              Anterior
+            </button>
+          }
+          <button class="pt-tour-next" (click)="siguientePasoTour()">
+            {{ esUltimoPasoTour ? '¡Entendido!' : 'Siguiente' }}
+            @if (!esUltimoPasoTour) {
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" d="M9 5l7 7-7 7"/>
+              </svg>
+            }
+          </button>
+        </div>
+      </div>
+
+    </dialog>
   }
 
 </div>

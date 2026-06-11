@@ -19,7 +19,14 @@
         </div>
 
         <div class="flex items-center gap-3">
-          <button (click)="abrirCreador()"
+          <button (click)="iniciarTour()"
+            class="flex items-center gap-2 px-3 py-2 bg-white border border-slate-200 text-slate-500 text-xs font-bold rounded-xl hover:border-brand-primary hover:text-brand-primary transition-all duration-200">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="10"/><path stroke-linecap="round" d="M12 16v-4m0-4h.01"/>
+            </svg>
+            Guía
+          </button>
+          <button id="tour-ap-nueva" (click)="abrirCreador()"
             class="flex items-center gap-2 px-5 py-2.5 bg-brand-primary hover:bg-brand-primary-hover text-white font-bold rounded-xl shadow-md shadow-brand-primary/20 transition-all duration-200 active:scale-[0.98] focus:outline-none focus:ring-4 focus:ring-brand-primary/20 ring-offset-2">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true">
               <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
@@ -29,7 +36,7 @@
         </div>
       </div>
 
-      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div id="tour-ap-stats" class="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <div class="bg-white border border-slate-200 rounded-2xl p-5 hover:border-slate-300 shadow-sm transition-all duration-200">
           <div class="flex items-center justify-between mb-2">
             <span class="text-[11px] text-slate-500 font-bold uppercase tracking-wider">Políticas</span>
@@ -81,7 +88,7 @@
 
       <div class="bg-white p-4 md:p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
         <div class="flex flex-col sm:flex-row gap-4">
-          <div class="relative flex-1">
+          <div id="tour-ap-busqueda" class="relative flex-1">
             <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
               <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -101,7 +108,7 @@
             }
           </div>
 
-          <div class="inline-flex items-center bg-slate-100 border border-slate-200 rounded-xl p-1 gap-1 self-start sm:self-auto" role="tablist">
+          <div id="tour-ap-vistas" class="inline-flex items-center bg-slate-100 border border-slate-200 rounded-xl p-1 gap-1 self-start sm:self-auto" role="tablist">
             <button type="button" (click)="cambiarVistaLista('tarjetas')"
               class="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-brand-primary/40"
               [class]="vistaLista() === 'tarjetas' ? 'bg-white text-brand-primary shadow-sm border border-slate-200/50' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'">
@@ -121,7 +128,7 @@
           </div>
         </div>
 
-        <div class="flex flex-wrap gap-2 pt-2 border-t border-slate-100">
+        <div id="tour-ap-filtros" class="flex flex-wrap gap-2 pt-2 border-t border-slate-100">
           <button (click)="aplicarFiltroEstado('TODOS')"
             [class]="filtroEstado() === 'TODOS' ? 'bg-slate-800 text-white border-slate-800 shadow-sm' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'"
             class="px-4 py-2 rounded-lg text-xs font-semibold transition-all duration-200 border focus:outline-none">
@@ -182,7 +189,7 @@
       } @else {
 
       @if (vistaLista() === 'tarjetas') {
-      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 animate-in fade-in duration-200">
+      <div id="tour-ap-grid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 animate-in fade-in duration-200">
         @for (p of procesosFiltrados(); track p.id) {
         <div (click)="intentarAbrirEditor(p)"
           class="group bg-white rounded-2xl border border-slate-200 hover:border-brand-primary/30 overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-slate-200/50 cursor-pointer flex flex-col">
@@ -361,6 +368,67 @@
       }
     </div>
   </div>
+
+  <!-- ── Tour overlay ─────────────────────────────────────────────────── -->
+  @if (tourActive()) {
+    @if (tourRect(); as rect) {
+      <div class="tour-spotlight"
+           [style.top.px]="rect.top - 8"
+           [style.left.px]="rect.left - 8"
+           [style.width.px]="rect.width + 16"
+           [style.height.px]="rect.height + 16">
+      </div>
+    } @else {
+      <div class="tour-plain-overlay"></div>
+    }
+
+    <dialog class="ap-tour-card" open
+            (click)="$event.stopPropagation()"
+            (keydown)="$event.stopPropagation()"
+            aria-label="Guía interactiva">
+
+      <div class="ap-tour-progress">
+        @for (p of tourPasos; track $index) {
+          <div class="ap-tour-dot"
+               [class.active]="$index === tourStep()"
+               [class.done]="$index < tourStep()">
+          </div>
+        }
+      </div>
+
+      <div class="ap-tour-content">
+        <div class="ap-tour-ico">{{ tourPasoActual.icono }}</div>
+        <div class="ap-tour-info">
+          <div class="ap-tour-meta">Paso {{ tourStep() + 1 }} de {{ tourPasos.length }}</div>
+          <h3 class="ap-tour-titulo">{{ tourPasoActual.titulo }}</h3>
+          <p class="ap-tour-desc">{{ tourPasoActual.desc }}</p>
+        </div>
+      </div>
+
+      <div class="ap-tour-footer">
+        <button class="ap-tour-close" (click)="cerrarTour()">Salir de la guía</button>
+        <div class="ap-tour-nav">
+          @if (tourStep() > 0) {
+            <button class="ap-tour-prev" (click)="anteriorPasoTour()">
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" d="M15 19l-7-7 7-7"/>
+              </svg>
+              Anterior
+            </button>
+          }
+          <button class="ap-tour-next" (click)="siguientePasoTour()">
+            {{ esUltimoPasoTour ? '¡Entendido!' : 'Siguiente' }}
+            @if (!esUltimoPasoTour) {
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" d="M9 5l7 7-7 7"/>
+              </svg>
+            }
+          </button>
+        </div>
+      </div>
+
+    </dialog>
+  }
   }
 
   @if (vistaActual() === 'creador') {

@@ -1,0 +1,57 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap');
+
+/* ── Tour button (posicionado sobre el hero claro) ───────────────────────── */
+.nt-tour-btn {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  background: #EEF2FF; border: 1px solid #C7D2FE;
+  border-radius: 2rem; padding: 0.4rem 0.85rem;
+  font-size: 0.72rem; font-weight: 700; color: #4338CA;
+  cursor: pointer; font-family: 'Outfit', sans-serif;
+  transition: background 0.2s, transform 0.15s; white-space: nowrap;
+}
+.nt-tour-btn svg { display: block; flex-shrink: 0; }
+.nt-tour-btn:hover { background: #E0E7FF; border-color: #6366F1; transform: translateY(-1px); }
+
+/* ── Spotlight ────────────────────────────────────────────────────────────── */
+.nt-tour-spotlight {
+  position: fixed; z-index: 991; border-radius: 10px; pointer-events: none;
+  box-shadow:
+    0 0 0 9999px rgba(15,23,42,0.6),
+    0 0 0 3px white, 0 0 0 5px #6366F1, 0 0 24px rgba(99,102,241,0.4);
+  animation: nt-pulse 1.8s ease-in-out infinite;
+  transition: top 0.3s ease, left 0.3s ease, width 0.3s ease, height 0.3s ease;
+}
+.nt-tour-overlay { position: fixed; inset: 0; background: rgba(15,23,42,0.6); z-index: 990; pointer-events: none; animation: nt-fade-in 0.25s ease; }
+
+/* ── Tour card ────────────────────────────────────────────────────────────── */
+dialog.nt-tour-card {
+  position: fixed; bottom: 1.75rem; left: 50%; transform: translateX(-50%);
+  z-index: 1002; background: white; border: 1px solid #C7D2FE; border-radius: 1.25rem;
+  padding: 1.4rem 1.5rem 1.25rem; width: min(520px, calc(100vw - 2rem));
+  box-shadow: 0 20px 50px rgba(99,102,241,0.12), 0 4px 12px rgba(0,0,0,0.08);
+  animation: nt-card-in 0.3s cubic-bezier(0.34,1.56,0.64,1); margin: 0; font-family: 'Outfit', sans-serif;
+}
+.nt-tour-progress { display: flex; align-items: center; gap: 0.35rem; margin-bottom: 1.1rem; }
+.nt-tour-dot { height: 4px; border-radius: 2px; background: #C7D2FE; flex: 1; transition: background 0.3s, flex 0.3s; }
+.nt-tour-dot.active { background: #4338CA; flex: 2; }
+.nt-tour-dot.done   { background: #818CF8; }
+.nt-tour-content { display: flex; align-items: flex-start; gap: 1rem; margin-bottom: 1.2rem; animation: nt-step-in 0.25s ease; }
+.nt-tour-ico  { font-size: 2rem; line-height: 1; flex-shrink: 0; margin-top: 0.1rem; }
+.nt-tour-info { flex: 1; }
+.nt-tour-meta { font-size: 0.62rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #4338CA; margin-bottom: 0.25rem; }
+.nt-tour-titulo { font-size: 1rem; font-weight: 800; color: #0F172A; margin: 0 0 0.4rem; letter-spacing: -0.01em; }
+.nt-tour-desc { font-size: 0.8rem; color: #475569; line-height: 1.6; margin: 0; }
+.nt-tour-footer { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; padding-top: 1rem; border-top: 1px solid #E2E8F0; }
+.nt-tour-close { font-size: 0.72rem; font-weight: 600; color: #475569; background: none; border: none; cursor: pointer; padding: 0; transition: color 0.2s; }
+.nt-tour-close:hover { color: #DC2626; }
+.nt-tour-nav { display: flex; align-items: center; gap: 0.5rem; }
+.nt-tour-prev { display: flex; align-items: center; gap: 0.3rem; background: #EEF2FF; border: 1px solid #C7D2FE; border-radius: 0.6rem; padding: 0.45rem 0.9rem; font-size: 0.77rem; font-weight: 600; color: #3730A3; cursor: pointer; font-family: inherit; transition: border-color 0.2s, background 0.2s; }
+.nt-tour-prev:hover { border-color: #6366F1; background: #E0E7FF; }
+.nt-tour-prev svg, .nt-tour-next svg { display: block; flex-shrink: 0; }
+.nt-tour-next { display: flex; align-items: center; gap: 0.3rem; background: #4F46E5; border: none; border-radius: 0.6rem; padding: 0.45rem 1.1rem; font-size: 0.77rem; font-weight: 700; color: white; cursor: pointer; font-family: inherit; transition: background 0.2s, transform 0.15s; box-shadow: 0 2px 8px rgba(79,70,229,0.4); }
+.nt-tour-next:hover { background: #4338CA; transform: translateY(-1px); }
+
+@keyframes nt-pulse { 0%,100% { box-shadow: 0 0 0 9999px rgba(15,23,42,0.6), 0 0 0 3px white, 0 0 0 5px #6366F1, 0 0 24px rgba(99,102,241,0.4); } 50% { box-shadow: 0 0 0 9999px rgba(15,23,42,0.6), 0 0 0 3px white, 0 0 0 6px #6366F1, 0 0 38px rgba(99,102,241,0.65); } }
+@keyframes nt-fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes nt-card-in { from { opacity: 0; transform: translateX(-50%) translateY(20px) scale(0.97); } to { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); } }
+@keyframes nt-step-in { from { opacity: 0; transform: translateX(8px); } to { opacity: 1; transform: translateX(0); } }

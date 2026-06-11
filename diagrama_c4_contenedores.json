@@ -1,0 +1,140 @@
+{
+  "configuracion": {
+    "tipo": "C4 Context",
+    "nombre": "BPMS — Diagrama de Contenedores (Nivel 2)"
+  },
+  "elementos": [
+    {
+      "nombre": "Administrador",
+      "tipo": "Person",
+      "color": "#08427B",
+      "descripcion_corta": "Diseña procesos BPMN,\nadministra usuarios/depto.\ny genera reportes",
+      "notas": "Gestor interno. Diseña procesos BPMN, administra departamentos, consulta reportes y revisa auditoría."
+    },
+    {
+      "nombre": "Funcionario",
+      "tipo": "Person",
+      "color": "#08427B",
+      "descripcion_corta": "Procesa trámites asignados\ndesde su bandeja de\nentrada",
+      "notas": "Empleado operativo. Revisa su bandeja de entrada y avanza los trámites asignados paso a paso."
+    },
+    {
+      "nombre": "Ciudadano (Cliente)",
+      "tipo": "Person",
+      "color": "#08427B",
+      "descripcion_corta": "Inicia trámites y rastrea\nsu estado vía web\no app móvil",
+      "notas": "Usuario externo. Inicia nuevos trámites y rastrea su estado vía web o app móvil."
+    },
+    {
+      "nombre": "Frontend Web",
+      "tipo": "Container",
+      "color": "#438DD5",
+      "descripcion_corta": "SPA Angular 21 +\nTypeScript + Tailwind.\nPanel admin/operativo",
+      "notas": "Single Page Application que sirve la interfaz de administradores y funcionarios. Se ejecuta en el browser. Tecnología: Angular 21, TypeScript 5.9, Tailwind CSS 4.x."
+    },
+    {
+      "nombre": "App Móvil",
+      "tipo": "MobileApp",
+      "color": "#438DD5",
+      "descripcion_corta": "Flutter/Dart 3.9\npara Android e iOS.\nUso exclusivo ciudadanos",
+      "notas": "Aplicación móvil multiplataforma para que los ciudadanos inicien y rastreen trámites. Tecnología: Flutter, Dart 3.9."
+    },
+    {
+      "nombre": "Backend API",
+      "tipo": "Container",
+      "color": "#438DD5",
+      "descripcion_corta": "Spring Boot 4.0.5 +\nJava 17. REST API\ny WebSocket (STOMP)",
+      "notas": "Servidor principal que expone los endpoints REST y el canal WebSocket STOMP para colaboración en tiempo real. Corre en AWS EC2. Tecnología: Spring Boot 4.0.5, Java 17, Maven."
+    },
+    {
+      "nombre": "MongoDB Atlas",
+      "tipo": "Database",
+      "color": "#999999",
+      "descripcion_corta": "Base NoSQL cloud.\nAlmacena procesos,\ntrámites y auditoría",
+      "notas": "Base de datos NoSQL principal en la nube. Colecciones: usuarios, procesos_definicion, tramites, departamentos, audit_logs, sesiones_colaborativas."
+    },
+    {
+      "nombre": "AWS S3",
+      "tipo": "ExternalSystem",
+      "color": "#999999",
+      "descripcion_corta": "Almacena documentos\ny archivos adjuntos\nde los trámites",
+      "notas": "Servicio de almacenamiento de objetos para documentos adjuntos subidos durante la tramitación."
+    },
+    {
+      "nombre": "Google Gemini API",
+      "tipo": "ExternalSystem",
+      "color": "#999999",
+      "descripcion_corta": "Genera BPMN XML\ndesde lenguaje\nnatural (IA generativa)",
+      "notas": "API externa de Google. Convierte descripciones en lenguaje natural a XML BPMN válido para el diagramador."
+    },
+    {
+      "nombre": "Firebase Cloud Messaging",
+      "tipo": "ExternalSystem",
+      "color": "#999999",
+      "descripcion_corta": "Push notifications\na dispositivos\nmóviles Flutter",
+      "notas": "Servicio de Google para enviar notificaciones push a los dispositivos móviles de los ciudadanos usando tokens FCM."
+    }
+  ],
+  "relaciones": [
+    {
+      "origen": "Administrador",
+      "destino": "Frontend Web",
+      "tipo": "Uses",
+      "nombre": "Gestiona procesos y reportes [HTTPS / Browser]"
+    },
+    {
+      "origen": "Funcionario",
+      "destino": "Frontend Web",
+      "tipo": "Uses",
+      "nombre": "Procesa trámites asignados [HTTPS / Browser]"
+    },
+    {
+      "origen": "Ciudadano (Cliente)",
+      "destino": "Frontend Web",
+      "tipo": "Uses",
+      "nombre": "Inicia y rastrea trámites [HTTPS / Browser]"
+    },
+    {
+      "origen": "Ciudadano (Cliente)",
+      "destino": "App Móvil",
+      "tipo": "Uses",
+      "nombre": "Inicia y rastrea trámites [App Flutter]"
+    },
+    {
+      "origen": "Frontend Web",
+      "destino": "Backend API",
+      "tipo": "Uses",
+      "nombre": "Consume REST API + WebSocket [HTTP / STOMP]"
+    },
+    {
+      "origen": "App Móvil",
+      "destino": "Backend API",
+      "tipo": "Uses",
+      "nombre": "Consume REST API [HTTP / REST + JSON]"
+    },
+    {
+      "origen": "Backend API",
+      "destino": "MongoDB Atlas",
+      "tipo": "Uses",
+      "nombre": "Lee y escribe datos [MongoDB Wire Protocol / TLS]"
+    },
+    {
+      "origen": "Backend API",
+      "destino": "AWS S3",
+      "tipo": "Uses",
+      "nombre": "Sube y descarga archivos [AWS SDK / HTTPS]"
+    },
+    {
+      "origen": "Backend API",
+      "destino": "Google Gemini API",
+      "tipo": "Uses",
+      "nombre": "Genera BPMN XML con IA [REST / HTTPS]"
+    },
+    {
+      "origen": "Backend API",
+      "destino": "Firebase Cloud Messaging",
+      "tipo": "Uses",
+      "nombre": "Envía notificaciones push [Firebase Admin SDK / HTTPS]"
+    }
+  ]
+}

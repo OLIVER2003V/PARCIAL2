@@ -1,0 +1,129 @@
+<div class="org">
+
+  <!-- ══════════════════════════ HEADER ════════════════════════════════ -->
+  <header class="org-header">
+    <div class="org-header-inner">
+
+      <div class="org-title-area">
+        <div class="org-icon">
+          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-10a4 4 0 11-8 0 4 4 0 018 0zm6 3a3 3 0 11-6 0 3 3 0 016 0z"/>
+          </svg>
+        </div>
+        <div>
+          <h1 class="org-title">Organización</h1>
+          <p class="org-subtitle">Gestión de usuarios y departamentos del sistema</p>
+        </div>
+      </div>
+
+      <button class="org-tour-btn" (click)="iniciarTour()">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="10"/>
+          <path stroke-linecap="round" d="M12 16v-4m0-4h.01"/>
+        </svg>
+        Guía interactiva
+      </button>
+
+    </div>
+
+    <!-- Tabs -->
+    <div id="tour-org-tabs" class="org-tabs">
+      <button class="org-tab" [class.active]="tabActiva() === 'usuarios'" (click)="cambiarTab('usuarios')">
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-10a4 4 0 11-8 0 4 4 0 018 0zm6 3a3 3 0 11-6 0 3 3 0 016 0z"/>
+        </svg>
+        Usuarios
+      </button>
+      <button class="org-tab" [class.active]="tabActiva() === 'departamentos'" (click)="cambiarTab('departamentos')">
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+        </svg>
+        Departamentos
+      </button>
+    </div>
+  </header>
+
+  <!-- ══════════════════════════ CONTENIDO ═════════════════════════════ -->
+  <div class="org-body">
+    <div [hidden]="tabActiva() !== 'usuarios'">
+      <app-usuarios [embebido]="true" [tourId]="tourElementId()"></app-usuarios>
+    </div>
+    <div [hidden]="tabActiva() !== 'departamentos'">
+      <app-departamentos [embebido]="true" [tourId]="tourElementId()"></app-departamentos>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════ TOUR ══════════════════════════════════ -->
+  @if (tourActive()) {
+
+    <!-- Spotlight: caja que genera el overlay+resaltado via box-shadow -->
+    @if (tourRect(); as rect) {
+      <div class="tour-spotlight"
+           [style.top.px]="rect.top - 8"
+           [style.left.px]="rect.left - 8"
+           [style.width.px]="rect.width + 16"
+           [style.height.px]="rect.height + 16">
+      </div>
+    } @else {
+      <!-- Sin elemento DOM: solo overlay oscuro -->
+      <div class="tour-plain-overlay"></div>
+    }
+
+    <!-- Tarjeta del tour -->
+    <dialog class="tour-card" open
+            (click)="$event.stopPropagation()"
+            (keydown)="$event.stopPropagation()"
+            aria-label="Guía interactiva">
+
+      <!-- Barra de progreso -->
+      <div class="tour-progress">
+        @for (p of tourPasos; track $index) {
+          <div class="tour-dot"
+               [class.active]="$index === tourStep()"
+               [class.done]="$index < tourStep()">
+          </div>
+        }
+      </div>
+
+      <!-- Contenido -->
+      <div class="tour-content">
+        <div class="tour-ico">{{ tourPasoActual.icono }}</div>
+        <div class="tour-info">
+          <div class="tour-meta">Paso {{ tourStep() + 1 }} de {{ tourPasos.length }}</div>
+          <h3 class="tour-titulo">{{ tourPasoActual.titulo }}</h3>
+          <p class="tour-desc">{{ tourPasoActual.desc }}</p>
+          @if (tourPasoActual.tab) {
+            <span class="tour-tab-badge" [class.dept]="tourPasoActual.tab === 'departamentos'">
+              {{ tourPasoActual.tab === 'usuarios' ? '👥 Pestaña Usuarios' : '🏢 Pestaña Departamentos' }}
+            </span>
+          }
+        </div>
+      </div>
+
+      <!-- Pie -->
+      <div class="tour-footer">
+        <button class="tour-close" (click)="cerrarTour()">Salir de la guía</button>
+        <div class="tour-nav">
+          @if (tourStep() > 0) {
+            <button class="tour-prev" (click)="anteriorPaso()">
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" d="M15 19l-7-7 7-7"/>
+              </svg>
+              Anterior
+            </button>
+          }
+          <button class="tour-next" (click)="siguientePaso()">
+            {{ esUltimoPaso ? '¡Entendido!' : 'Siguiente' }}
+            @if (!esUltimoPaso) {
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" d="M9 5l7 7-7 7"/>
+              </svg>
+            }
+          </button>
+        </div>
+      </div>
+
+    </dialog>
+  }
+
+</div>

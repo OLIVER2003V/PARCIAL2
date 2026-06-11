@@ -1,7 +1,7 @@
 <div class="max-w-7xl mx-auto space-y-6 animate-in fade-in duration-500 p-4 md:p-8">
 
   <!-- ── Header ───────────────────────────────────────────── -->
-  <div class="relative overflow-hidden rounded-2xl bg-linear-to-br from-indigo-600 via-indigo-700 to-violet-800 p-6 md:p-8 shadow-xl shadow-indigo-500/25">
+  <div id="tour-band-header" class="relative overflow-hidden rounded-2xl bg-linear-to-br from-indigo-600 via-indigo-700 to-violet-800 p-6 md:p-8 shadow-xl shadow-indigo-500/25">
 
     <!-- subtle grid texture -->
     <div class="absolute inset-0 opacity-10"
@@ -53,6 +53,12 @@
         </div>
 
         <div class="flex items-center gap-2 shrink-0">
+          <button class="band-tour-btn" (click)="iniciarTour()">
+            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="10"/><path stroke-linecap="round" d="M12 16v-4m0-4h.01"/>
+            </svg>
+            Guía
+          </button>
           <div class="px-4 py-2.5 bg-white/15 border border-white/20 rounded-xl flex items-center gap-2 whitespace-nowrap">
             <!-- CORRECCIÓN: Aquí se mostraba el .total, ahora muestra los .pendientes reales -->
             <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
@@ -70,7 +76,7 @@
     </div>
 
     <!-- Mini stats strip -->
-    <div class="relative mt-6 grid grid-cols-2 sm:grid-cols-5 gap-3">
+    <div id="tour-band-stats" class="relative mt-6 grid grid-cols-2 sm:grid-cols-5 gap-3">
       <div class="bg-white/10 border border-white/15 rounded-xl px-4 py-3 flex items-center gap-3">
         <div class="w-8 h-8 rounded-lg bg-white/15 flex items-center justify-center shrink-0">
           <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -146,7 +152,7 @@
   } @else {
 
     <!-- ── Filter tabs ───────────────────────────────────────── -->
-    <div class="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
+    <div id="tour-band-filtros" class="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
       @for (tab of [
         { id: 'TODOS',       label: 'Todos',        count: conteosPorEstado().total },
         { id: 'EN_REVISION', label: 'En Revisión',  count: conteosPorEstado().enRevision },
@@ -232,7 +238,7 @@
 
     <!-- ── Card grid ─────────────────────────────────────────── -->
     } @else {
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+      <div id="tour-band-lista" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         @for (tramite of tramitesFiltrados(); track tramite.id) {
 
           <div class="group bg-white rounded-2xl border border-slate-200 border-l-4 overflow-hidden
@@ -314,4 +320,66 @@
       </div>
     }
   }
+
+  <!-- ══ TOUR ════════════════════════════════════════════════════════════ -->
+  @if (tourActive()) {
+    @if (tourRect(); as rect) {
+      <div class="band-tour-spotlight"
+           [style.top.px]="rect.top - 8"
+           [style.left.px]="rect.left - 8"
+           [style.width.px]="rect.width + 16"
+           [style.height.px]="rect.height + 16">
+      </div>
+    } @else {
+      <div class="band-tour-overlay"></div>
+    }
+
+    <dialog class="band-tour-card" open
+            (click)="$event.stopPropagation()"
+            (keydown)="$event.stopPropagation()"
+            aria-label="Guía interactiva">
+
+      <div class="band-tour-progress">
+        @for (p of tourPasos; track $index) {
+          <div class="band-tour-dot"
+               [class.active]="$index === tourStep()"
+               [class.done]="$index < tourStep()">
+          </div>
+        }
+      </div>
+
+      <div class="band-tour-content">
+        <div class="band-tour-ico">{{ tourPasoActual.icono }}</div>
+        <div class="band-tour-info">
+          <div class="band-tour-meta">Paso {{ tourStep() + 1 }} de {{ tourPasos.length }}</div>
+          <h3 class="band-tour-titulo">{{ tourPasoActual.titulo }}</h3>
+          <p class="band-tour-desc">{{ tourPasoActual.desc }}</p>
+        </div>
+      </div>
+
+      <div class="band-tour-footer">
+        <button class="band-tour-close" (click)="cerrarTour()">Salir de la guía</button>
+        <div class="band-tour-nav">
+          @if (tourStep() > 0) {
+            <button class="band-tour-prev" (click)="anteriorPasoTour()">
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" d="M15 19l-7-7 7-7"/>
+              </svg>
+              Anterior
+            </button>
+          }
+          <button class="band-tour-next" (click)="siguientePasoTour()">
+            {{ esUltimoPasoTour ? '¡Entendido!' : 'Siguiente' }}
+            @if (!esUltimoPasoTour) {
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" d="M9 5l7 7-7 7"/>
+              </svg>
+            }
+          </button>
+        </div>
+      </div>
+
+    </dialog>
+  }
+
 </div>

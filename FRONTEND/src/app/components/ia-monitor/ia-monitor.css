@@ -1,0 +1,87 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap');
+
+/* ── Tour button (estilo claro sobre fondo claro de la página) ────────────── */
+.ia-tour-btn {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.3);
+  border-radius: 2rem; padding: 0.4rem 0.85rem;
+  font-size: 0.72rem; font-weight: 700; color: rgba(255,255,255,0.9);
+  cursor: pointer; font-family: 'Outfit', sans-serif;
+  transition: background 0.2s, transform 0.15s;
+  white-space: nowrap;
+}
+.ia-tour-btn svg { display: block; flex-shrink: 0; }
+.ia-tour-btn:hover { background: rgba(255,255,255,0.28); transform: translateY(-1px); }
+
+/* ── Tour spotlight ───────────────────────────────────────────────────────── */
+.ia-tour-spotlight {
+  position: fixed; z-index: 991; border-radius: 10px; pointer-events: none;
+  box-shadow:
+    0 0 0 9999px rgba(15, 23, 42, 0.6),
+    0 0 0 3px white,
+    0 0 0 5px #7C3AED,
+    0 0 24px rgba(124, 58, 237, 0.5);
+  animation: ia-spotlight-pulse 1.8s ease-in-out infinite;
+  transition: top 0.3s ease, left 0.3s ease, width 0.3s ease, height 0.3s ease;
+}
+
+.ia-tour-overlay {
+  position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6);
+  z-index: 990; pointer-events: none; animation: ia-fade-in 0.25s ease;
+}
+
+/* ── Tour card ───────────────────────────────────────────────────────────── */
+dialog.ia-tour-card {
+  position: fixed; bottom: 1.75rem; left: 50%; transform: translateX(-50%);
+  z-index: 1002; background: white; border: 1px solid #DDD6FE;
+  border-radius: 1.25rem; padding: 1.4rem 1.5rem 1.25rem;
+  width: min(540px, calc(100vw - 2rem));
+  box-shadow: 0 20px 50px rgba(124,58,237,0.15), 0 4px 12px rgba(0,0,0,0.08);
+  animation: ia-card-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); margin: 0;
+  font-family: 'Outfit', sans-serif;
+}
+
+.ia-tour-progress { display: flex; align-items: center; gap: 0.35rem; margin-bottom: 1.1rem; }
+.ia-tour-dot { height: 4px; border-radius: 2px; background: #C4B5FD; flex: 1; transition: background 0.3s, flex 0.3s; }
+.ia-tour-dot.active { background: #6D28D9; flex: 2; }
+.ia-tour-dot.done   { background: #8B5CF6; }
+
+.ia-tour-content { display: flex; align-items: flex-start; gap: 1rem; margin-bottom: 1.2rem; animation: ia-step-in 0.25s ease; }
+.ia-tour-ico  { font-size: 2rem; line-height: 1; flex-shrink: 0; margin-top: 0.1rem; }
+.ia-tour-info { flex: 1; }
+.ia-tour-meta { font-size: 0.62rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #6D28D9; margin-bottom: 0.25rem; }
+.ia-tour-titulo { font-size: 1rem; font-weight: 800; color: #0F172A; margin: 0 0 0.4rem; letter-spacing: -0.01em; }
+.ia-tour-desc { font-size: 0.8rem; color: #475569; line-height: 1.6; margin: 0; }
+
+.ia-tour-footer { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; padding-top: 1rem; border-top: 1px solid #E2E8F0; }
+.ia-tour-close { font-size: 0.72rem; font-weight: 600; color: #475569; background: none; border: none; cursor: pointer; padding: 0; transition: color 0.2s; }
+.ia-tour-close:hover { color: #DC2626; }
+
+.ia-tour-nav { display: flex; align-items: center; gap: 0.5rem; }
+.ia-tour-prev {
+  display: flex; align-items: center; gap: 0.3rem;
+  background: #F5F3FF; border: 1px solid #DDD6FE; border-radius: 0.6rem;
+  padding: 0.45rem 0.9rem; font-size: 0.77rem; font-weight: 600;
+  color: #5B21B6; cursor: pointer; font-family: inherit;
+  transition: border-color 0.2s, background 0.2s;
+}
+.ia-tour-prev:hover { border-color: #7C3AED; background: #EDE9FE; }
+.ia-tour-prev svg, .ia-tour-next svg { display: block; flex-shrink: 0; }
+
+.ia-tour-next {
+  display: flex; align-items: center; gap: 0.3rem;
+  background: #7C3AED; border: none; border-radius: 0.6rem;
+  padding: 0.45rem 1.1rem; font-size: 0.77rem; font-weight: 700;
+  color: white; cursor: pointer; font-family: inherit;
+  transition: background 0.2s, transform 0.15s;
+  box-shadow: 0 2px 8px rgba(124,58,237,0.4);
+}
+.ia-tour-next:hover { background: #6D28D9; transform: translateY(-1px); }
+
+@keyframes ia-spotlight-pulse {
+  0%, 100% { box-shadow: 0 0 0 9999px rgba(15,23,42,0.6), 0 0 0 3px white, 0 0 0 5px #7C3AED, 0 0 24px rgba(124,58,237,0.5); }
+  50%       { box-shadow: 0 0 0 9999px rgba(15,23,42,0.6), 0 0 0 3px white, 0 0 0 6px #7C3AED, 0 0 38px rgba(124,58,237,0.7); }
+}
+@keyframes ia-fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes ia-card-in { from { opacity: 0; transform: translateX(-50%) translateY(20px) scale(0.97); } to { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); } }
+@keyframes ia-step-in { from { opacity: 0; transform: translateX(8px); } to { opacity: 1; transform: translateX(0); } }

@@ -1,6 +1,12 @@
 <div class="max-w-5xl mx-auto space-y-8 animate-in fade-in duration-500 p-4 md:p-8">
 
-  <div class="text-center mb-12 relative">
+  <div id="tour-nt-header" class="text-center mb-12 relative">
+    <button class="nt-tour-btn absolute top-0 right-0" (click)="iniciarTour()">
+      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="10"/><path stroke-linecap="round" d="M12 16v-4m0-4h.01"/>
+      </svg>
+      Guía
+    </button>
     <div class="w-16 h-16 bg-brand-primary/10 text-brand-primary rounded-3xl mx-auto flex items-center justify-center text-3xl mb-5 shadow-sm border border-brand-primary/20">
       📝
     </div>
@@ -83,7 +89,7 @@
             </p>
           </div>
         } @else {
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in duration-300">
+          <div id="tour-nt-catalogo" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in duration-300">
             @for (servicio of serviciosValidos(); track servicio.id) {
               <button (click)="seleccionarServicio(servicio)"
                       class="text-left bg-white rounded-2xl border border-slate-200 shadow-sm hover:border-brand-primary/40 hover:shadow-lg transition-all duration-300 group flex flex-col overflow-hidden focus:outline-none focus:ring-4 focus:ring-brand-primary/10 hover:-translate-y-1">
@@ -126,7 +132,7 @@
       }
 
       @if (servicioSeleccionado(); as srv) {
-        <div class="bg-white p-6 md:p-10 rounded-3xl border border-slate-200 shadow-xl animate-in slide-in-from-bottom-8 duration-300 max-w-4xl mx-auto">
+        <div id="tour-nt-formulario" class="bg-white p-6 md:p-10 rounded-3xl border border-slate-200 shadow-xl animate-in slide-in-from-bottom-8 duration-300 max-w-4xl mx-auto">
 
           <button (click)="volverAlCatalogo()"
                   class="text-sm text-slate-500 hover:text-slate-800 font-bold flex items-center gap-2 mb-8 bg-slate-50 hover:bg-slate-100 px-4 py-2 rounded-xl transition-colors border border-slate-200 w-max focus:outline-none focus:ring-4 focus:ring-slate-100">
@@ -172,7 +178,7 @@
 
             @if (tieneFormularioInicial()) {
               <div class="mt-8 border-t border-slate-200 pt-8 space-y-6">
-                <div class="flex items-start justify-between gap-4 flex-wrap">
+                <div id="tour-nt-ia" class="flex items-start justify-between gap-4 flex-wrap">
                   <div class="flex items-start gap-4">
                     <div class="w-12 h-12 bg-indigo-50 border border-indigo-100 rounded-xl flex items-center justify-center text-2xl flex-shrink-0 shadow-sm">
                       📋
@@ -647,6 +653,55 @@
     }
   }
 </div>
+
+<!-- ══ TOUR ════════════════════════════════════════════════════════════ -->
+@if (tourActive()) {
+  @if (tourRect(); as rect) {
+    <div class="nt-tour-spotlight"
+         [style.top.px]="rect.top - 8"
+         [style.left.px]="rect.left - 8"
+         [style.width.px]="rect.width + 16"
+         [style.height.px]="rect.height + 16">
+    </div>
+  } @else {
+    <div class="nt-tour-overlay"></div>
+  }
+  <dialog class="nt-tour-card" open
+          (click)="$event.stopPropagation()"
+          (keydown)="$event.stopPropagation()"
+          aria-label="Guía interactiva">
+    <div class="nt-tour-progress">
+      @for (p of tourPasos; track $index) {
+        <div class="nt-tour-dot" [class.active]="$index === tourStep()" [class.done]="$index < tourStep()"></div>
+      }
+    </div>
+    <div class="nt-tour-content">
+      <div class="nt-tour-ico">{{ tourPasoActual.icono }}</div>
+      <div class="nt-tour-info">
+        <div class="nt-tour-meta">Paso {{ tourStep() + 1 }} de {{ tourPasos.length }}</div>
+        <h3 class="nt-tour-titulo">{{ tourPasoActual.titulo }}</h3>
+        <p class="nt-tour-desc">{{ tourPasoActual.desc }}</p>
+      </div>
+    </div>
+    <div class="nt-tour-footer">
+      <button class="nt-tour-close" (click)="cerrarTour()">Salir de la guía</button>
+      <div class="nt-tour-nav">
+        @if (tourStep() > 0) {
+          <button class="nt-tour-prev" (click)="anteriorPasoTour()">
+            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M15 19l-7-7 7-7"/></svg>
+            Anterior
+          </button>
+        }
+        <button class="nt-tour-next" (click)="siguientePasoTour()">
+          {{ esUltimoPasoTour ? '¡Entendido!' : 'Siguiente' }}
+          @if (!esUltimoPasoTour) {
+            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M9 5l7 7-7 7"/></svg>
+          }
+        </button>
+      </div>
+    </div>
+  </dialog>
+}
 
 <!-- CU21: Modal Voz/Texto para rellenar formulario -->
 @if (modalVozAbierto()) {

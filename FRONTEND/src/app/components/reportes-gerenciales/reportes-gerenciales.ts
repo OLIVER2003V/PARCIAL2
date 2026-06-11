@@ -1,6 +1,6 @@
 import {
   Component, ElementRef, OnInit, ViewChild,
-  computed, inject, signal, effect
+  computed, inject, signal, effect, input
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -20,6 +20,8 @@ import { ProcesoDefinicion } from '../../models/proceso.model';
   templateUrl: './reportes-gerenciales.html'
 })
 export class ReportesGerencialesComponent implements OnInit {
+  embebido = input(false);
+
   private reporteService = inject(ReporteService);
   private departamentoService = inject(DepartamentoService);
   private procesoService = inject(ProcesoService);

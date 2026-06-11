@@ -85,11 +85,6 @@
 			<version>0.11.5</version>
 			<scope>runtime</scope>
 		</dependency>
-		<dependency>
-    		<groupId>me.paulschwarz</groupId>
-    		<artifactId>spring-dotenv</artifactId>
-    		<version>4.0.0</version>
-		</dependency>
 
 <dependency>
     <groupId>com.google.firebase</groupId>
@@ -133,6 +128,8 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 				<configuration>
+					<!-- Fija el CWD a BACKEND/ para que spring.config.import encuentre .env -->
+					<workingDirectory>${project.basedir}</workingDirectory>
 					<excludes>
 						<exclude>
 							<groupId>org.projectlombok</groupId>

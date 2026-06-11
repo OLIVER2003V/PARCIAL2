@@ -1,0 +1,128 @@
+<div class="rep">
+
+  <!-- ══════════════════════════ HEADER ════════════════════════════════ -->
+  <header class="rep-header">
+    <div class="rep-header-inner">
+
+      <div class="rep-title-area">
+        <div class="rep-icon">
+          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+          </svg>
+        </div>
+        <div>
+          <h1 class="rep-title">Reportes</h1>
+          <p class="rep-subtitle">Análisis gerencial e inteligencia con IA</p>
+        </div>
+      </div>
+
+      <button class="rep-tour-btn" (click)="iniciarTour()">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="10"/>
+          <path stroke-linecap="round" d="M12 16v-4m0-4h.01"/>
+        </svg>
+        Guía interactiva
+      </button>
+
+    </div>
+
+    <!-- Tabs -->
+    <div id="tour-rep-tabs" class="rep-tabs">
+      <button class="rep-tab" [class.active]="tabActiva() === 'gerenciales'" (click)="cambiarTab('gerenciales')">
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+        </svg>
+        Gerenciales
+      </button>
+      <button class="rep-tab" [class.active]="tabActiva() === 'nlp'" (click)="cambiarTab('nlp')">
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/>
+        </svg>
+        Inteligentes IA
+      </button>
+    </div>
+  </header>
+
+  <!-- ══════════════════════════ CONTENIDO ═════════════════════════════ -->
+  <div class="rep-body">
+    @if (gerencialesVisible()) {
+      <app-reportes-gerenciales [embebido]="true" [hidden]="tabActiva() !== 'gerenciales'"/>
+    }
+    @if (nlpVisible()) {
+      <app-reportes-nlp [embebido]="true" [hidden]="tabActiva() !== 'nlp'"/>
+    }
+  </div>
+
+  <!-- ══════════════════════════ TOUR ══════════════════════════════════ -->
+  @if (tourActive()) {
+
+    <!-- Spotlight -->
+    @if (tourRect(); as rect) {
+      <div class="rep-spotlight"
+           [style.top.px]="rect.top - 8"
+           [style.left.px]="rect.left - 8"
+           [style.width.px]="rect.width + 16"
+           [style.height.px]="rect.height + 16">
+      </div>
+    } @else {
+      <div class="rep-plain-overlay"></div>
+    }
+
+    <!-- Tarjeta -->
+    <dialog class="rep-tour-card" open
+            (click)="$event.stopPropagation()"
+            (keydown)="$event.stopPropagation()"
+            aria-label="Guía interactiva">
+
+      <!-- Progreso -->
+      <div class="rep-tour-progress">
+        @for (p of tourPasos; track $index) {
+          <div class="rep-tour-dot"
+               [class.active]="$index === tourStep()"
+               [class.done]="$index < tourStep()">
+          </div>
+        }
+      </div>
+
+      <!-- Contenido -->
+      <div class="rep-tour-content">
+        <div class="rep-tour-ico">{{ tourPasoActual.icono }}</div>
+        <div class="rep-tour-info">
+          <div class="rep-tour-meta">Paso {{ tourStep() + 1 }} de {{ tourPasos.length }}</div>
+          <h3 class="rep-tour-titulo">{{ tourPasoActual.titulo }}</h3>
+          <p class="rep-tour-desc">{{ tourPasoActual.desc }}</p>
+          @if (tourPasoActual.tab) {
+            <span class="rep-tour-badge" [class.ia]="tourPasoActual.tab === 'nlp'">
+              {{ tourPasoActual.tab === 'gerenciales' ? '📊 Reportes Gerenciales' : '✨ Reportes IA' }}
+            </span>
+          }
+        </div>
+      </div>
+
+      <!-- Pie -->
+      <div class="rep-tour-footer">
+        <button class="rep-tour-close" (click)="cerrarTour()">Salir de la guía</button>
+        <div class="rep-tour-nav">
+          @if (tourStep() > 0) {
+            <button class="rep-tour-prev" (click)="anteriorPaso()">
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" d="M15 19l-7-7 7-7"/>
+              </svg>
+              Anterior
+            </button>
+          }
+          <button class="rep-tour-next" (click)="siguientePaso()">
+            {{ esUltimoPaso ? '¡Entendido!' : 'Siguiente' }}
+            @if (!esUltimoPaso) {
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" d="M9 5l7 7-7 7"/>
+              </svg>
+            }
+          </button>
+        </div>
+      </div>
+
+    </dialog>
+  }
+
+</div>

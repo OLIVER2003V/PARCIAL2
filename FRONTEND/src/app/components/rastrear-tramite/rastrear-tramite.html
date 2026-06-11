@@ -2,7 +2,7 @@
 <div class="max-w-7xl mx-auto p-4 md:p-6 space-y-5 animate-in fade-in slide-in-from-bottom-4 duration-500">
 
   <!-- ══ Header ══════════════════════════════════════════════════════════════ -->
-  <div class="relative overflow-hidden rounded-2xl bg-linear-to-br from-slate-800 via-slate-900 to-slate-950 border border-slate-700/50 shadow-xl p-5 md:p-6">
+  <div id="tour-rt-header" class="relative overflow-hidden rounded-2xl bg-linear-to-br from-slate-800 via-slate-900 to-slate-950 border border-slate-700/50 shadow-xl p-5 md:p-6">
     <div class="absolute inset-0 opacity-[0.07]"
          style="background-image:radial-gradient(circle, #38bdf8 1px, transparent 1px); background-size:24px 24px;"></div>
     <div class="absolute top-0 right-0 w-80 h-80 bg-sky-500/10 rounded-full blur-3xl pointer-events-none"></div>
@@ -23,6 +23,12 @@
 
       <!-- Stats pill -->
       <div class="flex items-center gap-2 shrink-0">
+        <button class="rt-tour-btn" (click)="iniciarTour()">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="10"/><path stroke-linecap="round" d="M12 16v-4m0-4h.01"/>
+          </svg>
+          Guía
+        </button>
         <div class="flex items-center gap-3 bg-slate-800/80 border border-slate-700/60 rounded-2xl px-4 py-2.5">
           <div class="text-center">
             <p class="text-[9px] text-slate-500 uppercase tracking-widest font-black">Total</p>
@@ -42,7 +48,7 @@
   <div class="grid grid-cols-1 xl:grid-cols-12 gap-5 items-start">
 
     <!-- ── Sidebar izquierdo ─────────────────────────────────────────────── -->
-    <aside class="xl:col-span-4 space-y-3">
+    <aside id="tour-rt-sidebar" class="xl:col-span-4 space-y-3">
 
       <!-- Lista de trámites -->
       <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
@@ -69,7 +75,7 @@
 
         <!-- Buscador + filtros (solo cuando hay trámites cargados) -->
         @if (!cargandoMisTramites() && !errorMisTramites() && misTramites().length > 0) {
-          <div class="px-3 pt-3 pb-2.5 border-b border-slate-100 space-y-2.5">
+          <div id="tour-rt-filtros" class="px-3 pt-3 pb-2.5 border-b border-slate-100 space-y-2.5">
 
             <!-- Input de búsqueda -->
             <div class="flex items-center bg-slate-50 border border-slate-200 rounded-xl px-3 gap-2
@@ -297,7 +303,7 @@
       @if (tramiteEncontrado(); as tramite) {
 
         <!-- Ficha del trámite -->
-        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div id="tour-rt-ficha" class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
           <!-- Header de la ficha -->
           <div class="p-5 md:p-6 border-b border-slate-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
@@ -351,7 +357,7 @@
 
         <!-- Mapa del proceso -->
         @if (tramite.procesoDefinicionId) {
-          <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          <div id="tour-rt-mapa" class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
             <div class="px-5 py-3.5 border-b border-slate-100 flex items-center gap-2.5">
               <div class="w-7 h-7 bg-indigo-50 border border-indigo-100 rounded-lg flex items-center justify-center shrink-0">
                 <svg class="w-3.5 h-3.5 text-indigo-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -426,5 +432,55 @@
     </section>
 
   </div>
+
+  <!-- ══ TOUR ════════════════════════════════════════════════════════════ -->
+  @if (tourActive()) {
+    @if (tourRect(); as rect) {
+      <div class="rt-tour-spotlight"
+           [style.top.px]="rect.top - 8"
+           [style.left.px]="rect.left - 8"
+           [style.width.px]="rect.width + 16"
+           [style.height.px]="rect.height + 16">
+      </div>
+    } @else {
+      <div class="rt-tour-overlay"></div>
+    }
+    <dialog class="rt-tour-card" open
+            (click)="$event.stopPropagation()"
+            (keydown)="$event.stopPropagation()"
+            aria-label="Guía interactiva">
+      <div class="rt-tour-progress">
+        @for (p of tourPasos; track $index) {
+          <div class="rt-tour-dot" [class.active]="$index === tourStep()" [class.done]="$index < tourStep()"></div>
+        }
+      </div>
+      <div class="rt-tour-content">
+        <div class="rt-tour-ico">{{ tourPasoActual.icono }}</div>
+        <div class="rt-tour-info">
+          <div class="rt-tour-meta">Paso {{ tourStep() + 1 }} de {{ tourPasos.length }}</div>
+          <h3 class="rt-tour-titulo">{{ tourPasoActual.titulo }}</h3>
+          <p class="rt-tour-desc">{{ tourPasoActual.desc }}</p>
+        </div>
+      </div>
+      <div class="rt-tour-footer">
+        <button class="rt-tour-close" (click)="cerrarTour()">Salir de la guía</button>
+        <div class="rt-tour-nav">
+          @if (tourStep() > 0) {
+            <button class="rt-tour-prev" (click)="anteriorPasoTour()">
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M15 19l-7-7 7-7"/></svg>
+              Anterior
+            </button>
+          }
+          <button class="rt-tour-next" (click)="siguientePasoTour()">
+            {{ esUltimoPasoTour ? '¡Entendido!' : 'Siguiente' }}
+            @if (!esUltimoPasoTour) {
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M9 5l7 7-7 7"/></svg>
+            }
+          </button>
+        </div>
+      </div>
+    </dialog>
+  }
+
 </div>
 </div>

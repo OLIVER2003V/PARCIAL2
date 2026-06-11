@@ -1,0 +1,96 @@
+{
+  "configuracion": {
+    "tipo": "Statechart",
+    "nombre": "Estado del Usuario"
+  },
+  "elementos": [
+    {
+      "nombre": "INICIO",
+      "tipo": "Initial",
+      "posicion": {"col": 0, "fila": 0}
+    },
+    {
+      "nombre": "PENDIENTE",
+      "tipo": "State",
+      "color": "#FFD966",
+      "posicion": {"col": 0, "fila": 1},
+      "notas": "Usuario registrado en el sistema (ADMIN, FUNCIONARIO o CLIENTE) pero aún no aprobado por el Administrador. No puede autenticarse ni obtener JWT. Espera revisión manual."
+    },
+    {
+      "nombre": "ACTIVO",
+      "tipo": "State",
+      "color": "#70AD47",
+      "posicion": {"col": 0, "fila": 2},
+      "notas": "Usuario habilitado. Puede autenticarse en AuthController, obtener JWT (HS256) y acceder a los recursos según su rol (ADMIN, FUNCIONARIO, CLIENTE). Token FCM registrado para notificaciones Firebase."
+    },
+    {
+      "nombre": "SUSPENDIDO",
+      "tipo": "State",
+      "color": "#F4A623",
+      "posicion": {"col": 0, "fila": 3},
+      "notas": "Usuario bloqueado temporalmente. Causas: Admin lo suspende manualmente, intentos de login fallidos excedidos, o token JWT comprometido. No puede autenticarse pero su cuenta persiste."
+    },
+    {
+      "nombre": "DADO_DE_BAJA",
+      "tipo": "State",
+      "color": "#7F7F7F",
+      "posicion": {"col": 0, "fila": 4},
+      "notas": "Baja definitiva. El Administrador desactivó permanentemente la cuenta. Soft-delete: el documento Usuario permanece en MongoDB para trazabilidad de auditoría pero el acceso es denegado."
+    },
+    {
+      "nombre": "FIN",
+      "tipo": "Final",
+      "posicion": {"col": 0, "fila": 5}
+    }
+  ],
+  "relaciones": [
+    {
+      "origen": "INICIO",
+      "destino": "PENDIENTE",
+      "tipo": "Transition",
+      "nombre": "registrar() [Admin crea cuenta o auto-registro]"
+    },
+    {
+      "origen": "PENDIENTE",
+      "destino": "ACTIVO",
+      "tipo": "Transition",
+      "nombre": "aprobar() [Admin activa la cuenta]"
+    },
+    {
+      "origen": "PENDIENTE",
+      "destino": "DADO_DE_BAJA",
+      "tipo": "Transition",
+      "nombre": "rechazar() [Admin rechaza el registro]"
+    },
+    {
+      "origen": "ACTIVO",
+      "destino": "SUSPENDIDO",
+      "tipo": "Transition",
+      "nombre": "suspender() [Admin bloquea / intentos fallidos]"
+    },
+    {
+      "origen": "SUSPENDIDO",
+      "destino": "ACTIVO",
+      "tipo": "Transition",
+      "nombre": "reactivar() [Admin desbloquea]"
+    },
+    {
+      "origen": "ACTIVO",
+      "destino": "DADO_DE_BAJA",
+      "tipo": "Transition",
+      "nombre": "darDeBaja() [Admin baja definitiva]"
+    },
+    {
+      "origen": "SUSPENDIDO",
+      "destino": "DADO_DE_BAJA",
+      "tipo": "Transition",
+      "nombre": "darDeBaja() [Admin baja desde suspension]"
+    },
+    {
+      "origen": "DADO_DE_BAJA",
+      "destino": "FIN",
+      "tipo": "Transition",
+      "nombre": ""
+    }
+  ]
+}

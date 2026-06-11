@@ -1,0 +1,111 @@
+/* ── Tour spotlight (box-shadow cutout) ────────────────────────────────────
+   El div fijo se posiciona sobre el elemento objetivo con getBoundingClientRect.
+   box-shadow con spread enorme cubre toda la pantalla excepto el área del div.
+*/
+.tour-spotlight {
+  position: fixed;
+  z-index: 991;
+  border-radius: 10px;
+  pointer-events: none;
+  box-shadow:
+    0 0 0 9999px rgba(15, 23, 42, 0.6),
+    0 0 0 3px white,
+    0 0 0 5px #0284C7,
+    0 0 24px rgba(2, 132, 199, 0.4);
+  animation: ap-spotlight-pulse 1.8s ease-in-out infinite;
+  transition: top 0.3s ease, left 0.3s ease, width 0.3s ease, height 0.3s ease;
+}
+
+.tour-plain-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.6);
+  z-index: 990;
+  pointer-events: none;
+  animation: ap-fade-in 0.25s ease;
+}
+
+dialog.ap-tour-card {
+  position: fixed;
+  bottom: 1.75rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1002;
+  background: white;
+  border: 1px solid #BAE6FD;
+  border-radius: 1.25rem;
+  padding: 1.4rem 1.5rem 1.25rem;
+  width: min(520px, calc(100vw - 2rem));
+  box-shadow: 0 20px 50px rgba(2,132,199,0.15), 0 4px 12px rgba(0,0,0,0.08);
+  animation: ap-card-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  margin: 0;
+  font-family: 'Outfit', sans-serif;
+}
+
+.ap-tour-progress { display: flex; align-items: center; gap: 0.35rem; margin-bottom: 1.1rem; }
+.ap-tour-dot { height: 4px; border-radius: 2px; background: #BAE6FD; flex: 1; transition: background 0.3s, flex 0.3s; }
+.ap-tour-dot.active { background: #0284C7; flex: 2; }
+.ap-tour-dot.done   { background: #7DD3FC; }
+
+.ap-tour-content { display: flex; align-items: flex-start; gap: 1rem; margin-bottom: 1.2rem; animation: ap-step-in 0.25s ease; }
+.ap-tour-ico { font-size: 2rem; line-height: 1; flex-shrink: 0; margin-top: 0.1rem; }
+.ap-tour-info { flex: 1; }
+
+.ap-tour-meta {
+  font-size: 0.62rem; font-weight: 700; letter-spacing: 0.12em;
+  text-transform: uppercase; color: #0284C7; margin-bottom: 0.25rem;
+}
+.ap-tour-titulo {
+  font-size: 1rem; font-weight: 800; color: #0F172A;
+  margin: 0 0 0.4rem; letter-spacing: -0.01em;
+}
+.ap-tour-desc {
+  font-size: 0.8rem; color: #475569; line-height: 1.6; margin: 0;
+}
+
+.ap-tour-footer {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 0.75rem; padding-top: 1rem; border-top: 1px solid #E2E8F0;
+}
+.ap-tour-close {
+  font-size: 0.72rem; font-weight: 600; color: #94A3B8;
+  background: none; border: none; cursor: pointer; padding: 0; transition: color 0.2s;
+}
+.ap-tour-close:hover { color: #DC2626; }
+
+.ap-tour-nav { display: flex; align-items: center; gap: 0.5rem; }
+.ap-tour-prev {
+  display: flex; align-items: center; gap: 0.3rem;
+  background: #F8FBFF; border: 1px solid #BAE6FD; border-radius: 0.6rem;
+  padding: 0.45rem 0.9rem; font-size: 0.77rem; font-weight: 600;
+  color: #64748B; cursor: pointer; font-family: inherit;
+  transition: border-color 0.2s, color 0.2s;
+}
+.ap-tour-prev:hover { border-color: #0284C7; color: #0284C7; }
+.ap-tour-prev svg, .ap-tour-next svg { display: block; flex-shrink: 0; }
+
+.ap-tour-next {
+  display: flex; align-items: center; gap: 0.3rem;
+  background: #0284C7; border: none; border-radius: 0.6rem;
+  padding: 0.45rem 1.1rem; font-size: 0.77rem; font-weight: 700;
+  color: white; cursor: pointer; font-family: inherit;
+  transition: background 0.2s, transform 0.15s;
+  box-shadow: 0 2px 8px rgba(2,132,199,0.3);
+}
+.ap-tour-next:hover { background: #0369A1; transform: translateY(-1px); }
+
+@keyframes ap-spotlight-pulse {
+  0%, 100% {
+    box-shadow:
+      0 0 0 9999px rgba(15, 23, 42, 0.6),
+      0 0 0 3px white, 0 0 0 5px #0284C7, 0 0 24px rgba(2,132,199,0.4);
+  }
+  50% {
+    box-shadow:
+      0 0 0 9999px rgba(15, 23, 42, 0.6),
+      0 0 0 3px white, 0 0 0 6px #0284C7, 0 0 38px rgba(2,132,199,0.65);
+  }
+}
+@keyframes ap-fade-in  { from { opacity: 0; } to { opacity: 1; } }
+@keyframes ap-card-in  { from { opacity: 0; transform: translateX(-50%) translateY(20px) scale(0.97); } to { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); } }
+@keyframes ap-step-in  { from { opacity: 0; transform: translateX(8px); } to { opacity: 1; transform: translateX(0); } }

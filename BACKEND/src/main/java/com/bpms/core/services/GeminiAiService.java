@@ -89,6 +89,16 @@ public class GeminiAiService {
         this.restTemplate = new RestTemplate(factory);
     }
 
+    @jakarta.annotation.PostConstruct
+    void validarApiKey() {
+        if (apiKey == null || apiKey.isBlank()) {
+            throw new IllegalStateException(
+                "[GeminiAiService] GEMINI_API_KEY está vacía. " +
+                "Asegúrate de que BACKEND/.env existe con GEMINI_API_KEY " +
+                "y arranca el backend desde el directorio BACKEND/.");
+        }
+    }
+
     // 👇 NUEVO: Ahora recibimos la lista de rutas relativas de los archivos.
     // 👇 NUEVO: Eliminamos 'nombreCampo' de los parámetros
     // 👇 NUEVO: sin ofuscación, prompt explícito por tipo de campo

@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal, computed } from '@angular/core';
+import { Component, HostListener, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -9,7 +9,8 @@ import { Tramite } from '../../models/tramite.model';
   selector: 'app-bandeja-entrada',
   standalone: true,
   imports: [CommonModule, RouterModule, FormsModule],
-  templateUrl: './bandeja-entrada.html'
+  templateUrl: './bandeja-entrada.html',
+  styleUrl: './bandeja-entrada.css'
 })
 export class BandejaEntradaComponent implements OnInit {
   private tramiteService = inject(TramiteService);
@@ -107,6 +108,90 @@ export class BandejaEntradaComponent implements OnInit {
         return null; // NORMAL no muestra chip
     }
   }
+
+  // ── Tour ─────────────────────────────────────────────────────────────────
+  tourActive = signal(false);
+  tourStep   = signal(0);
+  tourRect   = signal<DOMRect | null>(null);
+
+  readonly tourPasos = [
+    {
+      id: 'tour-band-header',
+      icono: '📥',
+      titulo: 'Tu Bandeja de Entrada',
+      desc: 'Aquí aparecen todos los trámites asignados a tu departamento que requieren tu atención. Usa el buscador para encontrar por código o nombre del solicitante. El botón de recarga actualiza la lista al instante.'
+    },
+    {
+      id: 'tour-band-stats',
+      icono: '📊',
+      titulo: 'Contadores de estado',
+      desc: 'Resumen rápido de tu carga de trabajo: total de trámites, cuántos están en revisión, aprobados, pendientes de atender y cuántos marcó la IA como críticos por riesgo de demora.'
+    },
+    {
+      id: 'tour-band-filtros',
+      icono: '🏷️',
+      titulo: 'Filtros de pestaña',
+      desc: 'Filtra la lista por estado: Todos, En Revisión, Aprobados, Rechazados, Pendientes o 🔴 Críticos (detectados por IA). Los números en cada pestaña se actualizan en tiempo real.'
+    },
+    {
+      id: 'tour-band-lista',
+      icono: '📋',
+      titulo: 'Tarjetas de trámites',
+      desc: 'Cada tarjeta muestra: código de seguimiento, estado (color del borde izquierdo), nivel de prioridad IA si aplica, nombre del solicitante, descripción resumida y fecha. Haz clic en "Revisar" para abrir el trámite y procesarlo.'
+    }
+  ];
+
+  get tourPasoActual()  { return this.tourPasos[this.tourStep()]; }
+  get esUltimoPasoTour(){ return this.tourStep() === this.tourPasos.length - 1; }
+
+  @HostListener('document:keydown.escape')
+  onEsc(): void { if (this.tourActive()) this.cerrarTour(); }
+
+  @HostListener('window:resize')
+  @HostListener('window:scroll')
+  onTourLayout(): void { if (this.tourActive()) this.actualizarRectTour(); }
+
+  iniciarTour(): void {
+    this.tourActive.set(true);
+    this.tourStep.set(0);
+    setTimeout(() => this.irAlPasoTour(0), 100);
+  }
+
+  siguientePasoTour(): void {
+    if (this.esUltimoPasoTour) { this.cerrarTour(); return; }
+    const next = this.tourStep() + 1;
+    this.tourStep.set(next);
+    setTimeout(() => this.irAlPasoTour(next), 150);
+  }
+
+  anteriorPasoTour(): void {
+    if (this.tourStep() === 0) return;
+    const prev = this.tourStep() - 1;
+    this.tourStep.set(prev);
+    setTimeout(() => this.irAlPasoTour(prev), 150);
+  }
+
+  cerrarTour(): void {
+    this.tourActive.set(false);
+    this.tourRect.set(null);
+  }
+
+  private irAlPasoTour(paso: number): void {
+    const el = document.getElementById(this.tourPasos[paso].id);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      setTimeout(() => this.actualizarRectTour(), 450);
+    } else {
+      this.tourRect.set(null);
+    }
+  }
+
+  private actualizarRectTour(): void {
+    if (!this.tourActive()) return;
+    const el = document.getElementById(this.tourPasoActual.id);
+    this.tourRect.set(el ? el.getBoundingClientRect() : null);
+  }
+  // ─────────────────────────────────────────────────────────────────────────
 
   getSemaforoConfig(estado: string | undefined) {
     switch (estado) {

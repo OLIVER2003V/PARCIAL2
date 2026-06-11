@@ -4,10 +4,10 @@
        SIDEBAR DE PALETA UML 2.5
   ════════════════════════════════════════════════════════════════════════ -->
   @if (!soloLectura) {
-  <div class="paleta-sidebar flex flex-col bg-white border-r border-slate-200 shadow-sm z-40 shrink-0">
+  <div id="tour-bpmn-paleta" class="paleta-sidebar flex flex-col bg-white border-r border-slate-200 shadow-sm z-40 shrink-0">
 
     <!-- Herramientas de navegación -->
-    <div class="px-1.5 py-2 border-b border-slate-100">
+    <div id="tour-bpmn-nav" class="px-1.5 py-2 border-b border-slate-100">
       <div class="flex flex-col gap-0.5">
         <button (click)="cancelarHerramienta()"
           [class]="herramientaActiva() === null ? 'paleta-btn paleta-btn--activo' : 'paleta-btn'"
@@ -35,7 +35,7 @@
     </div>
 
     <!-- Elementos UML — solo iconos con tooltip -->
-    <div class="px-1.5 py-2 border-b border-slate-100 flex-1 overflow-y-auto">
+    <div id="tour-bpmn-nodos" class="px-1.5 py-2 border-b border-slate-100 flex-1 overflow-y-auto">
 
       <!-- Nodos -->
       @for (entrada of entradasPaleta; track entrada.tipo) {
@@ -141,7 +141,7 @@
     </div>
 
     <!-- Auto-organizar -->
-    <div class="px-1.5 py-2 border-t border-slate-100">
+    <div id="tour-bpmn-auto" class="px-1.5 py-2 border-t border-slate-100">
       <button (click)="autoOrganizar()"
         class="paleta-btn w-full text-indigo-600 hover:bg-indigo-50"
         title="Auto-organizar diagrama">
@@ -156,11 +156,11 @@
   <!-- ═══════════════════════════════════════════════════════════════════════
        ÁREA DEL CANVAS
   ════════════════════════════════════════════════════════════════════════ -->
-  <div class="relative flex-1 overflow-hidden">
+  <div id="tour-bpmn-canvas" class="relative flex-1 overflow-hidden">
 
     <!-- Barra de herramientas superior derecha -->
     @if (!soloLectura) {
-    <div class="absolute top-4 right-4 z-50 flex items-center gap-1.5 bg-white/90 backdrop-blur-sm border border-slate-200 rounded-xl shadow-sm p-1.5">
+    <div id="tour-bpmn-toolbar" class="absolute top-4 right-4 z-50 flex items-center gap-1.5 bg-white/90 backdrop-blur-sm border border-slate-200 rounded-xl shadow-sm p-1.5">
       <button (click)="undo()" [disabled]="!canUndo()"
         class="w-8 h-8 flex items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
         title="Deshacer (Ctrl+Z)">
@@ -220,6 +220,14 @@
         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"/>
         </svg>
+      </button>
+      <div class="w-px h-5 bg-slate-200 mx-0.5"></div>
+      <button (click)="iniciarTour()" class="bpmn-tour-btn" title="Guía interactiva del editor">
+        <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="8" cy="8" r="6"/>
+          <path d="M8 5.5v.5M8 8v2.5" stroke-linecap="round"/>
+        </svg>
+        Guía
       </button>
     </div>
     }
@@ -465,6 +473,58 @@
           </button>
         </div>
       </div>
+    }
+
+    <!-- ── Tour interactivo ─────────────────────────────────────────────────── -->
+    @if (tourActive()) {
+      <div class="bpmn-tour-overlay"></div>
+      @if (tourRect(); as r) {
+        <div class="bpmn-tour-spotlight"
+          [style.top.px]="r.top - 6"
+          [style.left.px]="r.left - 6"
+          [style.width.px]="r.width + 12"
+          [style.height.px]="r.height + 12">
+        </div>
+      }
+      <dialog open class="bpmn-tour-card">
+        <div class="bpmn-tour-progress">
+          @for (p of tourPasos; track $index) {
+            <div class="bpmn-tour-dot"
+              [class.active]="$index === tourStep()"
+              [class.done]="$index < tourStep()">
+            </div>
+          }
+        </div>
+        <div class="bpmn-tour-content">
+          <div class="bpmn-tour-ico">{{ tourPasoActual.icono }}</div>
+          <div class="bpmn-tour-info">
+            <div class="bpmn-tour-meta">Paso {{ tourStep() + 1 }} de {{ tourPasos.length }}</div>
+            <h3 class="bpmn-tour-titulo">{{ tourPasoActual.titulo }}</h3>
+            <p class="bpmn-tour-desc">{{ tourPasoActual.desc }}</p>
+          </div>
+        </div>
+        <div class="bpmn-tour-footer">
+          <button class="bpmn-tour-close" (click)="cerrarTour()">Cerrar guía</button>
+          <div class="bpmn-tour-nav">
+            @if (tourStep() > 0) {
+              <button class="bpmn-tour-prev" (click)="anteriorPasoTour()">
+                <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M10 12L6 8l4-4" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                Anterior
+              </button>
+            }
+            <button class="bpmn-tour-next" (click)="siguientePasoTour()">
+              {{ esUltimoPasoTour ? 'Finalizar' : 'Siguiente' }}
+              @if (!esUltimoPasoTour) {
+                <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M6 4l4 4-4 4" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              }
+            </button>
+          </div>
+        </div>
+      </dialog>
     }
   </div>
 </div>

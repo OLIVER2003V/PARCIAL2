@@ -1,4 +1,4 @@
-import { Component, HostListener, OnInit, computed, effect, inject, signal } from '@angular/core';
+import { Component, HostListener, OnInit, computed, effect, inject, input, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -16,6 +16,10 @@ type DireccionOrden = 'asc' | 'desc';
   templateUrl: './departamentos.html'
 })
 export class DepartamentosComponent implements OnInit {
+  // Inputs para modo embebido (dentro de OrganizacionComponent)
+  embebido = input(false);
+  tourId   = input<string | null>(null);
+
   private departamentoService = inject(DepartamentoService);
   private fb = inject(FormBuilder);
 

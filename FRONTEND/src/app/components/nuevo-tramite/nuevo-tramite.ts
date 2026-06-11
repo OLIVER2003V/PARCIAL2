@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, HostListener, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
@@ -19,7 +19,8 @@ import { DocumentacionTramiteComponent } from '../documentacion-tramite/document
   imports: [CommonModule, FormsModule, RouterModule, CampoGridPipe, VozFormularioComponent,
             EditorTextoColaborativoComponent, HojaCalculoColaborativaComponent,
             DocumentacionTramiteComponent],
-  templateUrl: './nuevo-tramite.html'
+  templateUrl: './nuevo-tramite.html',
+  styleUrl: './nuevo-tramite.css'
 })
 export class NuevoTramiteComponent implements OnInit {
   private procesoService = inject(ProcesoService);
@@ -416,6 +417,55 @@ export class NuevoTramiteComponent implements OnInit {
   // ── CU21: Modal de dictado / texto ──────────────────────────────────────
   abrirModalVoz() { this.modalVozAbierto.set(true); }
   cerrarModalVoz() { this.modalVozAbierto.set(false); }
+
+  // ── Tour ─────────────────────────────────────────────────────────────────
+  tourActive = signal(false);
+  tourStep   = signal(0);
+  tourRect   = signal<DOMRect | null>(null);
+
+  readonly tourPasos = [
+    { id: 'tour-nt-header',   icono: '📝', titulo: 'Portal de Trámites',      desc: 'Aquí puedes iniciar cualquier solicitud oficial disponible en la institución. Solo necesitas seleccionar el tipo de trámite y completar el formulario correspondiente.' },
+    { id: 'tour-nt-catalogo', icono: '🗂️', titulo: 'Catálogo de servicios',   desc: 'Cada tarjeta representa un tipo de trámite activo. Muestra el código, el nombre, la descripción y cuántos pasos tiene el flujo. Haz clic en una para comenzar tu solicitud.' },
+    { id: 'tour-nt-formulario',icono:'📋', titulo: 'Formulario del servicio',  desc: 'Una vez seleccionado el servicio, aparece el formulario de requisitos inicial que debes completar. Los campos marcados con * son obligatorios. El formulario varía según el trámite elegido.' },
+    { id: 'tour-nt-ia',       icono: '✨', titulo: 'Asistente IA',            desc: 'El botón "Asistente IA" puede completar el formulario automáticamente analizando la descripción que escribiste. Ahorra tiempo en trámites con muchos campos de texto.' }
+  ];
+
+  get tourPasoActual()  { return this.tourPasos[this.tourStep()]; }
+  get esUltimoPasoTour(){ return this.tourStep() === this.tourPasos.length - 1; }
+
+  @HostListener('document:keydown.escape')
+  onEsc(): void { if (this.tourActive()) this.cerrarTour(); }
+
+  @HostListener('window:resize') @HostListener('window:scroll')
+  onTourLayout(): void { if (this.tourActive()) this.actualizarRectTour(); }
+
+  iniciarTour(): void {
+    this.tourActive.set(true); this.tourStep.set(0);
+    setTimeout(() => this.irAlPasoTour(0), 100);
+  }
+  siguientePasoTour(): void {
+    if (this.esUltimoPasoTour) { this.cerrarTour(); return; }
+    const n = this.tourStep() + 1; this.tourStep.set(n);
+    setTimeout(() => this.irAlPasoTour(n), 150);
+  }
+  anteriorPasoTour(): void {
+    if (this.tourStep() === 0) return;
+    const n = this.tourStep() - 1; this.tourStep.set(n);
+    setTimeout(() => this.irAlPasoTour(n), 150);
+  }
+  cerrarTour(): void { this.tourActive.set(false); this.tourRect.set(null); }
+
+  private irAlPasoTour(paso: number): void {
+    const el = document.getElementById(this.tourPasos[paso].id);
+    if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); setTimeout(() => this.actualizarRectTour(), 450); }
+    else this.tourRect.set(null);
+  }
+  private actualizarRectTour(): void {
+    if (!this.tourActive()) return;
+    const el = document.getElementById(this.tourPasoActual.id);
+    this.tourRect.set(el ? el.getBoundingClientRect() : null);
+  }
+  // ─────────────────────────────────────────────────────────────────────────
 
   aplicarCamposVoz(camposLlenados: Record<string, any>) {
     Object.entries(camposLlenados).forEach(([id, valor]) => {

@@ -1,4 +1,4 @@
-import { Component, HostListener, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, HostListener, OnInit, computed, inject, signal, input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AuditoriaService } from '../../services/auditoria';
@@ -8,7 +8,8 @@ import { AuditLog, AuditoriaFiltro, AuditoriaOpciones } from '../../models/audit
   selector: 'app-auditoria',
   standalone: true,
   imports: [CommonModule, FormsModule],
-  templateUrl: './auditoria.html'
+  templateUrl: './auditoria.html',
+  styleUrl: './auditoria.css'
 })
 export class AuditoriaComponent implements OnInit {
   private auditoriaService = inject(AuditoriaService);
@@ -80,10 +81,102 @@ export class AuditoriaComponent implements OnInit {
 
   @HostListener('document:keydown.escape')
   cerrarConEsc(): void {
-    if (this.logSeleccionado()) {
-      this.logSeleccionado.set(null);
+    if (this.tourActive())       { this.cerrarTour(); return; }
+    if (this.logSeleccionado())  { this.logSeleccionado.set(null); }
+  }
+
+  @HostListener('window:resize')
+  @HostListener('window:scroll')
+  onTourLayout(): void { if (this.tourActive()) this.actualizarRectTour(); }
+
+  // ── Tour ─────────────────────────────────────────────────────────────────
+  tourActive = signal(false);
+  tourStep   = signal(0);
+  tourRect   = signal<DOMRect | null>(null);
+
+  readonly tourPasos = [
+    {
+      id: 'tour-aud-header',
+      icono: '🛡️',
+      titulo: 'Log de Auditoría — solo lectura',
+      desc: 'Este módulo registra automáticamente toda acción crítica del sistema: inicios de sesión, publicaciones de políticas, cambios de estado y más. El registro es inmutable: ningún administrador puede borrarlo ni modificarlo. El botón "Exportar CSV" descarga los registros filtrados actualmente.'
+    },
+    {
+      id: 'tour-aud-categorias',
+      icono: '🏷️',
+      titulo: 'Filtros rápidos por categoría',
+      desc: 'Cada tarjeta muestra cuántos registros de esa categoría hay en la página actual. Haz clic en una para filtrar: AUTH (sesiones), POLÍTICA (cambios de flujo), USUARIO (gestión de cuentas), DEPTO (departamentos), TRÁMITE (avances de solicitudes) y SISTEMA (eventos internos).'
+    },
+    {
+      id: 'tour-aud-busqueda',
+      icono: '🔍',
+      titulo: 'Búsqueda de texto libre',
+      desc: 'Busca cualquier palabra en la acción, el detalle o el usuario. Presiona Enter para aplicar. Útil para encontrar un evento específico cuando ya sabes parte del texto, como el nombre de una política o un mensaje de error.'
+    },
+    {
+      id: 'tour-aud-filtros',
+      icono: '🎛️',
+      titulo: 'Filtros combinables',
+      desc: 'Combina usuario, categoría, acción específica, IP de origen, ID de entidad y rango de fechas. Todos los filtros se aplican juntos al hacer clic en "Aplicar filtros". El botón "Limpiar" aparece automáticamente cuando hay filtros activos.'
+    },
+    {
+      id: 'tour-aud-tabla',
+      icono: '📋',
+      titulo: 'Tabla de registros',
+      desc: 'Cada fila es un evento auditado con: fecha/hora exacta, IP de origen, usuario responsable, categoría con color, acción con ícono de resultado y descripción. Haz clic en el ícono del ojo 👁️ para ver el payload técnico completo del evento.'
+    },
+    {
+      id: 'tour-aud-paginacion',
+      icono: '📄',
+      titulo: 'Paginación y tamaño de página',
+      desc: 'Navega entre páginas con las flechas. El selector "Por página" permite ver 20, 50, 100 o 200 registros a la vez. El contador muestra exactamente cuántos registros totales cumplen los filtros actuales.'
+    }
+  ];
+
+  get tourPasoActual()  { return this.tourPasos[this.tourStep()]; }
+  get esUltimoPasoTour(){ return this.tourStep() === this.tourPasos.length - 1; }
+
+  iniciarTour(): void {
+    this.tourActive.set(true);
+    this.tourStep.set(0);
+    setTimeout(() => this.irAlPasoTour(0), 100);
+  }
+
+  siguientePasoTour(): void {
+    if (this.esUltimoPasoTour) { this.cerrarTour(); return; }
+    const next = this.tourStep() + 1;
+    this.tourStep.set(next);
+    setTimeout(() => this.irAlPasoTour(next), 150);
+  }
+
+  anteriorPasoTour(): void {
+    if (this.tourStep() === 0) return;
+    const prev = this.tourStep() - 1;
+    this.tourStep.set(prev);
+    setTimeout(() => this.irAlPasoTour(prev), 150);
+  }
+
+  cerrarTour(): void {
+    this.tourActive.set(false);
+    this.tourRect.set(null);
+  }
+
+  private irAlPasoTour(paso: number): void {
+    const el = document.getElementById(this.tourPasos[paso].id);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      setTimeout(() => this.actualizarRectTour(), 450);
+    } else {
+      this.tourRect.set(null);
     }
   }
+
+  private actualizarRectTour(): void {
+    if (!this.tourActive()) return;
+    const el = document.getElementById(this.tourPasoActual.id);
+    this.tourRect.set(el ? el.getBoundingClientRect() : null);
+  }
+  // ─────────────────────────────────────────────────────────────────────────
 
   // ==========================================================================
   // CARGA DE DATOS

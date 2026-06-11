@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, inject, signal, effect } from '@angular/core';
+import { Component, HostListener, OnInit, computed, inject, signal, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
@@ -25,7 +25,8 @@ import { DocumentacionTramiteComponent } from '../documentacion-tramite/document
   imports: [CommonModule, ReactiveFormsModule, FormsModule, RouterModule, CampoGridPipe,
             EditorTextoColaborativoComponent, HojaCalculoColaborativaComponent,
             VozFormularioComponent, DocumentacionTramiteComponent],
-  templateUrl: './procesar-tramite.html'
+  templateUrl: './procesar-tramite.html',
+  styleUrl: './procesar-tramite.css'
 })
 export class ProcesarTramiteComponent implements OnInit {
   private route = inject(ActivatedRoute);
@@ -772,6 +773,108 @@ export class ProcesarTramiteComponent implements OnInit {
       }
     });
   }
+
+  // ── Tour ─────────────────────────────────────────────────────────────────
+  tourActive = signal(false);
+  tourStep   = signal(0);
+  tourRect   = signal<DOMRect | null>(null);
+
+  readonly tourPasos = [
+    {
+      id: 'tour-pt-header',
+      icono: '📄',
+      titulo: 'Resolución de Expediente',
+      desc: 'Esta pantalla es donde el funcionario revisa y resuelve un trámite asignado a su departamento. El título muestra la etapa actual del proceso. El botón "Volver a Bandeja" regresa al listado de tareas pendientes sin guardar cambios.'
+    },
+    {
+      id: 'tour-pt-ficha',
+      icono: '🪪',
+      titulo: 'Ficha del Trámite',
+      desc: 'Información básica del expediente: código de seguimiento, fecha de ingreso, nombre del solicitante y el relato del caso que el ciudadano redactó al iniciar el trámite. Léela antes de completar el formulario.'
+    },
+    {
+      id: 'tour-pt-expediente',
+      icono: '📁',
+      titulo: 'Expediente del Trámite',
+      desc: 'Panel con dos pestañas: "Datos del Cliente" (formulario inicial que llenó el ciudadano, con archivos y firmas adjuntos) y "Dictámenes Previos" (resoluciones de otros funcionarios que ya procesaron pasos anteriores de este mismo trámite).'
+    },
+    {
+      id: 'tour-pt-hoja-ruta',
+      icono: '🗺️',
+      titulo: 'Hoja de Ruta',
+      desc: 'Línea de tiempo del trámite: cada evento registrado (inicio, aprobaciones, rechazos) aparece en orden cronológico con el funcionario responsable y la fecha exacta. Permite ver de un vistazo qué pasó antes de que llegara a ti.'
+    },
+    {
+      id: 'tour-pt-formulario',
+      icono: '📝',
+      titulo: 'Formulario de la Etapa',
+      desc: 'Los campos que debes completar en esta etapa específica del proceso. Pueden ser textos, fechas, selecciones, archivos, firmas digitales o tablas, según lo que definió el administrador al diseñar el flujo BPMN.'
+    },
+    {
+      id: 'tour-pt-ia',
+      icono: '✨',
+      titulo: 'Asistentes de IA',
+      desc: '"Auto-Completar con IA" analiza el relato del cliente y los documentos adjuntos y rellena los campos del formulario automáticamente con Gemini. "Dictar datos" permite hablar para completar los campos con reconocimiento de voz en lenguaje natural.'
+    },
+    {
+      id: 'tour-pt-acciones',
+      icono: '✅',
+      titulo: 'Panel de Decisión',
+      desc: 'Aquí emites tu dictamen: selecciona la acción (Aprobar, Rechazar u otras opciones definidas en el flujo) y confirma. El botón se activa solo cuando todos los campos obligatorios del formulario están completos. Una vez confirmado, el trámite avanza al siguiente paso automáticamente.'
+    }
+  ];
+
+  get tourPasoActual()  { return this.tourPasos[this.tourStep()]; }
+  get esUltimoPasoTour(){ return this.tourStep() === this.tourPasos.length - 1; }
+
+  @HostListener('document:keydown.escape')
+  onEsc(): void { if (this.tourActive()) this.cerrarTour(); }
+
+  @HostListener('window:resize')
+  @HostListener('window:scroll')
+  onTourLayout(): void { if (this.tourActive()) this.actualizarRectTour(); }
+
+  iniciarTour(): void {
+    this.tourActive.set(true);
+    this.tourStep.set(0);
+    setTimeout(() => this.irAlPasoTour(0), 100);
+  }
+
+  siguientePasoTour(): void {
+    if (this.esUltimoPasoTour) { this.cerrarTour(); return; }
+    const next = this.tourStep() + 1;
+    this.tourStep.set(next);
+    setTimeout(() => this.irAlPasoTour(next), 150);
+  }
+
+  anteriorPasoTour(): void {
+    if (this.tourStep() === 0) return;
+    const prev = this.tourStep() - 1;
+    this.tourStep.set(prev);
+    setTimeout(() => this.irAlPasoTour(prev), 150);
+  }
+
+  cerrarTour(): void {
+    this.tourActive.set(false);
+    this.tourRect.set(null);
+  }
+
+  private irAlPasoTour(paso: number): void {
+    const el = document.getElementById(this.tourPasos[paso].id);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      setTimeout(() => this.actualizarRectTour(), 450);
+    } else {
+      this.tourRect.set(null);
+    }
+  }
+
+  private actualizarRectTour(): void {
+    if (!this.tourActive()) return;
+    const el = document.getElementById(this.tourPasoActual.id);
+    this.tourRect.set(el ? el.getBoundingClientRect() : null);
+  }
+  // ─────────────────────────────────────────────────────────────────────────
 
   // ── CU21: Modal de dictado / texto ──────────────────────────────────────
   abrirModalVoz() { this.modalVozAbierto.set(true); }

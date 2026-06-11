@@ -576,6 +576,15 @@ export class DiagramadorBpmnComponent implements AfterViewInit, OnChanges, OnDes
     this.graph!.refresh();
   }
 
+  /** Centra la vista del diagrama sobre el nodo con el ID dado. */
+  centrarEnNodo(pasoId: string): void {
+    if (!this.graph) return;
+    const cell = this.getCellById(pasoId);
+    if (!cell) return;
+    this.graph.setSelectionCell(cell);
+    this.graph.scrollCellToVisible(cell, true);
+  }
+
   // ── Auto-organización ─────────────────────────────────────────────────────────
 
   autoOrganizar(): void {
@@ -1630,6 +1639,10 @@ export class DiagramadorBpmnComponent implements AfterViewInit, OnChanges, OnDes
 
   @HostListener('document:keydown', ['$event'])
   onKeyDown(event: KeyboardEvent): void {
+    if (event.key === 'Escape' && this.tourActive()) {
+      this.cerrarTour();
+      return;
+    }
     if (this.soloLectura || this.aplicandoCambioRemoto) return;
 
     const target = event.target as HTMLElement;
@@ -2033,4 +2046,113 @@ export class DiagramadorBpmnComponent implements AfterViewInit, OnChanges, OnDes
     };
     return m[umlType] ?? '';
   }
+
+  // ── Tour interactivo ──────────────────────────────────────────────────────────
+
+  tourActive = signal(false);
+  tourStep   = signal(0);
+  tourRect   = signal<DOMRect | null>(null);
+  private leyendaAbiertaPorTour = false;
+
+  readonly tourPasos = [
+    {
+      id: 'tour-bpmn-paleta',
+      icono: '🧰',
+      titulo: 'Panel de Herramientas',
+      desc: 'El panel izquierdo agrupa todas las herramientas del editor: modos de cursor, elementos UML para insertar en el lienzo y el botón de auto-organización. Es el punto de partida para construir cualquier diagrama de actividades.'
+    },
+    {
+      id: 'tour-bpmn-nav',
+      icono: '🖱️',
+      titulo: 'Modos de Cursor',
+      desc: 'Seleccionar/Mover: arrastra nodos para reposicionarlos. Conectar: traza una flecha de flujo haciendo clic en el nodo origen y luego en el destino. Agregar Carril: añade una nueva partición de departamento al pool.'
+    },
+    {
+      id: 'tour-bpmn-nodos',
+      icono: '🔷',
+      titulo: 'Paleta de Nodos UML',
+      desc: 'Activa un tipo de nodo y haz clic en el lienzo para insertarlo. Acciones (rectángulos azules), Aceptar Evento (banderas verdes), Gateways (rombos para decisiones), Fork/Join (barras para paralelismo), Terminadores y Notas de comentario.'
+    },
+    {
+      id: 'tour-bpmn-auto',
+      icono: '✨',
+      titulo: 'Auto-Organizar',
+      desc: 'Aplica el algoritmo Sugiyama para ordenar el diagrama: los nodos al mismo nivel lógico quedan alineados en horizontal, los carriles se ajustan en anchura al contenido y las flechas se re-rutean sin cruces innecesarios.'
+    },
+    {
+      id: 'tour-bpmn-canvas',
+      icono: '🎨',
+      titulo: 'El Lienzo',
+      desc: 'Aquí se construye el diagrama. Haz clic para insertar nodos (tras activar un tipo en la paleta). Arrastra para mover elementos. Ctrl+Scroll para zoom centrado en el cursor. Scroll para desplazar. Doble clic en un carril para asignar su departamento.'
+    },
+    {
+      id: 'tour-bpmn-toolbar',
+      icono: '🛠️',
+      titulo: 'Barra de Herramientas',
+      desc: 'Deshacer/Rehacer (Ctrl+Z / Ctrl+Y), control de zoom con ajuste automático al hacer clic en el porcentaje, leyenda de símbolos UML 2.5 (abierta ahora para que la veas), validador estructural y exportación a PNG de alta resolución.'
+    },
+  ];
+
+  get tourPasoActual()   { return this.tourPasos[this.tourStep()]; }
+  get esUltimoPasoTour() { return this.tourStep() === this.tourPasos.length - 1; }
+
+  @HostListener('window:resize') @HostListener('window:scroll')
+  onTourLayout(): void { if (this.tourActive()) this.actualizarRectTour(); }
+
+  iniciarTour(): void {
+    this.tourActive.set(true);
+    this.tourStep.set(0);
+    setTimeout(() => this.irAlPasoTour(0), 100);
+  }
+
+  siguientePasoTour(): void {
+    if (this.esUltimoPasoTour) { this.cerrarTour(); return; }
+    const n = this.tourStep() + 1;
+    this.tourStep.set(n);
+    setTimeout(() => this.irAlPasoTour(n), 150);
+  }
+
+  anteriorPasoTour(): void {
+    if (this.tourStep() === 0) return;
+    const n = this.tourStep() - 1;
+    this.tourStep.set(n);
+    setTimeout(() => this.irAlPasoTour(n), 150);
+  }
+
+  cerrarTour(): void {
+    if (this.leyendaAbiertaPorTour && this.mostrarLeyenda()) {
+      this.toggleLeyenda();
+      this.leyendaAbiertaPorTour = false;
+    }
+    this.tourActive.set(false);
+    this.tourRect.set(null);
+  }
+
+  private irAlPasoTour(paso: number): void {
+    // Cierra leyenda si fue abierta por el tour y ya no estamos en ese paso
+    if (this.leyendaAbiertaPorTour && this.mostrarLeyenda() && paso !== 5) {
+      this.toggleLeyenda();
+      this.leyendaAbiertaPorTour = false;
+    }
+    // En el paso de toolbar (índice 5): abrir leyenda para demostración en vivo
+    if (paso === 5 && !this.mostrarLeyenda()) {
+      this.toggleLeyenda();
+      this.leyendaAbiertaPorTour = true;
+    }
+    const el = document.getElementById(this.tourPasos[paso].id);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      setTimeout(() => this.actualizarRectTour(), 450);
+    } else {
+      this.tourRect.set(null);
+    }
+  }
+
+  private actualizarRectTour(): void {
+    if (!this.tourActive()) return;
+    const el = document.getElementById(this.tourPasoActual.id);
+    this.tourRect.set(el ? el.getBoundingClientRect() : null);
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
 }

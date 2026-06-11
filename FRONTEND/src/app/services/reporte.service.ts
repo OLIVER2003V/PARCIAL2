@@ -118,8 +118,13 @@ export class ReporteService {
   // ==========================================
   // 👇 NUEVO METODO DEL CU14 (MINERÍA DE PROCESOS)
   // ==========================================
-  /** GET /mineria/{id} — devuelve las métricas para el Heatmap */
-  getMineriaProcesos(procesoId: string): Observable<AnalisisCuellosBotella> {
-    return this.http.get<AnalisisCuellosBotella>(this.api.reportes.mineriaPorProceso(procesoId));
+  /** GET /mineria/{id}?fechaInicio=&fechaFin= — devuelve las métricas para el Heatmap */
+  getMineriaProcesos(procesoId: string, fechaInicio?: string, fechaFin?: string): Observable<AnalisisCuellosBotella> {
+    const params: Record<string, string> = {};
+    if (fechaInicio) params['fechaInicio'] = fechaInicio;
+    if (fechaFin)    params['fechaFin']    = fechaFin;
+    return this.http.get<AnalisisCuellosBotella>(
+      this.api.reportes.mineriaPorProceso(procesoId), { params }
+    );
   }
 }

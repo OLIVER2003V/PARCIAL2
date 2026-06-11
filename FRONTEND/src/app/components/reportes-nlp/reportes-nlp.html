@@ -2,6 +2,7 @@
 <div class="max-w-7xl mx-auto p-4 md:p-6 space-y-5 animate-in fade-in slide-in-from-bottom-4 duration-500">
 
   <!-- ══ Header ══════════════════════════════════════════════════════════════ -->
+  @if (!embebido()) {
   <div class="relative overflow-hidden rounded-2xl
               bg-linear-to-br from-violet-900 via-indigo-900 to-slate-900
               border border-violet-700/40 shadow-xl p-5 md:p-6">
@@ -36,15 +37,16 @@
       </div>
     </div>
   </div>
+  }
 
   <!-- ══ Content grid ════════════════════════════════════════════════════════ -->
   <div class="grid grid-cols-1 xl:grid-cols-12 gap-5 items-start">
 
     <!-- ── Panel izquierdo: input + historial ────────────────────────────── -->
-    <aside class="xl:col-span-4 space-y-3">
+    <aside id="tour-n-historial" class="xl:col-span-4 space-y-3">
 
       <!-- Input de consulta -->
-      <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+      <div id="tour-n-input" class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
         <div class="px-4 pt-4 pb-3 space-y-3">
           <div>
             <label for="consultaInput" class="text-xs font-black text-slate-700 uppercase tracking-wider mb-1.5 block">
@@ -133,7 +135,7 @@
 
         <!-- Sugerencias -->
         @if (!historial().length) {
-          <div class="px-4 pb-4 border-t border-slate-100 pt-3">
+          <div id="tour-n-sugerencias" class="px-4 pb-4 border-t border-slate-100 pt-3">
             <p class="text-[10px] font-black text-slate-500 uppercase tracking-wider mb-2">Sugerencias</p>
             <div class="space-y-1.5">
               @for (s of sugerencias; track s) {

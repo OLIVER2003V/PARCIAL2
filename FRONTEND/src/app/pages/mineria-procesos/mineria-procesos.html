@@ -1,160 +1,374 @@
-<div class="h-screen flex flex-col bg-slate-50 text-slate-900 font-sans overflow-hidden">
-  
-  <header class="bg-white border-b border-slate-200 px-6 py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shrink-0 shadow-sm z-10">
-    <div class="flex items-center gap-4">
-      <div class="w-12 h-12 bg-orange-50 text-orange-600 border border-orange-100 rounded-2xl flex items-center justify-center shrink-0 shadow-sm">
+<div class="min-screen">
+
+  <!-- ══════════════ HEADER ══════════════════════════════════════════════════ -->
+  <header id="tour-min-header" class="min-header">
+    <div class="min-header-left">
+      <div class="min-icon">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
         </svg>
       </div>
       <div>
-        <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Minería de Procesos</h1>
-        <p class="text-sm font-medium text-slate-500 mt-0.5">Detección de cuellos de botella mediante mapas de calor</p>
+        <h1 class="min-title">Análisis de Rendimiento</h1>
+        <p class="min-subtitle">Detección de cuellos de botella mediante mapas de calor</p>
       </div>
     </div>
 
-    <div class="w-full sm:w-80">
-      <label for="proceso-select" class="sr-only">Seleccionar política</label>
-      <div class="relative">
-        <select id="proceso-select"
-          (change)="onSeleccionarProceso($event)"
-          [value]="procesoId()"
-          class="w-full appearance-none bg-slate-50 border border-slate-200 text-slate-800 text-sm font-bold rounded-xl focus:ring-4 focus:ring-orange-500/20 focus:border-orange-500 block px-4 py-3 outline-none transition-all shadow-sm cursor-pointer truncate pr-10">
-          <option value="" class="font-medium text-slate-500">-- Selecciona una Política para analizar --</option>
-          <option *ngFor="let p of listaProcesos()" [value]="p.id" class="font-medium">
-            {{ p.codigo }} - {{ p.nombre }}
-          </option>
-        </select>
-        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-400">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+    <!-- Botón guía: siempre visible -->
+    <button class="min-tour-btn" (click)="iniciarTour()">
+      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="10"/><path stroke-linecap="round" d="M12 16v-4m0-4h.01"/>
+      </svg>
+      Guía
+    </button>
+
+    <!-- Controles: solo visibles cuando hay un proceso seleccionado -->
+    @if (proceso()) {
+      <div class="min-header-controls">
+        <!-- Filtro período -->
+        <div id="tour-min-period" class="min-period-filter">
+          <span class="min-period-label">Período:</span>
+          <input type="date" [ngModel]="fechaInicio()" (ngModelChange)="fechaInicio.set($event)"
+                 class="min-date-input" title="Desde">
+          <span class="text-slate-400 text-xs font-bold">—</span>
+          <input type="date" [ngModel]="fechaFin()" (ngModelChange)="fechaFin.set($event)"
+                 class="min-date-input" title="Hasta">
+          <button (click)="aplicarFiltroFecha()" class="min-apply-btn" title="Aplicar filtro">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            Analizar
+          </button>
+        </div>
+
+        <!-- Selector de proceso (compacto) -->
+        <div class="relative">
+          <select (change)="onSeleccionarProceso($event)" [value]="procesoId()"
+                  class="min-select-compact">
+            <option value="">— Cambiar política —</option>
+            @for (p of listaProcesos(); track p.id) {
+              <option [value]="p.id">{{ p.codigo }} - {{ p.nombre }}</option>
+            }
+          </select>
+          <svg class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400"
+               fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
           </svg>
         </div>
       </div>
-    </div>
+    }
   </header>
 
-  <div *ngIf="isLoading()" class="flex-1 flex flex-col items-center justify-center bg-slate-50/50 backdrop-blur-sm z-50">
-    <div class="w-12 h-12 border-4 border-slate-200 border-t-orange-500 rounded-full animate-spin shadow-sm"></div>
-    <p class="mt-4 text-sm font-bold text-slate-600 uppercase tracking-wider animate-pulse">Analizando métricas...</p>
-  </div>
-
-  <div *ngIf="error()" class="p-6 m-6 max-w-2xl mx-auto bg-red-50 text-red-700 rounded-2xl border border-red-200 shadow-sm flex items-start gap-3">
-    <svg class="w-6 h-6 shrink-0 mt-0.5 text-red-500" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-    <div>
-      <h3 class="font-bold text-lg mb-1">Análisis fallido</h3>
-      <p class="font-medium opacity-90">{{ error() }}</p>
+  <!-- ══════════════ LOADING ═════════════════════════════════════════════════ -->
+  @if (isLoading()) {
+    <div class="min-loading">
+      <div class="w-12 h-12 border-4 border-slate-200 border-t-orange-500 rounded-full animate-spin shadow-sm"></div>
+      <p class="mt-4 text-sm font-bold text-slate-600 uppercase tracking-wider animate-pulse">Analizando métricas...</p>
     </div>
-  </div>
+  }
 
-  <div *ngIf="!isLoading() && analisis() && proceso()" class="flex-1 flex overflow-hidden bg-slate-100">
-    
-    <div class="flex-1 relative bg-white flex flex-col rounded-tl-2xl shadow-inner border-t border-l border-slate-200 m-4 mr-2 overflow-hidden">
-      
-      <div *ngIf="analisis()?.datosInsuficientes" 
-           class="absolute top-6 left-1/2 -translate-x-1/2 z-50 bg-amber-50 border border-amber-200 text-amber-800 px-5 py-3.5 rounded-xl shadow-lg flex items-start gap-3 max-w-2xl animate-in slide-in-from-top-5 fade-in duration-300">
-        <svg class="w-5 h-5 shrink-0 mt-0.5 text-amber-500" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-        <div>
-          <p class="text-sm font-bold uppercase tracking-wider mb-0.5 text-amber-700">Muestra estadística baja</p>
-          <p class="text-sm font-medium">{{ analisis()?.mensajeAdvertencia }}</p>
-        </div>
-      </div>
-
-      <app-diagramador-bpmn
-        class="flex-1 w-full h-full"
-        [xmlInicial]="proceso()?.bpmnXml || ''"
-        [soloLectura]="true">
-      </app-diagramador-bpmn>
-
-      <div class="absolute bottom-6 left-6 bg-white/90 backdrop-blur-md border border-slate-200 p-3 rounded-xl shadow-sm flex items-center gap-4">
-        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Leyenda Térmica:</span>
-        <div class="flex items-center gap-1.5 text-xs font-semibold text-slate-700">
-          <div class="w-3 h-3 rounded-full bg-emerald-400 shadow-sm border border-emerald-500"></div> Óptimo
-        </div>
-        <div class="flex items-center gap-1.5 text-xs font-semibold text-slate-700">
-          <div class="w-3 h-3 rounded-full bg-amber-400 shadow-sm border border-amber-500"></div> Precaución
-        </div>
-        <div class="flex items-center gap-1.5 text-xs font-semibold text-slate-700">
-          <div class="w-3 h-3 rounded-full bg-red-500 shadow-sm border border-red-600"></div> Cuello de Botella
-        </div>
+  <!-- ══════════════ ERROR ═══════════════════════════════════════════════════ -->
+  @if (error()) {
+    <div class="m-6 max-w-2xl mx-auto bg-red-50 text-red-700 rounded-2xl border border-red-200 shadow-sm flex items-start gap-3 p-5">
+      <svg class="w-6 h-6 shrink-0 mt-0.5 text-red-500" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+      </svg>
+      <div>
+        <h3 class="font-bold text-lg mb-1">Análisis fallido</h3>
+        <p class="font-medium opacity-90">{{ error() }}</p>
       </div>
     </div>
+  }
 
-    <div class="w-[420px] shrink-0 bg-white border border-slate-200 rounded-2xl m-4 ml-2 flex flex-col shadow-sm overflow-hidden z-10">
-      
-      <div class="p-6 border-b border-slate-100 bg-slate-50/50">
-        <div class="flex items-center gap-3 mb-2">
-          <div class="w-8 h-8 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center border border-blue-100 shadow-sm">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
-          </div>
-          <h2 class="font-black text-slate-900 text-xl tracking-tight">Rendimiento por Nodos</h2>
+  <!-- ══════════════ EMPTY STATE ════════════════════════════════════════════ -->
+  @if (!isLoading() && !analisis() && !error()) {
+    <div class="min-empty">
+
+      <div class="min-empty-hero">
+        <div class="min-empty-icon">
+          <svg class="w-10 h-10 text-orange-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+          </svg>
         </div>
-        <p class="text-sm text-slate-500 font-medium leading-relaxed">
-          Desviación de tiempo real frente al SLA objetivo. <br>
-          Muestra basada en <span class="bg-slate-200 text-slate-800 px-2 py-0.5 rounded-md font-bold mx-1">{{ analisis()?.totalTramitesAnalizados }}</span> trámites históricos.
+        <h2 class="min-empty-title">Detecta cuellos de botella</h2>
+        <p class="min-empty-desc">
+          Selecciona una política activa para visualizar su <strong>mapa de calor</strong> basado en datos reales de trámites.
+          Cada nodo se colorea según su desviación respecto al SLA objetivo.
         </p>
+        <div class="min-empty-legend">
+          <span class="min-legend-item emerald">
+            <span class="min-legend-dot bg-emerald-500"></span> Óptimo
+          </span>
+          <span class="min-legend-item amber">
+            <span class="min-legend-dot bg-amber-400"></span> En riesgo
+          </span>
+          <span class="min-legend-item red">
+            <span class="min-legend-dot bg-red-500"></span> Cuello de botella
+          </span>
+        </div>
       </div>
 
-      <div class="flex-1 overflow-y-auto p-5 space-y-4 bg-slate-50/30 custom-scrollbar">
-        
-        <div *ngFor="let metrica of analisis()?.metricasPorPaso" 
-             class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm transition-all hover:shadow-md hover:border-slate-300 relative overflow-hidden group">
-          
-          <div class="absolute left-0 top-0 bottom-0 w-1.5 transition-colors duration-300"
-               [ngClass]="{'bg-emerald-500': metrica.colorSemaforo === 'VERDE', 
-                           'bg-amber-400': metrica.colorSemaforo === 'AMARILLO', 
-                           'bg-red-500': metrica.colorSemaforo === 'ROJO'}">
+      @if (listaProcesos().length === 0) {
+        <div class="text-center py-10 text-slate-400 text-sm font-medium">
+          No hay políticas activas para analizar. Publica al menos una política en Motor de Procesos.
+        </div>
+      } @else {
+        <div id="tour-min-grid" class="min-empty-grid">
+          @for (p of listaProcesos(); track p.id) {
+            <button class="min-policy-card" (click)="seleccionarDesdeCard(p)">
+              <div class="min-policy-card-top">
+                <span class="min-policy-codigo">{{ p.codigo }}</span>
+                <span class="min-policy-estado"
+                      [class.activa]="p.estado === 'ACTIVA'"
+                      [class.obsoleta]="p.estado === 'OBSOLETA'">
+                  {{ p.estado === 'ACTIVA' ? '✓ Activa' : 'Obsoleta' }}
+                </span>
+              </div>
+              <p class="min-policy-nombre">{{ p.nombre }}</p>
+              <p class="min-policy-pasos">{{ p.pasos?.length ?? 0 }} pasos · {{ p.version ?? 'v1.0' }}</p>
+              <div class="min-policy-cta">
+                Analizar
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+                </svg>
+              </div>
+            </button>
+          }
+        </div>
+      }
+
+    </div>
+  }
+
+  <!-- ══════════════ ANÁLISIS ════════════════════════════════════════════════ -->
+  @if (!isLoading() && analisis() && proceso()) {
+
+    <!-- Barra de resumen ejecutivo -->
+    <div id="tour-min-summary" class="min-summary"
+         [class.critica]="saludGlobal() === 'critica'"
+         [class.riesgo]="saludGlobal() === 'riesgo'"
+         [class.buena]="saludGlobal() === 'buena'">
+
+      <div class="min-summary-left">
+        <div class="min-summary-icon"
+             [class.text-red-500]="saludGlobal() === 'critica'"
+             [class.text-amber-500]="saludGlobal() === 'riesgo'"
+             [class.text-emerald-500]="saludGlobal() === 'buena'">
+          @if (saludGlobal() === 'critica') { 🔴 }
+          @else if (saludGlobal() === 'riesgo') { 🟡 }
+          @else { 🟢 }
+        </div>
+        <div>
+          <p class="min-summary-proceso">{{ analisis()?.nombreProceso }}</p>
+          <p class="min-summary-info">{{ analisis()?.totalTramitesAnalizados }} trámites analizados</p>
+        </div>
+      </div>
+
+      <div class="min-summary-stats">
+        <div class="min-stat red">
+          <span class="min-stat-num">{{ resumen().cuellos }}</span>
+          <span class="min-stat-label">Cuellos de botella</span>
+        </div>
+        <div class="min-stat-divider"></div>
+        <div class="min-stat amber">
+          <span class="min-stat-num">{{ resumen().precaucion }}</span>
+          <span class="min-stat-label">En riesgo</span>
+        </div>
+        <div class="min-stat-divider"></div>
+        <div class="min-stat emerald">
+          <span class="min-stat-num">{{ resumen().optimos }}</span>
+          <span class="min-stat-label">Óptimos</span>
+        </div>
+      </div>
+    </div>
+
+    @if (analisis()?.datosInsuficientes) {
+      <div class="mx-4 mb-2 bg-amber-50 border border-amber-200 text-amber-800 px-5 py-3 rounded-xl flex items-start gap-3 text-sm">
+        <svg class="w-5 h-5 shrink-0 mt-0.5 text-amber-500" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+        </svg>
+        <span class="font-medium">{{ analisis()?.mensajeAdvertencia }}</span>
+      </div>
+    }
+
+    <!-- Área principal: diagrama + panel métricas -->
+    <div class="min-main">
+
+      <!-- Diagrama con heatmap -->
+      <div id="tour-min-diagram" class="min-diagram-area">
+        <app-diagramador-bpmn
+          class="flex-1 w-full h-full"
+          [xmlInicial]="proceso()?.bpmnXml || ''"
+          [soloLectura]="true">
+        </app-diagramador-bpmn>
+
+        <!-- Leyenda térmica -->
+        <div id="tour-min-legend" class="min-legend-bar">
+          <span class="min-legend-title">Leyenda:</span>
+          <span class="min-legend-item-sm">
+            <span class="min-legend-dot bg-emerald-500"></span> Óptimo
+          </span>
+          <span class="min-legend-item-sm">
+            <span class="min-legend-dot bg-amber-400"></span> En riesgo
+          </span>
+          <span class="min-legend-item-sm">
+            <span class="min-legend-dot bg-red-500"></span> Cuello de botella
+          </span>
+        </div>
+      </div>
+
+      <!-- Panel de métricas -->
+      <div id="tour-min-panel" class="min-metrics-panel">
+
+        <div class="min-panel-header">
+          <div class="min-panel-icon">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+            </svg>
           </div>
-
-          <div class="flex justify-between items-start mb-4 pl-2">
-            <h3 class="font-bold text-slate-900 text-base leading-tight pr-3">{{ metrica.nombrePaso }}</h3>
-            <span [class]="getBadgeClass(metrica.colorSemaforo)" class="text-[10px] px-2.5 py-1 rounded-md font-black uppercase tracking-wider shrink-0 shadow-sm">
-              {{ metrica.colorSemaforo }}
-            </span>
+          <div>
+            <h2 class="min-panel-title">Rendimiento por Paso</h2>
+            <p class="min-panel-hint">Haz clic en un paso para centrarlo en el diagrama</p>
           </div>
+        </div>
 
-          <div class="grid grid-cols-2 gap-3 mb-4 pl-2">
-            <div class="bg-slate-50 p-3 rounded-xl border border-slate-100 flex flex-col justify-center">
-              <p class="text-[10px] uppercase tracking-widest text-slate-500 font-bold mb-1">Promedio Real</p>
-              <p class="text-2xl font-black text-slate-900 flex items-baseline gap-1">
-                {{ metrica.tiempoPromedioHoras }} <span class="text-xs font-bold text-slate-400 uppercase">hrs</span>
-              </p>
-            </div>
+        <div class="min-panel-list">
+          @for (metrica of analisis()?.metricasPorPaso; track metrica.pasoId) {
+            <button class="min-metric-card"
+                    [class.selected]="pasoResaltado() === metrica.pasoId"
+                    [class.rojo]="metrica.colorSemaforo === 'ROJO'"
+                    [class.amarillo]="metrica.colorSemaforo === 'AMARILLO'"
+                    [class.verde]="metrica.colorSemaforo === 'VERDE'"
+                    (click)="resaltarPaso(metrica)">
 
-            <div class="bg-slate-50 p-3 rounded-xl border border-slate-100 flex flex-col justify-center relative">
-              <div class="flex items-center justify-between mb-1">
-                <p class="text-[10px] uppercase tracking-widest text-slate-500 font-bold">SLA Objetivo</p>
-                <div *ngIf="metrica.slaAutoCalculado" class="group/tooltip relative">
-                  <svg class="w-3.5 h-3.5 text-indigo-500 cursor-help" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                  <span class="absolute bottom-full right-0 mb-2 w-48 p-2 bg-slate-800 text-white text-[10px] font-medium rounded-lg opacity-0 group-hover/tooltip:opacity-100 transition-opacity pointer-events-none shadow-xl text-center z-10">
-                    SLA calculado automáticamente usando la mediana histórica (No configurado en el flujo)
+              <!-- Barra lateral de color -->
+              <div class="min-card-bar"
+                   [class.bg-emerald-500]="metrica.colorSemaforo === 'VERDE'"
+                   [class.bg-amber-400]="metrica.colorSemaforo === 'AMARILLO'"
+                   [class.bg-red-500]="metrica.colorSemaforo === 'ROJO'">
+              </div>
+
+              <div class="min-card-body">
+                <!-- Header de la tarjeta -->
+                <div class="min-card-head">
+                  <h3 class="min-card-name">{{ metrica.nombrePaso }}</h3>
+                  <span class="min-card-badge" [class]="getBadgeClass(metrica.colorSemaforo)">
+                    {{ getEtiquetaSemaforo(metrica.colorSemaforo) }}
                   </span>
                 </div>
-              </div>
-              <p class="text-2xl font-bold text-slate-700 flex items-baseline gap-1">
-                {{ metrica.slaObjetivoHoras }} <span class="text-xs font-bold text-slate-400 uppercase">hrs</span>
-              </p>
-            </div>
-          </div>
 
-          <div class="flex justify-between items-center text-xs font-medium pl-2 pt-3 border-t border-slate-100">
-            <div class="flex items-center gap-1.5 text-slate-500">
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12"/></svg>
-              Mediana: <span class="font-bold text-slate-700">{{ metrica.tiempoMedianaHoras }}h</span>
-            </div>
-            
-            <div class="flex items-center gap-1.5 text-slate-500 bg-slate-50 px-2 py-1 rounded-md border border-slate-100">
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/></svg>
-              Desviación: 
-              <span class="font-black px-1 rounded-sm" 
-                    [ngClass]="metrica.desviacionHoras > 0 ? 'text-red-600 bg-red-50' : 'text-emerald-600 bg-emerald-50'">
-                {{ metrica.desviacionHoras > 0 ? '+' : '' }}{{ metrica.desviacionHoras }}h
-              </span>
-            </div>
-          </div>
-          
+                <!-- Métricas -->
+                <div class="min-card-metrics">
+                  <div class="min-metric-box">
+                    <p class="min-metric-label">Promedio real</p>
+                    <p class="min-metric-value">{{ metrica.tiempoPromedioHoras }}<span class="min-metric-unit">h</span></p>
+                  </div>
+                  <div class="min-metric-box">
+                    <p class="min-metric-label flex items-center gap-1">
+                      SLA objetivo
+                      @if (metrica.slaAutoCalculado) {
+                        <span title="Calculado automáticamente usando la mediana histórica" class="text-indigo-400 cursor-help">ⓘ</span>
+                      }
+                    </p>
+                    <p class="min-metric-value slate">{{ metrica.slaObjetivoHoras }}<span class="min-metric-unit">h</span></p>
+                  </div>
+                </div>
+
+                <!-- Fila inferior -->
+                <div class="min-card-footer">
+                  <span class="min-footer-stat">
+                    Mediana: <strong>{{ metrica.tiempoMedianaHoras }}h</strong>
+                  </span>
+                  <span class="min-footer-dev"
+                        [class.text-red-600]="metrica.desviacionHoras > 0"
+                        [class.bg-red-50]="metrica.desviacionHoras > 0"
+                        [class.text-emerald-600]="metrica.desviacionHoras <= 0"
+                        [class.bg-emerald-50]="metrica.desviacionHoras <= 0">
+                    {{ metrica.desviacionHoras > 0 ? '+' : '' }}{{ metrica.desviacionHoras }}h
+                  </span>
+                </div>
+
+                <!-- Recomendación accionable -->
+                @if (getRecomendacion(metrica); as rec) {
+                  <div class="min-recommendation"
+                       [class.rojo]="metrica.colorSemaforo === 'ROJO'"
+                       [class.amarillo]="metrica.colorSemaforo === 'AMARILLO'">
+                    <svg class="w-3.5 h-3.5 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+                    </svg>
+                    <span>{{ rec }}</span>
+                  </div>
+                }
+
+              </div>
+            </button>
+          }
         </div>
+
       </div>
     </div>
-  </div>
+  }
+
+  <!-- ══════════════ TOUR ═══════════════════════════════════════════════════ -->
+  @if (tourActive()) {
+    @if (tourRect(); as rect) {
+      <div class="min-tour-spotlight"
+           [style.top.px]="rect.top - 8"
+           [style.left.px]="rect.left - 8"
+           [style.width.px]="rect.width + 16"
+           [style.height.px]="rect.height + 16">
+      </div>
+    } @else {
+      <div class="min-tour-overlay"></div>
+    }
+
+    <dialog class="min-tour-card" open
+            (click)="$event.stopPropagation()"
+            (keydown)="$event.stopPropagation()"
+            aria-label="Guía interactiva">
+
+      <div class="min-tour-progress">
+        @for (p of tourPasos; track $index) {
+          <div class="min-tour-dot"
+               [class.active]="$index === tourStep()"
+               [class.done]="$index < tourStep()">
+          </div>
+        }
+      </div>
+
+      <div class="min-tour-content">
+        <div class="min-tour-ico">{{ tourPasoActual.icono }}</div>
+        <div class="min-tour-info">
+          <div class="min-tour-meta">Paso {{ tourStep() + 1 }} de {{ tourPasos.length }}</div>
+          <h3 class="min-tour-titulo">{{ tourPasoActual.titulo }}</h3>
+          <p class="min-tour-desc">{{ tourPasoActual.desc }}</p>
+        </div>
+      </div>
+
+      <div class="min-tour-footer">
+        <button class="min-tour-close" (click)="cerrarTour()">Salir de la guía</button>
+        <div class="min-tour-nav">
+          @if (tourStep() > 0) {
+            <button class="min-tour-prev" (click)="anteriorPasoTour()">
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" d="M15 19l-7-7 7-7"/>
+              </svg>
+              Anterior
+            </button>
+          }
+          <button class="min-tour-next" (click)="siguientePasoTour()">
+            {{ esUltimoPasoTour ? '¡Entendido!' : 'Siguiente' }}
+            @if (!esUltimoPasoTour) {
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" d="M9 5l7 7-7 7"/>
+              </svg>
+            }
+          </button>
+        </div>
+      </div>
+
+    </dialog>
+  }
+
 </div>
