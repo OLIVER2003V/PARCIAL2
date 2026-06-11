@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.TextStyle;
+import java.time.temporal.ChronoUnit;
 import java.time.temporal.WeekFields;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -36,7 +37,6 @@ public class ReporteNlpService {
 
     private final ObjectMapper mapper = new ObjectMapper();
 
-    // Paleta de colores cíclica para grupos
     private static final String[] COLORES = {
         "#6366f1","#22c55e","#f59e0b","#ef4444","#8b5cf6",
         "#06b6d4","#ec4899","#14b8a6","#f97316","#84cc16"
@@ -46,50 +46,49 @@ public class ReporteNlpService {
         "#06b6d420","#ec489920","#14b8a620","#f9731620","#84cc1620"
     };
 
+    private static final Set<String> AGRUPACIONES_TEMPORALES =
+        Set.of("mes", "semana", "dia", "anio", "trimestre");
+
     // =========================================================================
     //  ENTRY POINT
     // =========================================================================
 
     public ResultadoReporteNlpDTO consultar(String textoLibre) {
-        // 1. Llamar a Gemini para obtener el QueryIntent
         QueryIntentDTO intent;
         try {
             String jsonIntent = geminiService.interpretarConsultaNlp(textoLibre);
             intent = mapper.readValue(jsonIntent, QueryIntentDTO.class);
         } catch (Exception e) {
             return errorResult("No pude interpretar tu consulta. Intenta ser más específico.",
-                               "Ejemplo: 'Muéstrame los trámites aprobados en abril 2026 por departamento'");
+                               "Ejemplo: 'Trámites aprobados en abril 2026 por departamento'");
         }
 
         if (intent.getError() != null) {
-            return errorResult(intent.getSugerencia() != null ? intent.getSugerencia()
-                               : "No pude interpretar esa consulta.", null);
+            return errorResult(intent.getSugerencia() != null
+                ? intent.getSugerencia() : "No pude interpretar esa consulta.", null);
         }
 
-        // 2. Ejecutar la consulta según la colección
         String coleccion = intent.getColeccion() != null ? intent.getColeccion() : "tramites";
         return switch (coleccion) {
-            case "tramites"   -> ejecutarConsultaTramites(intent);
-            case "procesos"   -> ejecutarConsultaProcesos(intent);
-            case "usuarios"   -> ejecutarConsultaUsuarios(intent);
-            case "auditoria"  -> ejecutarConsultaAuditoria(intent);
-            default           -> ejecutarConsultaTramites(intent);
+            case "tramites"  -> ejecutarConsultaTramites(intent);
+            case "procesos"  -> ejecutarConsultaProcesos(intent);
+            case "usuarios"  -> ejecutarConsultaUsuarios(intent);
+            case "auditoria" -> ejecutarConsultaAuditoria(intent);
+            default          -> ejecutarConsultaTramites(intent);
         };
     }
 
     // =========================================================================
-    //  CONSULTA SOBRE TRAMITES (colección principal)
+    //  CONSULTA SOBRE TRÁMITES
     // =========================================================================
 
     private ResultadoReporteNlpDTO ejecutarConsultaTramites(QueryIntentDTO intent) {
-        // Construir filtro MongoDB
         Criteria criteria = construirCriteriaTramites(intent.getFiltros());
-        Query query = new Query(criteria);
-        List<Tramite> tramites = mongoTemplate.find(query, Tramite.class);
+        List<Tramite> tramites = mongoTemplate.find(new Query(criteria), Tramite.class);
 
         if (tramites.isEmpty()) {
             ResultadoReporteNlpDTO res = new ResultadoReporteNlpDTO();
-            res.setTitulo(intent.getTitulo() != null ? intent.getTitulo() : "Resultado");
+            res.setTitulo(intent.getTitulo() != null ? intent.getTitulo() : "Sin resultados");
             res.setInterpretacion("No se encontraron trámites con los criterios especificados.");
             res.setTotalRegistros(0);
             res.setEtiquetas(new ArrayList<>());
@@ -101,76 +100,73 @@ public class ReporteNlpService {
             return res;
         }
 
-        // Agrupar según la dimensión solicitada
         String agrupacion = intent.getAgrupacion() != null ? intent.getAgrupacion() : "estado";
-        Map<String, Long> grupos = agruparTramites(tramites, agrupacion);
+        String metrica    = intent.getMetrica()    != null ? intent.getMetrica()    : "count";
 
-        // Aplicar orden y límite
-        grupos = ordenarYLimitar(grupos, intent.getOrdenar(), intent.getLimite());
+        Map<String, Double> grupos;
+        if ("promedioDias".equals(metrica)) {
+            grupos = calcularPromedioLTPorGrupo(tramites, agrupacion);
+        } else {
+            grupos = toDouble(agruparTramites(tramites, agrupacion));
+        }
 
-        // Construir resultado
-        return construirResultado(intent, tramites.size(), grupos);
+        grupos = ordenarYLimitar(grupos, agrupacion, intent.getOrdenar(), intent.getLimite());
+        return construirResultado(intent, tramites.size(), grupos, metrica);
     }
 
     private Criteria construirCriteriaTramites(FiltrosNlpDTO f) {
-        Criteria c = new Criteria();
-        List<Criteria> condiciones = new ArrayList<>();
+        List<Criteria> conds = new ArrayList<>();
 
-        // Default de fechas: último año completo si Gemini no especificó ninguna
         LocalDateTime desdeDefault = LocalDateTime.now().minusYears(1);
         LocalDateTime hastaDefault = LocalDateTime.now();
 
         if (f != null) {
-            // Rango de fechas
             try {
                 LocalDateTime desde = (f.getFechaDesde() != null && !f.getFechaDesde().isBlank())
-                    ? LocalDate.parse(f.getFechaDesde()).atStartOfDay()
-                    : desdeDefault;
+                    ? LocalDate.parse(f.getFechaDesde()).atStartOfDay() : desdeDefault;
                 LocalDateTime hasta = (f.getFechaHasta() != null && !f.getFechaHasta().isBlank())
-                    ? LocalDate.parse(f.getFechaHasta()).atTime(23, 59, 59)
-                    : hastaDefault;
-                condiciones.add(Criteria.where("fechaCreacion").gte(desde).lte(hasta));
+                    ? LocalDate.parse(f.getFechaHasta()).atTime(23, 59, 59) : hastaDefault;
+                conds.add(Criteria.where("fechaCreacion").gte(desde).lte(hasta));
             } catch (Exception ignored) {
-                condiciones.add(Criteria.where("fechaCreacion").gte(desdeDefault).lte(hastaDefault));
+                conds.add(Criteria.where("fechaCreacion").gte(desdeDefault).lte(hastaDefault));
             }
 
-            // Estado
             if (f.getEstado() != null && !f.getEstado().isBlank()) {
                 try {
                     EstadoTramite estado = EstadoTramite.valueOf(f.getEstado().toUpperCase());
-                    condiciones.add(Criteria.where("estadoSemaforo").is(estado));
-                } catch (Exception ignored) { }
+                    conds.add(Criteria.where("estadoSemaforo").is(estado));
+                } catch (Exception ignored) {}
             }
 
-            // Departamento (resolución por nombre)
             if (f.getDepartamentoNombre() != null && !f.getDepartamentoNombre().isBlank()) {
-                List<String> deptoIds = departamentoRepository.findAll().stream()
+                List<String> ids = departamentoRepository.findAll().stream()
                     .filter(d -> d.getNombre() != null &&
-                                 d.getNombre().toLowerCase().contains(f.getDepartamentoNombre().toLowerCase()))
+                                 d.getNombre().toLowerCase()
+                                   .contains(f.getDepartamentoNombre().toLowerCase()))
                     .map(d -> d.getId())
                     .collect(Collectors.toList());
-                if (!deptoIds.isEmpty()) {
-                    condiciones.add(Criteria.where("departamentoActualId").in(deptoIds));
-                }
+                if (!ids.isEmpty()) conds.add(Criteria.where("departamentoActualId").in(ids));
             }
 
-            // Proceso (resolución por nombre)
             if (f.getProcesoNombre() != null && !f.getProcesoNombre().isBlank()) {
-                condiciones.add(Criteria.where("nombreProceso")
-                    .regex(f.getProcesoNombre(), "i"));
+                conds.add(Criteria.where("nombreProceso").regex(f.getProcesoNombre(), "i"));
             }
 
-            // Usuario/cliente
             if (f.getUsuarioUsername() != null && !f.getUsuarioUsername().isBlank()) {
-                condiciones.add(Criteria.where("clienteId").is(f.getUsuarioUsername()));
+                conds.add(Criteria.where("clienteId").is(f.getUsuarioUsername()));
             }
+        } else {
+            conds.add(Criteria.where("fechaCreacion").gte(desdeDefault).lte(hastaDefault));
         }
 
-        if (!condiciones.isEmpty()) {
-            c = new Criteria().andOperator(condiciones.toArray(new Criteria[0]));
-        }
-        return c;
+        return conds.isEmpty()
+            ? new Criteria()
+            : new Criteria().andOperator(conds.toArray(new Criteria[0]));
     }
+
+    // =========================================================================
+    //  AGRUPACIONES (count)
+    // =========================================================================
 
     private Map<String, Long> agruparTramites(List<Tramite> tramites, String agrupacion) {
         return switch (agrupacion) {
@@ -179,11 +175,12 @@ public class ReporteNlpService {
             case "mes"          -> agruparPorMes(tramites);
             case "semana"       -> agruparPorSemana(tramites);
             case "dia"          -> agruparPorDia(tramites);
-            case "usuario"      -> tramites.stream()
-                .collect(Collectors.groupingBy(
-                    t -> t.getClienteId() != null ? t.getClienteId() : "desconocido",
-                    Collectors.counting()));
-            default -> agruparPorEstado(tramites);
+            case "anio"         -> agruparPorAnio(tramites);
+            case "trimestre"    -> agruparPorTrimestre(tramites);
+            case "usuario"      -> tramites.stream().collect(Collectors.groupingBy(
+                t -> t.getClienteId() != null ? t.getClienteId() : "desconocido",
+                Collectors.counting()));
+            default             -> agruparPorEstado(tramites);
         };
     }
 
@@ -191,83 +188,162 @@ public class ReporteNlpService {
         Map<String, Long> mapa = new LinkedHashMap<>();
         mapa.put("En revisión", tramites.stream()
             .filter(t -> t.getEstadoSemaforo() != null &&
-                         t.getEstadoSemaforo().name().equals("EN_REVISION"))
-            .count());
+                         "EN_REVISION".equals(t.getEstadoSemaforo().name())).count());
         mapa.put("Aprobado", tramites.stream()
             .filter(t -> t.getEstadoSemaforo() != null &&
-                         t.getEstadoSemaforo().name().equals("APROBADO"))
-            .count());
+                         "APROBADO".equals(t.getEstadoSemaforo().name())).count());
         mapa.put("Rechazado", tramites.stream()
             .filter(t -> t.getEstadoSemaforo() != null &&
-                         t.getEstadoSemaforo().name().equals("RECHAZADO"))
-            .count());
+                         "RECHAZADO".equals(t.getEstadoSemaforo().name())).count());
         mapa.entrySet().removeIf(e -> e.getValue() == 0);
         return mapa;
     }
 
     private Map<String, Long> agruparPorDepartamento(List<Tramite> tramites) {
-        // Caché de IDs → nombres
-        Map<String, String> nombresPorId = new HashMap<>();
-        departamentoRepository.findAll().forEach(d -> nombresPorId.put(d.getId(), d.getNombre()));
-
+        Map<String, String> nombres = cargarNombresDepartamento();
         return tramites.stream().collect(Collectors.groupingBy(
             t -> {
-                String id = t.getDepartamentoActualId() != null ? t.getDepartamentoActualId().toString() : "";
-                return nombresPorId.getOrDefault(id, id.isBlank() ? "Sin departamento" : id);
+                String id = t.getDepartamentoActualId() != null ? t.getDepartamentoActualId() : "";
+                return nombres.getOrDefault(id, id.isBlank() ? "Sin departamento" : id);
             },
-            LinkedHashMap::new,
-            Collectors.counting()
-        ));
+            LinkedHashMap::new, Collectors.counting()));
     }
 
     private Map<String, Long> agruparPorProceso(List<Tramite> tramites) {
         return tramites.stream().collect(Collectors.groupingBy(
             t -> t.getNombreProceso() != null && !t.getNombreProceso().isBlank()
                  ? t.getNombreProceso() : "Sin proceso",
-            LinkedHashMap::new,
-            Collectors.counting()
-        ));
+            LinkedHashMap::new, Collectors.counting()));
     }
 
     private Map<String, Long> agruparPorMes(List<Tramite> tramites) {
         Map<String, Long> mapa = new TreeMap<>();
-        tramites.stream()
-            .filter(t -> t.getFechaCreacion() != null)
-            .forEach(t -> {
-                String clave = t.getFechaCreacion().getYear() + "-"
-                    + String.format("%02d", t.getFechaCreacion().getMonthValue()) + " "
-                    + t.getFechaCreacion().getMonth().getDisplayName(TextStyle.SHORT, new Locale("es"));
-                mapa.merge(clave, 1L, Long::sum);
-            });
+        tramites.stream().filter(t -> t.getFechaCreacion() != null).forEach(t -> {
+            String clave = t.getFechaCreacion().getYear() + "-"
+                + String.format("%02d", t.getFechaCreacion().getMonthValue()) + " "
+                + t.getFechaCreacion().getMonth().getDisplayName(TextStyle.SHORT, new Locale("es"));
+            mapa.merge(clave, 1L, Long::sum);
+        });
         return mapa;
     }
 
     private Map<String, Long> agruparPorSemana(List<Tramite> tramites) {
         Map<String, Long> mapa = new TreeMap<>();
-        tramites.stream()
-            .filter(t -> t.getFechaCreacion() != null)
-            .forEach(t -> {
-                java.time.LocalDate fecha = t.getFechaCreacion().toLocalDate();
-                int semana = fecha.get(WeekFields.ISO.weekOfWeekBasedYear());
-                int anio   = fecha.get(WeekFields.ISO.weekBasedYear());
-                String clave = anio + " Sem " + String.format("%02d", semana);
-                mapa.merge(clave, 1L, Long::sum);
-            });
+        tramites.stream().filter(t -> t.getFechaCreacion() != null).forEach(t -> {
+            LocalDate f = t.getFechaCreacion().toLocalDate();
+            int sem  = f.get(WeekFields.ISO.weekOfWeekBasedYear());
+            int anio = f.get(WeekFields.ISO.weekBasedYear());
+            mapa.merge(anio + " Sem " + String.format("%02d", sem), 1L, Long::sum);
+        });
         return mapa;
     }
 
     private Map<String, Long> agruparPorDia(List<Tramite> tramites) {
         Map<String, Long> mapa = new TreeMap<>();
-        tramites.stream()
-            .filter(t -> t.getFechaCreacion() != null)
-            .forEach(t -> {
-                String clave = String.format("%04d-%02d-%02d",
+        tramites.stream().filter(t -> t.getFechaCreacion() != null).forEach(t -> {
+            String clave = String.format("%04d-%02d-%02d",
+                t.getFechaCreacion().getYear(),
+                t.getFechaCreacion().getMonthValue(),
+                t.getFechaCreacion().getDayOfMonth());
+            mapa.merge(clave, 1L, Long::sum);
+        });
+        return mapa;
+    }
+
+    private Map<String, Long> agruparPorAnio(List<Tramite> tramites) {
+        Map<String, Long> mapa = new TreeMap<>();
+        tramites.stream().filter(t -> t.getFechaCreacion() != null).forEach(t ->
+            mapa.merge(String.valueOf(t.getFechaCreacion().getYear()), 1L, Long::sum));
+        return mapa;
+    }
+
+    private Map<String, Long> agruparPorTrimestre(List<Tramite> tramites) {
+        Map<String, Long> mapa = new TreeMap<>();
+        tramites.stream().filter(t -> t.getFechaCreacion() != null).forEach(t -> {
+            int trim = (t.getFechaCreacion().getMonthValue() - 1) / 3 + 1;
+            mapa.merge(t.getFechaCreacion().getYear() + "-T" + trim, 1L, Long::sum);
+        });
+        return mapa;
+    }
+
+    // =========================================================================
+    //  MÉTRICA: promedioDias (tiempo medio de resolución por grupo)
+    // =========================================================================
+
+    private Map<String, Double> calcularPromedioLTPorGrupo(List<Tramite> tramites, String agrupacion) {
+        Map<String, String> nombresDep = cargarNombresDepartamento();
+        Map<String, List<Double>> tiemposPorGrupo = new TreeMap<>();
+
+        for (Tramite t : tramites) {
+            if (t.getFechaCreacion() == null || t.getFechaUltimaActualizacion() == null) continue;
+            double horas = ChronoUnit.MINUTES.between(
+                t.getFechaCreacion(), t.getFechaUltimaActualizacion()) / 60.0;
+            if (horas < 0) continue;
+            String clave = obtenerClaveGrupo(t, agrupacion, nombresDep);
+            tiemposPorGrupo.computeIfAbsent(clave, k -> new ArrayList<>()).add(horas / 24.0);
+        }
+
+        Map<String, Double> resultado = new LinkedHashMap<>();
+        tiemposPorGrupo.forEach((k, lista) -> {
+            double avg = lista.stream().mapToDouble(Double::doubleValue).average().orElse(0);
+            resultado.put(k, Math.round(avg * 10) / 10.0);
+        });
+        return resultado;
+    }
+
+    private String obtenerClaveGrupo(Tramite t, String agrupacion, Map<String, String> nombresDep) {
+        return switch (agrupacion) {
+            case "departamento" -> {
+                String id = t.getDepartamentoActualId() != null ? t.getDepartamentoActualId() : "";
+                yield nombresDep.getOrDefault(id, id.isBlank() ? "Sin departamento" : id);
+            }
+            case "proceso" ->
+                t.getNombreProceso() != null && !t.getNombreProceso().isBlank()
+                    ? t.getNombreProceso() : "Sin proceso";
+            case "mes" -> {
+                if (t.getFechaCreacion() == null) yield "Desconocido";
+                yield t.getFechaCreacion().getYear() + "-"
+                    + String.format("%02d", t.getFechaCreacion().getMonthValue()) + " "
+                    + t.getFechaCreacion().getMonth().getDisplayName(TextStyle.SHORT, new Locale("es"));
+            }
+            case "semana" -> {
+                if (t.getFechaCreacion() == null) yield "Desconocido";
+                LocalDate f = t.getFechaCreacion().toLocalDate();
+                yield f.get(WeekFields.ISO.weekBasedYear()) + " Sem "
+                    + String.format("%02d", f.get(WeekFields.ISO.weekOfWeekBasedYear()));
+            }
+            case "dia" -> {
+                if (t.getFechaCreacion() == null) yield "Desconocido";
+                yield String.format("%04d-%02d-%02d",
                     t.getFechaCreacion().getYear(),
                     t.getFechaCreacion().getMonthValue(),
                     t.getFechaCreacion().getDayOfMonth());
-                mapa.merge(clave, 1L, Long::sum);
-            });
-        return mapa;
+            }
+            case "anio" ->
+                t.getFechaCreacion() != null
+                    ? String.valueOf(t.getFechaCreacion().getYear()) : "Desconocido";
+            case "trimestre" -> {
+                if (t.getFechaCreacion() == null) yield "Desconocido";
+                int trim = (t.getFechaCreacion().getMonthValue() - 1) / 3 + 1;
+                yield t.getFechaCreacion().getYear() + "-T" + trim;
+            }
+            case "usuario" -> t.getClienteId() != null ? t.getClienteId() : "desconocido";
+            default -> {
+                if (t.getEstadoSemaforo() == null) yield "Desconocido";
+                yield switch (t.getEstadoSemaforo().name()) {
+                    case "EN_REVISION" -> "En revisión";
+                    case "APROBADO"    -> "Aprobado";
+                    case "RECHAZADO"   -> "Rechazado";
+                    default            -> t.getEstadoSemaforo().name();
+                };
+            }
+        };
+    }
+
+    private Map<String, String> cargarNombresDepartamento() {
+        Map<String, String> m = new HashMap<>();
+        departamentoRepository.findAll().forEach(d -> m.put(d.getId(), d.getNombre()));
+        return m;
     }
 
     // =========================================================================
@@ -276,12 +352,18 @@ public class ReporteNlpService {
 
     private ResultadoReporteNlpDTO ejecutarConsultaProcesos(QueryIntentDTO intent) {
         List<com.bpms.core.models.ProcesoDefinicion> procesos = procesoRepository.findAll();
-        Map<String, Long> grupos = new LinkedHashMap<>();
-        grupos.put("Activos",   procesos.stream().filter(p -> p.isActivo()).count());
-        grupos.put("Inactivos", procesos.stream().filter(p -> !p.isActivo()).count());
-        if (intent.getTitulo() == null) intent.setTitulo("Procesos por estado");
+
+        Map<String, Long> conteo = new LinkedHashMap<>();
+        conteo.put("Activos",   procesos.stream().filter(p -> p.isActivo()).count());
+        conteo.put("Inactivos", procesos.stream().filter(p -> !p.isActivo()).count());
+        conteo.entrySet().removeIf(e -> e.getValue() == 0);
+
+        if (intent.getTitulo() == null)          intent.setTitulo("Procesos por estado");
         if (intent.getTipoVisualizacion() == null) intent.setTipoVisualizacion("pie");
-        return construirResultado(intent, procesos.size(), grupos);
+
+        Map<String, Double> grupos = ordenarYLimitar(
+            toDouble(conteo), "estado", intent.getOrdenar(), intent.getLimite());
+        return construirResultado(intent, procesos.size(), grupos, "count");
     }
 
     // =========================================================================
@@ -292,28 +374,26 @@ public class ReporteNlpService {
         List<com.bpms.core.models.Usuario> usuarios = usuarioRepository.findAll();
         String agrupacion = intent.getAgrupacion() != null ? intent.getAgrupacion() : "rol";
 
-        Map<String, Long> grupos;
+        Map<String, Long> conteo;
         if ("departamento".equals(agrupacion)) {
-            Map<String, String> nombresPorId = new HashMap<>();
-            departamentoRepository.findAll().forEach(d -> nombresPorId.put(d.getId(), d.getNombre()));
-            grupos = usuarios.stream().collect(Collectors.groupingBy(
+            Map<String, String> nombresDep = cargarNombresDepartamento();
+            conteo = usuarios.stream().collect(Collectors.groupingBy(
                 u -> {
                     String id = u.getDepartamentoId() != null ? u.getDepartamentoId() : "";
-                    return nombresPorId.getOrDefault(id, id.isBlank() ? "Sin departamento" : id);
+                    return nombresDep.getOrDefault(id, id.isBlank() ? "Sin departamento" : id);
                 },
-                LinkedHashMap::new, Collectors.counting()
-            ));
+                LinkedHashMap::new, Collectors.counting()));
         } else {
-            grupos = usuarios.stream().collect(Collectors.groupingBy(
+            conteo = usuarios.stream().collect(Collectors.groupingBy(
                 u -> u.getRol() != null ? u.getRol().name() : "Sin rol",
-                LinkedHashMap::new, Collectors.counting()
-            ));
+                LinkedHashMap::new, Collectors.counting()));
         }
 
-        grupos = ordenarYLimitar(grupos, intent.getOrdenar(), intent.getLimite());
-        if (intent.getTitulo() == null) intent.setTitulo("Usuarios por " + agrupacion);
+        Map<String, Double> grupos = ordenarYLimitar(
+            toDouble(conteo), agrupacion, intent.getOrdenar(), intent.getLimite());
+        if (intent.getTitulo() == null)            intent.setTitulo("Usuarios por " + agrupacion);
         if (intent.getTipoVisualizacion() == null) intent.setTipoVisualizacion("doughnut");
-        return construirResultado(intent, usuarios.size(), grupos);
+        return construirResultado(intent, usuarios.size(), grupos, "count");
     }
 
     // =========================================================================
@@ -337,34 +417,44 @@ public class ReporteNlpService {
             mongoTemplate.find(new Query(criteria), com.bpms.core.models.AuditLog.class);
 
         String agrupacion = intent.getAgrupacion() != null ? intent.getAgrupacion() : "accion";
-        Map<String, Long> grupos;
+        Map<String, Long> conteo;
 
         if ("mes".equals(agrupacion)) {
-            grupos = logs.stream()
-                .filter(l -> l.getFechaTimestamp() != null)
+            conteo = logs.stream().filter(l -> l.getFechaTimestamp() != null)
                 .collect(Collectors.groupingBy(
                     l -> l.getFechaTimestamp().getYear() + "-"
                          + String.format("%02d", l.getFechaTimestamp().getMonthValue()) + " "
-                         + l.getFechaTimestamp().getMonth().getDisplayName(TextStyle.SHORT, new Locale("es")),
-                    TreeMap::new, Collectors.counting()
-                ));
+                         + l.getFechaTimestamp().getMonth()
+                             .getDisplayName(TextStyle.SHORT, new Locale("es")),
+                    TreeMap::new, Collectors.counting()));
+        } else if ("anio".equals(agrupacion)) {
+            conteo = logs.stream().filter(l -> l.getFechaTimestamp() != null)
+                .collect(Collectors.groupingBy(
+                    l -> String.valueOf(l.getFechaTimestamp().getYear()),
+                    TreeMap::new, Collectors.counting()));
+        } else if ("trimestre".equals(agrupacion)) {
+            conteo = logs.stream().filter(l -> l.getFechaTimestamp() != null)
+                .collect(Collectors.groupingBy(
+                    l -> {
+                        int trim = (l.getFechaTimestamp().getMonthValue() - 1) / 3 + 1;
+                        return l.getFechaTimestamp().getYear() + "-T" + trim;
+                    },
+                    TreeMap::new, Collectors.counting()));
         } else if ("usuario".equals(agrupacion)) {
-            grupos = logs.stream().collect(Collectors.groupingBy(
+            conteo = logs.stream().collect(Collectors.groupingBy(
                 l -> l.getUsuarioId() != null ? l.getUsuarioId() : "sistema",
-                LinkedHashMap::new, Collectors.counting()
-            ));
+                LinkedHashMap::new, Collectors.counting()));
         } else {
-            // default: agrupar por accion
-            grupos = logs.stream().collect(Collectors.groupingBy(
+            conteo = logs.stream().collect(Collectors.groupingBy(
                 l -> l.getAccion() != null ? l.getAccion() : "DESCONOCIDO",
-                LinkedHashMap::new, Collectors.counting()
-            ));
+                LinkedHashMap::new, Collectors.counting()));
         }
 
-        grupos = ordenarYLimitar(grupos, intent.getOrdenar(), intent.getLimite());
-        if (intent.getTitulo() == null) intent.setTitulo("Actividad de auditoría");
+        Map<String, Double> grupos = ordenarYLimitar(
+            toDouble(conteo), agrupacion, intent.getOrdenar(), intent.getLimite());
+        if (intent.getTitulo() == null)            intent.setTitulo("Actividad de auditoría");
         if (intent.getTipoVisualizacion() == null) intent.setTipoVisualizacion("bar");
-        return construirResultado(intent, logs.size(), grupos);
+        return construirResultado(intent, logs.size(), grupos, "count");
     }
 
     // =========================================================================
@@ -372,7 +462,7 @@ public class ReporteNlpService {
     // =========================================================================
 
     private ResultadoReporteNlpDTO construirResultado(QueryIntentDTO intent, long total,
-                                                       Map<String, Long> grupos) {
+                                                       Map<String, Double> grupos, String metrica) {
         ResultadoReporteNlpDTO res = new ResultadoReporteNlpDTO();
         res.setTitulo(intent.getTitulo() != null ? intent.getTitulo() : "Reporte");
         res.setTotalRegistros(total);
@@ -381,11 +471,9 @@ public class ReporteNlpService {
         res.setExportable(true);
 
         List<String> etiquetas = new ArrayList<>(grupos.keySet());
-        List<Number> valores   = new ArrayList<>(grupos.values());
-
+        List<Number>  valores  = new ArrayList<>(grupos.values());
         res.setEtiquetas(etiquetas);
 
-        // Colores: estado tiene colores semánticos, el resto usa la paleta
         List<String> colores     = new ArrayList<>();
         List<String> colorsFondo = new ArrayList<>();
         for (int i = 0; i < etiquetas.size(); i++) {
@@ -394,14 +482,13 @@ public class ReporteNlpService {
             colorsFondo.add(par[1]);
         }
 
-        // Para pie/doughnut: una sola serie con N colores
-        boolean esCircular = "pie".equals(res.getTipoVisualizacion()) ||
-                             "doughnut".equals(res.getTipoVisualizacion());
+        boolean esCircular = "pie".equals(res.getTipoVisualizacion())
+            || "doughnut".equals(res.getTipoVisualizacion());
 
         SerieDTO serie = new SerieDTO();
-        serie.setNombre(intent.getAgrupacion() != null ? intent.getAgrupacion() : "Total");
+        serie.setNombre("promedioDias".equals(metrica) ? "Días promedio"
+            : intent.getAgrupacion() != null ? intent.getAgrupacion() : "Total");
         serie.setValores(valores);
-
         if (esCircular) {
             serie.setColores(colores);
             serie.setColoresFondo(colorsFondo);
@@ -409,21 +496,23 @@ public class ReporteNlpService {
             serie.setColor(!colores.isEmpty() ? colores.get(0) : COLORES[0]);
             serie.setColorFondo(!colorsFondo.isEmpty() ? colorsFondo.get(0) : COLORES_FONDO[0]);
         }
-
         res.setSeries(List.of(serie));
 
-        // Tabla paralela (siempre útil)
         String colNombre = nombreColumnaAgrupacion(intent.getAgrupacion());
-        res.setColumnas(List.of(colNombre, "Cantidad"));
+        String colValor  = "promedioDias".equals(metrica) ? "Días promedio" : "Cantidad";
+        res.setColumnas(List.of(colNombre, colValor));
+
         List<List<Object>> filas = new ArrayList<>();
         for (int i = 0; i < etiquetas.size(); i++) {
-            filas.add(List.of(etiquetas.get(i), valores.get(i)));
+            Number val = valores.get(i);
+            Object display = "promedioDias".equals(metrica)
+                ? String.format("%.1f", val.doubleValue())
+                : val.longValue();
+            filas.add(List.of(etiquetas.get(i), display));
         }
         res.setFilas(filas);
 
-        // Interpretación legible
-        res.setInterpretacion(generarInterpretacion(intent, total, grupos));
-
+        res.setInterpretacion(generarInterpretacion(intent, total, grupos, metrica));
         return res;
     }
 
@@ -431,20 +520,38 @@ public class ReporteNlpService {
     //  HELPERS
     // =========================================================================
 
-    private Map<String, Long> ordenarYLimitar(Map<String, Long> grupos, String orden, Integer limite) {
-        int max = (limite != null && limite > 0) ? Math.min(limite, 50) : 15;
-        boolean desc = !"asc".equalsIgnoreCase(orden);
+    /**
+     * Ordena y limita el mapa de resultados.
+     * Para agrupaciones temporales sin límite explícito preserva el orden cronológico natural.
+     * Para agrupaciones categóricas (o cuando hay límite+orden), ordena por valor.
+     */
+    private Map<String, Double> ordenarYLimitar(Map<String, Double> grupos, String agrupacion,
+                                                  String orden, Integer limite) {
+        int max = (limite != null && limite > 0) ? Math.min(limite, 50) : 50;
+        boolean esTemporal  = AGRUPACIONES_TEMPORALES.contains(agrupacion);
+        boolean sortByValue = !esTemporal || (limite != null && orden != null);
 
+        if (!sortByValue) {
+            return grupos.entrySet().stream()
+                .limit(max)
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
+                    (a, b) -> a, LinkedHashMap::new));
+        }
+
+        boolean desc = !"asc".equalsIgnoreCase(orden);
         return grupos.entrySet().stream()
             .sorted(desc
-                ? Map.Entry.<String, Long>comparingByValue().reversed()
+                ? Map.Entry.<String, Double>comparingByValue().reversed()
                 : Map.Entry.comparingByValue())
             .limit(max)
-            .collect(Collectors.toMap(
-                Map.Entry::getKey,
-                Map.Entry::getValue,
-                (a, b) -> a,
-                LinkedHashMap::new));
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
+                (a, b) -> a, LinkedHashMap::new));
+    }
+
+    private Map<String, Double> toDouble(Map<String, Long> m) {
+        Map<String, Double> r = new LinkedHashMap<>();
+        m.forEach((k, v) -> r.put(k, v.doubleValue()));
+        return r;
     }
 
     private String[] colorParaEtiqueta(String etiqueta, int idx) {
@@ -467,21 +574,39 @@ public class ReporteNlpService {
             case "mes"          -> "Mes";
             case "semana"       -> "Semana";
             case "dia"          -> "Fecha";
+            case "anio"         -> "Año";
+            case "trimestre"    -> "Trimestre";
             case "usuario"      -> "Usuario";
             default             -> "Estado";
         };
     }
 
-    private String generarInterpretacion(QueryIntentDTO intent, long total, Map<String, Long> grupos) {
+    private String generarInterpretacion(QueryIntentDTO intent, long total,
+                                          Map<String, Double> grupos, String metrica) {
         String dim = nombreColumnaAgrupacion(intent.getAgrupacion()).toLowerCase();
-        String top = grupos.entrySet().stream()
-            .max(Map.Entry.comparingByValue())
-            .map(e -> "\"" + e.getKey() + "\" con " + e.getValue() + " registros")
-            .orElse("ninguno");
+        String plural = dim.equals("estado") ? "estados" : dim + "s";
+        boolean esDias = "promedioDias".equals(metrica);
 
-        return String.format(
-            "Se encontraron %d registros en total, distribuidos en %d %s. El más alto es %s.",
-            total, grupos.size(), dim.equals("estado") ? "estados" : dim + "s", top);
+        Optional<Map.Entry<String, Double>> mayor = grupos.entrySet().stream()
+            .max(Map.Entry.comparingByValue());
+        Optional<Map.Entry<String, Double>> menor = grupos.entrySet().stream()
+            .min(Map.Entry.comparingByValue());
+
+        StringBuilder sb = new StringBuilder();
+        if (esDias) {
+            sb.append(String.format("Se analizaron %d registros distribuidos en %d %s. ",
+                total, grupos.size(), plural));
+            mayor.ifPresent(e -> sb.append(String.format(
+                "El mayor tiempo promedio es \"%s\" con %.1f días. ", e.getKey(), e.getValue())));
+            menor.ifPresent(e -> sb.append(String.format(
+                "El menor es \"%s\" con %.1f días.", e.getKey(), e.getValue())));
+        } else {
+            sb.append(String.format("Se encontraron %d registros distribuidos en %d %s. ",
+                total, grupos.size(), plural));
+            mayor.ifPresent(e -> sb.append(String.format(
+                "El más alto es \"%s\" con %d registros.", e.getKey(), e.getValue().longValue())));
+        }
+        return sb.toString().trim();
     }
 
     private ResultadoReporteNlpDTO errorResult(String mensaje, String detalle) {

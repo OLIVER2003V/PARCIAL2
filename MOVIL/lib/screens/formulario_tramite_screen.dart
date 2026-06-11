@@ -19,67 +19,15 @@ class _FormularioTramiteScreenState extends State<FormularioTramiteScreen> {
   final TramiteService _tramiteService = TramiteService();
 
   final Map<String, dynamic> _valoresFormulario = {};
-  final TextEditingController _descripcionController = TextEditingController();
 
   bool _isSubmitting = false;
   String? _uploadingFileId;
   List<CampoFormulario> _campos = [];
 
-  String get _draftKey => 'draft_${widget.proceso.codigo}';
-
   @override
   void initState() {
     super.initState();
     _extraerCamposDelPasoInicial();
-    _cargarBorrador();
-  }
-
-  // ── Borrador ──────────────────────────────────────────────────────────────
-  Future<void> _cargarBorrador() async {
-    final prefs = await SharedPreferences.getInstance();
-    final desc = prefs.getString('${_draftKey}_desc') ?? '';
-    if (desc.isEmpty) return;
-
-    if (!mounted) return;
-    final continuar = await showDialog<bool>(
-      context: context,
-      builder: (_) => AlertDialog(
-        backgroundColor: AppTheme.brandSurface,
-        title: const Text('Borrador guardado',
-            style: TextStyle(color: Colors.white)),
-        content: const Text(
-            '¿Deseas continuar con el borrador guardado anteriormente?',
-            style: TextStyle(color: AppTheme.brandMuted)),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Descartar',
-                style: TextStyle(color: AppTheme.brandMuted)),
-          ),
-          ElevatedButton(
-            style: AppTheme.botonPrimario(),
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Continuar'),
-          ),
-        ],
-      ),
-    );
-
-    if (continuar == true) {
-      setState(() => _descripcionController.text = desc);
-    } else {
-      await _eliminarBorrador();
-    }
-  }
-
-  Future<void> _guardarBorrador() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('${_draftKey}_desc', _descripcionController.text);
-  }
-
-  Future<void> _eliminarBorrador() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('${_draftKey}_desc');
   }
 
   void _extraerCamposDelPasoInicial() {
@@ -94,68 +42,63 @@ class _FormularioTramiteScreenState extends State<FormularioTramiteScreen> {
     }
   }
 
-  static const _extImagen = {'.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp'};
-  static const _extArchivo = {
-    '.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx',
-    '.txt', '.csv', '.zip', '.rar', '.odt', '.ods',
-  };
+  // Solo tipos que acepta el backend
+  static const _extImagen = {'.jpg', '.jpeg', '.png', '.gif', '.webp', '.heic', '.heif'};
+  static const _extArchivo = {'.pdf', '.doc', '.docx', '.xls', '.xlsx'};
 
   Future<void> _seleccionarYSubirArchivo(String campoId, String tipo) async {
     FilePickerResult? result = await FilePicker.pickFiles(
       type: tipo == 'imagen' ? FileType.image : FileType.any,
     );
 
-    if (result != null) {
-      File file = File(result.files.single.path!);
+    if (result == null) return;
 
-      // Validación de extensión
-      final nombre = result.files.single.name.toLowerCase();
-      final ext = '.${nombre.split('.').last}';
-      final extensionesPermitidas = tipo == 'imagen' ? _extImagen : _extArchivo;
-      if (!extensionesPermitidas.contains(ext)) {
-        if (!mounted) return;
-        final permitidas = extensionesPermitidas.join(', ');
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Formato no permitido ($ext). Usa: $permitidas'),
-            backgroundColor: Colors.redAccent,
-          ),
-        );
-        return;
-      }
+    final path = result.files.single.path;
+    if (path == null) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No se pudo acceder al archivo.'), backgroundColor: Colors.redAccent),
+      );
+      return;
+    }
 
-      // Validación de tamaño (límite 10 MB)
-      final sizeInMb = file.lengthSync() / (1024 * 1024);
-      if (sizeInMb > 10.0) {
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('El archivo excede el límite de 10 MB. Sube uno más ligero.'),
-            backgroundColor: Colors.redAccent,
-          ),
-        );
-        return;
-      }
+    // Validación rápida de extensión antes de hacer la petición
+    final nombre = result.files.single.name.toLowerCase();
+    final ext = nombre.contains('.') ? '.${nombre.split('.').last}' : '';
+    final extensionesPermitidas = tipo == 'imagen' ? _extImagen : _extArchivo;
+    if (!extensionesPermitidas.contains(ext)) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Formato no permitido ($ext). Usa: ${extensionesPermitidas.join(', ')}'),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+      return;
+    }
 
-      // Si pasa la validación, lo subimos
-      setState(() => _uploadingFileId = campoId);
-      final metadata = await _tramiteService.subirArchivo(file);
-      setState(() => _uploadingFileId = null);
+    setState(() => _uploadingFileId = campoId);
+    final metadata = await _tramiteService.subirArchivo(File(path));
+    setState(() => _uploadingFileId = null);
 
-      if (metadata != null) {
-        setState(() {
-          _valoresFormulario[campoId] = {
-            'nombreOriginal': metadata['nombreOriginal'],
-            'url': metadata['url'],
-            'tamano': metadata['tamano']
-          };
-        });
-      } else {
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Error al subir archivo.'), backgroundColor: Colors.red),
-        );
-      }
+    if (!mounted) return;
+
+    if (metadata == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Error de conexión. Verifica tu red e intenta de nuevo.'), backgroundColor: Colors.red),
+      );
+    } else if (metadata.containsKey('error')) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(metadata['error'].toString()), backgroundColor: Colors.redAccent),
+      );
+    } else {
+      setState(() {
+        _valoresFormulario[campoId] = {
+          'nombreOriginal': metadata['nombreOriginal'],
+          'url': metadata['url'],
+          'tamano': metadata['tamano'],
+        };
+      });
     }
   }
 
@@ -171,7 +114,7 @@ class _FormularioTramiteScreenState extends State<FormularioTramiteScreen> {
       final payload = {
         'clienteId': username,
         'codigoProceso': widget.proceso.codigo,
-        'descripcion': _descripcionController.text.trim(),
+        'descripcion': '',
         'datosFormularioInicial': _valoresFormulario,
       };
 
@@ -180,7 +123,6 @@ class _FormularioTramiteScreenState extends State<FormularioTramiteScreen> {
       setState(() => _isSubmitting = false);
 
       if (exito) {
-        await _eliminarBorrador();
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('✅ Trámite iniciado exitosamente.'), backgroundColor: Colors.green),
@@ -882,23 +824,6 @@ class _FormularioTramiteScreenState extends State<FormularioTramiteScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Relato del Trámite *', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
-              const SizedBox(height: 8),
-              const Text('Describe brevemente tu solicitud', style: TextStyle(color: Colors.grey, fontSize: 12)),
-              const SizedBox(height: 8),
-              TextFormField(
-                controller: _descripcionController,
-                maxLines: 3,
-                style: const TextStyle(color: Colors.white),
-                onChanged: (_) => _guardarBorrador(),
-                decoration: InputDecoration(
-                  filled: true, fillColor: const Color(0xFF1E293B),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-                ),
-                validator: (val) => val!.isEmpty ? 'Debes escribir un relato.' : null,
-              ),
-              const SizedBox(height: 24),
-              
               if (_campos.isNotEmpty) ...[
                 const Divider(color: Color(0xFF1E293B), thickness: 2),
                 const SizedBox(height: 16),

@@ -215,7 +215,8 @@ public class ReporteController {
     // =========================================================================
 
     @PostMapping("/nlp")
-    public ResponseEntity<?> consultarNlp(@RequestBody Map<String, String> body) {
+    public ResponseEntity<?> consultarNlp(@RequestBody Map<String, String> body, Authentication auth) {
+        validarAdmin(auth);
         String consulta = body.get("consulta");
         if (consulta == null || consulta.isBlank()) {
             return ResponseEntity.badRequest().body("El campo 'consulta' es obligatorio.");

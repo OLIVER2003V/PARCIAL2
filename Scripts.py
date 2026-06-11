@@ -103,6 +103,18 @@ def ejecutar_superscript(archivo_json='diagrama.json'):
                 tipo_ea = "StateNode"
                 subtipo = 4
                 es_pequeno = True
+            elif tipo_ea == "ActivityInitial":
+                tipo_ea = "StateNode"
+                subtipo = 3
+                es_pequeno = True
+            elif tipo_ea in ["ActivityFinal", "FlowFinal"]:
+                tipo_ea = "StateNode"
+                subtipo = 4
+                es_pequeno = True
+            elif tipo_ea == "MergeNode":
+                tipo_ea = "Decision"
+            elif tipo_ea in ["Fork", "Join", "ForkNode", "JoinNode"]:
+                tipo_ea = "Synchronization"
             elif tipo_ea in ["SoftwareSystem", "ExternalSystem", "Container", "MobileApp", "Database"]:
                 tipo_ea = "Component"
                 
@@ -139,7 +151,8 @@ def ejecutar_superscript(archivo_json='diagrama.json'):
             
         # 2. CREAR RELACIONES
         es_secuencia = (tipo_diagrama.lower() == "sequence")
-        es_estado = (tipo_diagrama.lower() in ["statechart", "state machine", "state"])
+        es_estado    = (tipo_diagrama.lower() in ["statechart", "state machine", "state"])
+        es_actividad = (tipo_diagrama.lower() in ["activity", "actividad"])
 
         for rel in relaciones:
             nodo_origen = ids_elementos.get(rel["origen"])
@@ -173,41 +186,104 @@ def ejecutar_superscript(archivo_json='diagrama.json'):
 
         eje_x = 150
         eje_y = 50
-        espacio_x = 280 if es_c4 else (250 if es_estado else 220)
-        espacio_y = 210 if es_c4 else (130 if es_estado else 130)
+        espacio_x = 280 if es_c4 else (250 if es_estado else 240)
+        espacio_y = 210 if es_c4 else (130 if es_estado else (80 if es_actividad else 130))
+
+        # Swim lanes para diagramas Activity
+        calles       = datos.get("calles", [])
+        tiene_calles = es_actividad and len(calles) > 0
+        ANCHO_CALLE  = config_diag.get("ancho_calle", 240)
+        ALTO_CAB     = 45
+        MARGEN_IZQ   = 100
+
+        # Cabeceras + separadores (sin fondo completo → sin conflicto z-order)
+        if tiene_calles:
+            filas_usadas  = [item.get("fila", 0) for item in elementos if "calle" in item]
+            max_fila_act  = max(filas_usadas) if filas_usadas else 0
+            total_h_calle = ALTO_CAB + 60 + (max_fila_act + 2) * espacio_y
+            num_calles    = len(calles)
+            for ci in calles:
+                col_c    = ci.get("col", 0)
+                nombre_c = ci["nombre"]
+                color_c  = ci.get("color", "#D0D0D0")
+                x_l = MARGEN_IZQ + col_c * ANCHO_CALLE
+                x_r = x_l + ANCHO_CALLE
+                hc = color_c.lstrip('#')
+                rc2, gc2, bc2 = tuple(int(hc[i:i+2], 16) for i in (0, 2, 4))
+                bgr2 = (bc2 * 65536) + (gc2 * 256) + rc2
+                # Cabecera coloreada (solo ALTO_CAB de alto)
+                hdr_elem = paquete_actual.Elements.AddNew(nombre_c, "Note")
+                hdr_elem.Notes = nombre_c
+                hdr_elem.Update()
+                obj_hdr = diagrama.DiagramObjects.AddNew(
+                    f"l={x_l};r={x_r};t=-5;b=-{5 + ALTO_CAB};", "")
+                obj_hdr.ElementID = hdr_elem.ElementID
+                obj_hdr.Style = f"BCol={bgr2};FCol=0;"
+                obj_hdr.Update()
+                # Línea separadora izquierda (3px, altura total)
+                sep_elem = paquete_actual.Elements.AddNew(f"__s{col_c}__", "Text")
+                sep_elem.Update()
+                obj_sep = diagrama.DiagramObjects.AddNew(
+                    f"l={x_l};r={x_l+3};t=-5;b=-{5+total_h_calle};", "")
+                obj_sep.ElementID = sep_elem.ElementID
+                obj_sep.Style = f"BCol={bgr2};"
+                obj_sep.Update()
+                # Cierre derecho para la última calle
+                if col_c == num_calles - 1:
+                    sepr_elem = paquete_actual.Elements.AddNew("__sr__", "Text")
+                    sepr_elem.Update()
+                    obj_sepr = diagrama.DiagramObjects.AddNew(
+                        f"l={x_r-3};r={x_r};t=-5;b=-{5+total_h_calle};", "")
+                    obj_sepr.ElementID = sepr_elem.ElementID
+                    obj_sepr.Style = f"BCol={bgr2};"
+                    obj_sepr.Update()
+                print(f"Calle creada: {nombre_c}")
 
         for item in elementos:
             datos_elem = ids_elementos[item["nombre"]]
 
+            tipo_orig = item.get("tipo", "")
+
             if datos_elem["es_pequeno"]:
-                w = 30
-                h = 30
-                offset_x = 45 if es_estado else 0
-                offset_y = 0 if es_estado else 20
+                if es_actividad and tiene_calles:
+                    w = 25; h = 25
+                    offset_x = (ANCHO_CALLE - 25) // 2
+                    offset_y = 0
+                else:
+                    w = 30; h = 30
+                    offset_x = 45 if es_estado else 0
+                    offset_y = 0 if es_estado else 20
             elif es_c4:
-                w = 180
-                h = 160
-                offset_x = 0
-                offset_y = 0
+                w = 180; h = 160; offset_x = 0; offset_y = 0
             elif es_estado:
-                w = 170
-                h = 60
-                offset_x = 0
-                offset_y = 0
+                w = 170; h = 60; offset_x = 0; offset_y = 0
+            elif es_actividad and tiene_calles:
+                if tipo_orig in ["Decision", "MergeNode"]:
+                    w = 80; h = 60
+                    offset_x = (ANCHO_CALLE - 80) // 2
+                    offset_y = 0
+                elif tipo_orig in ["Fork", "Join", "ForkNode", "JoinNode", "Synchronization"]:
+                    w = ANCHO_CALLE - 20; h = 12
+                    offset_x = 10; offset_y = 0
+                else:
+                    w = ANCHO_CALLE - 20; h = 45
+                    offset_x = 10; offset_y = 0
             else:
-                w = 120
-                h = 70
-                offset_x = 0
-                offset_y = 0
+                w = 120; h = 70; offset_x = 0; offset_y = 0
 
             # En EA: menos negativo = arriba, más negativo = abajo
             # fila 0 → t pequeño (arriba), fila N → t grande (abajo)
             if es_estado and "posicion" in item:
-                pos = item["posicion"]
+                pos  = item["posicion"]
                 col  = pos.get("col", 0)
                 fila = pos.get("fila", 0)
                 l = 150 + col * espacio_x + offset_x
                 t = -(50 + fila * espacio_y + offset_y)
+            elif es_actividad and tiene_calles and "calle" in item:
+                calle = item["calle"]
+                fila  = item.get("fila", 0)
+                l = MARGEN_IZQ + calle * ANCHO_CALLE + offset_x
+                t = -(ALTO_CAB + 60 + fila * espacio_y + offset_y)
             else:
                 l = eje_x + offset_x
                 t = -(eje_y + offset_y)
@@ -235,6 +311,9 @@ def ejecutar_superscript(archivo_json='diagrama.json'):
                 eje_x += espacio_x
             elif es_estado:
                 if "posicion" not in item:
+                    eje_y += espacio_y
+            elif es_actividad:
+                if "calle" not in item:
                     eje_y += espacio_y
             else:
                 eje_x += espacio_x
@@ -290,4 +369,9 @@ def ejecutar_superscript(archivo_json='diagrama.json'):
         print(f"Error inesperado en EA: {e}")
 
 if __name__ == "__main__":
-    ejecutar_superscript()
+    import sys, glob
+    archivos = sys.argv[1:] or sorted(glob.glob("diagrama_cu*.json"))
+    if not archivos:
+        archivos = ["diagrama.json"]
+    for archivo in archivos:
+        ejecutar_superscript(archivo)

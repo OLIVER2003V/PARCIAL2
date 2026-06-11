@@ -350,8 +350,12 @@ public class FlujoService {
      * El motor salta ese paso y activa el SIGUIENTE.
      */
     public Tramite iniciarTramiteCliente(NuevoTramiteRequest request) {
-        ProcesoDefinicion mapa = procesoRepository.findFirstByCodigo(request.getCodigoProceso())
-                .orElseThrow(() -> new RuntimeException("El servicio solicitado no está disponible."));
+        // findFirstByCodigo puede devolver la versión OBSOLETA (orden de inserción en MongoDB)
+        // cuando hay varias versiones con el mismo código. Siempre priorizar la ACTIVA.
+        ProcesoDefinicion mapa = procesoRepository
+                .findByCodigoBaseAndEstado(request.getCodigoProceso(), EstadoProceso.ACTIVA)
+                .orElseGet(() -> procesoRepository.findFirstByCodigo(request.getCodigoProceso())
+                        .orElseThrow(() -> new RuntimeException("El servicio solicitado no está disponible.")));
 
         if (!mapa.isActivo()) {
             throw new RuntimeException("Este servicio está temporalmente inactivo.");

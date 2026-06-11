@@ -153,7 +153,10 @@ public class ReporteGerencialService {
 
         if (!leadTimes.isEmpty()) {
             double promedio = leadTimes.stream().mapToDouble(Double::doubleValue).average().orElse(0);
-            double mediana = leadTimes.get(leadTimes.size() / 2);
+            int mid = leadTimes.size() / 2;
+            double mediana = leadTimes.size() % 2 == 1
+                ? leadTimes.get(mid)
+                : (leadTimes.get(mid - 1) + leadTimes.get(mid)) / 2.0;
             double maximo = leadTimes.get(leadTimes.size() - 1);
             r.setLeadTimePromedioHoras(redondear(promedio));
             r.setLeadTimeMedianaHoras(redondear(mediana));

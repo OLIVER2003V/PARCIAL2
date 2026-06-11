@@ -1994,31 +1994,48 @@ public class GeminiAiService {
         "   fechaCreacion(ISO date), departamentoActualId, nombreProceso, clienteId, pasoActualId }\n" +
         "2. procesos: { nombre, codigo, activo(true|false) }\n" +
         "3. departamentos: { nombre, activo(true|false) }\n" +
-        "4. usuarios: { username, nombre, rol(ADMIN|FUNCIONARIO|CLIENTE) }\n" +
-        "5. auditoria: { accion, entidad, actor(username), timestamp, detalles }\n\n" +
-        "Valores posibles de agrupacion: estado | departamento | proceso | mes | semana | dia | usuario\n" +
+        "4. usuarios: { username, nombre, rol(ADMIN|FUNCIONARIO|CLIENTE), departamentoId }\n" +
+        "5. auditoria: { accion, entidad, usuarioId(username), timestamp, detalles }\n\n" +
+        "Valores posibles de agrupacion: estado | departamento | proceso | mes | semana | dia | usuario | anio | trimestre\n" +
         "Valores posibles de tipoVisualizacion: bar | line | pie | doughnut | tabla | mixed\n" +
         "Valores posibles de coleccion: tramites | usuarios | auditoria | procesos\n" +
-        "Valores posibles de metrica: count | promedioDias\n";
+        "Valores posibles de metrica: count | promedioDias\n" +
+        "  - count: cuenta registros por grupo (por defecto)\n" +
+        "  - promedioDias: calcula el tiempo promedio de resolución en días por grupo\n";
 
     public String interpretarConsultaNlp(String consultaUsuario) {
-        String fechaHoy = java.time.LocalDate.now().toString();
-        // Primer día del mes actual y último día del mes actual, calculados dinámicamente
         java.time.LocalDate hoy = java.time.LocalDate.now();
-        String primerDiaMes = hoy.withDayOfMonth(1).toString();
-        String ultimoDiaMes = hoy.withDayOfMonth(hoy.lengthOfMonth()).toString();
+        String fechaHoy      = hoy.toString();
+        String primerDiaMes  = hoy.withDayOfMonth(1).toString();
+        String ultimoDiaMes  = hoy.withDayOfMonth(hoy.lengthOfMonth()).toString();
         String primerDiaAnio = hoy.withDayOfYear(1).toString();
+        String ultimoDiaAnio = hoy.withDayOfYear(hoy.lengthOfYear()).toString();
+
+        // Trimestre actual
+        int mesActual         = hoy.getMonthValue();
+        int trimActual        = (mesActual - 1) / 3 + 1;
+        java.time.LocalDate inicioTrimActual = hoy.withMonth((trimActual - 1) * 3 + 1).withDayOfMonth(1);
+        java.time.LocalDate finTrimActual    = inicioTrimActual.plusMonths(2)
+            .withDayOfMonth(inicioTrimActual.plusMonths(2).lengthOfMonth());
+        // Trimestre anterior
+        java.time.LocalDate inicioTrimAnt    = inicioTrimActual.minusMonths(3);
+        java.time.LocalDate finTrimAnt       = inicioTrimActual.minusDays(1);
+        // Rangos útiles
+        String hace3Meses    = hoy.minusMonths(3).withDayOfMonth(1).toString();
+        String hace6Meses    = hoy.minusMonths(6).withDayOfMonth(1).toString();
+        String hace12Meses   = hoy.minusMonths(12).withDayOfMonth(1).toString();
 
         String prompt = String.format(
-            "Eres un motor de inteligencia de negocios. Interpreta la siguiente consulta en lenguaje natural " +
-            "de un administrador de sistema y devuelve ÚNICAMENTE un objeto JSON válido (sin markdown, sin texto extra).\n\n" +
+            "Eres un motor de inteligencia de negocios para un sistema BPMS. " +
+            "Interpreta la consulta en lenguaje natural de un administrador y devuelve " +
+            "ÚNICAMENTE un objeto JSON válido (sin markdown, sin texto extra, sin comentarios).\n\n" +
             "FECHA ACTUAL: %s\n\n" +
             "CONSULTA DEL USUARIO: \"%s\"\n\n" +
             "CONTEXTO DEL SISTEMA:\n%s\n" +
-            "ESTRUCTURA DEL JSON A DEVOLVER (todos los campos son opcionales excepto titulo):\n" +
+            "ESTRUCTURA JSON A DEVOLVER (titulo es obligatorio, el resto opcional):\n" +
             "{\n" +
             "  \"titulo\": \"<título descriptivo del reporte>\",\n" +
-            "  \"tipoVisualizacion\": \"<bar|line|pie|doughnut|tabla|mixed>\",\n" +
+            "  \"tipoVisualizacion\": \"<bar|line|pie|doughnut|tabla>\",\n" +
             "  \"coleccion\": \"<tramites|usuarios|auditoria|procesos>\",\n" +
             "  \"filtros\": {\n" +
             "    \"fechaDesde\": \"<YYYY-MM-DD o null>\",\n" +
@@ -2026,39 +2043,88 @@ public class GeminiAiService {
             "    \"estado\": \"<EN_REVISION|APROBADO|RECHAZADO o null>\",\n" +
             "    \"departamentoNombre\": \"<nombre parcial o null>\",\n" +
             "    \"procesoNombre\": \"<nombre parcial o null>\",\n" +
-            "    \"usuarioUsername\": \"<username o null>\"\n" +
+            "    \"usuarioUsername\": \"<username exacto o null>\"\n" +
             "  },\n" +
-            "  \"agrupacion\": \"<estado|departamento|proceso|mes|semana|dia|usuario>\",\n" +
+            "  \"agrupacion\": \"<estado|departamento|proceso|mes|semana|dia|usuario|anio|trimestre>\",\n" +
             "  \"metrica\": \"<count|promedioDias>\",\n" +
             "  \"ordenar\": \"<desc|asc>\",\n" +
-            "  \"limite\": <número entre 5 y 50>\n" +
+            "  \"limite\": <entero 1-50 o null>\n" +
             "}\n\n" +
-            "REGLAS IMPORTANTES:\n" +
-            "- 'este mes' = fechaDesde:%s, fechaHasta:%s\n" +
-            "- 'este año' = fechaDesde:%s, fechaHasta:%s\n" +
-            "- Para consultas de tendencia temporal usa tipoVisualizacion 'line' con agrupacion 'mes' o 'semana'.\n" +
-            "- Para distribuciones porcentuales usa 'pie' o 'doughnut'.\n" +
-            "- Para comparaciones entre categorías usa 'bar'.\n" +
-            "- Para listas de datos usa 'tabla'.\n\n" +
-            "EJEMPLOS:\n" +
+            "REGLAS DE FECHAS (usa estas fechas exactas cuando el usuario use estas expresiones):\n" +
+            "- 'hoy'                  → fechaDesde:%s, fechaHasta:%s\n" +
+            "- 'este mes'             → fechaDesde:%s, fechaHasta:%s\n" +
+            "- 'este año'             → fechaDesde:%s, fechaHasta:%s\n" +
+            "- 'trimestre actual'     → fechaDesde:%s, fechaHasta:%s\n" +
+            "- 'último trimestre'     → fechaDesde:%s, fechaHasta:%s\n" +
+            "- 'últimos 3 meses'      → fechaDesde:%s, fechaHasta:%s\n" +
+            "- 'últimos 6 meses'      → fechaDesde:%s, fechaHasta:%s\n" +
+            "- 'último año'           → fechaDesde:%s, fechaHasta:%s\n" +
+            "- 'sin filtro de fecha'  → fechaDesde:null, fechaHasta:null\n\n" +
+            "REGLAS DE VISUALIZACIÓN:\n" +
+            "- Tendencia / evolución temporal → 'line' + agrupacion 'mes', 'semana', 'dia', 'trimestre' o 'anio'\n" +
+            "- Distribución porcentual (partes de un todo) → 'pie' o 'doughnut'\n" +
+            "- Comparación entre categorías → 'bar'\n" +
+            "- Listado de datos → 'tabla'\n" +
+            "- Cuando el usuario pide 'top N' o 'los N más/menos': añade limite:N y ordenar:'desc'/'asc'\n" +
+            "- Para tiempos de resolución/duración usa metrica:'promedioDias'\n" +
+            "- Para simple conteo usa metrica:'count' (default)\n\n" +
+            "EJEMPLOS (sigue exactamente este formato):\n\n" +
             "Consulta: \"Trámites aprobados en abril 2026 por departamento\"\n" +
             "Respuesta: {\"titulo\":\"Trámites aprobados en abril 2026 por departamento\"," +
             "\"tipoVisualizacion\":\"bar\",\"coleccion\":\"tramites\"," +
             "\"filtros\":{\"fechaDesde\":\"2026-04-01\",\"fechaHasta\":\"2026-04-30\"," +
             "\"estado\":\"APROBADO\"},\"agrupacion\":\"departamento\",\"ordenar\":\"desc\"}\n\n" +
-            "Consulta: \"Evolución mensual de solicitudes en 2026\"\n" +
-            "Respuesta: {\"titulo\":\"Evolución mensual de solicitudes 2026\"," +
+            "Consulta: \"Evolución mensual de trámites en 2026\"\n" +
+            "Respuesta: {\"titulo\":\"Evolución mensual de trámites 2026\"," +
             "\"tipoVisualizacion\":\"line\",\"coleccion\":\"tramites\"," +
             "\"filtros\":{\"fechaDesde\":\"2026-01-01\",\"fechaHasta\":\"2026-12-31\"}," +
-            "\"agrupacion\":\"mes\",\"ordenar\":\"asc\"}\n\n" +
+            "\"agrupacion\":\"mes\",\"metrica\":\"count\"}\n\n" +
             "Consulta: \"Distribución de trámites por estado\"\n" +
             "Respuesta: {\"titulo\":\"Distribución de trámites por estado\"," +
             "\"tipoVisualizacion\":\"doughnut\",\"coleccion\":\"tramites\"," +
             "\"filtros\":{},\"agrupacion\":\"estado\"}\n\n" +
-            "Si no puedes interpretar la consulta, devuelve: " +
-            "{\"error\": \"consulta_ambigua\", \"sugerencia\": \"<sugerencia en español>\"}",
+            "Consulta: \"Top 5 departamentos con más trámites rechazados este año\"\n" +
+            "Respuesta: {\"titulo\":\"Top 5 departamentos con más rechazos en %s\"," +
+            "\"tipoVisualizacion\":\"bar\",\"coleccion\":\"tramites\"," +
+            "\"filtros\":{\"fechaDesde\":\"%s\",\"fechaHasta\":\"%s\",\"estado\":\"RECHAZADO\"}," +
+            "\"agrupacion\":\"departamento\",\"ordenar\":\"desc\",\"limite\":5}\n\n" +
+            "Consulta: \"Promedio de días de resolución por proceso\"\n" +
+            "Respuesta: {\"titulo\":\"Tiempo promedio de resolución por proceso\"," +
+            "\"tipoVisualizacion\":\"bar\",\"coleccion\":\"tramites\"," +
+            "\"filtros\":{},\"agrupacion\":\"proceso\",\"metrica\":\"promedioDias\",\"ordenar\":\"desc\"}\n\n" +
+            "Consulta: \"Trámites por año histórico\"\n" +
+            "Respuesta: {\"titulo\":\"Trámites por año\"," +
+            "\"tipoVisualizacion\":\"bar\",\"coleccion\":\"tramites\"," +
+            "\"filtros\":{\"fechaDesde\":null,\"fechaHasta\":null},\"agrupacion\":\"anio\"}\n\n" +
+            "Consulta: \"Evolución trimestral de solicitudes el último año\"\n" +
+            "Respuesta: {\"titulo\":\"Evolución trimestral de solicitudes\"," +
+            "\"tipoVisualizacion\":\"line\",\"coleccion\":\"tramites\"," +
+            "\"filtros\":{\"fechaDesde\":\"%s\",\"fechaHasta\":\"%s\"}," +
+            "\"agrupacion\":\"trimestre\"}\n\n" +
+            "Consulta: \"Departamento con menor tiempo de respuesta este mes\"\n" +
+            "Respuesta: {\"titulo\":\"Menor tiempo de respuesta por departamento este mes\"," +
+            "\"tipoVisualizacion\":\"bar\",\"coleccion\":\"tramites\"," +
+            "\"filtros\":{\"fechaDesde\":\"%s\",\"fechaHasta\":\"%s\"}," +
+            "\"agrupacion\":\"departamento\",\"metrica\":\"promedioDias\",\"ordenar\":\"asc\",\"limite\":1}\n\n" +
+            "Consulta: \"Cuántos usuarios hay por rol\"\n" +
+            "Respuesta: {\"titulo\":\"Usuarios por rol\",\"tipoVisualizacion\":\"doughnut\"," +
+            "\"coleccion\":\"usuarios\",\"filtros\":{},\"agrupacion\":\"rol\"}\n\n" +
+            "Si no puedes interpretar la consulta devuelve: " +
+            "{\"error\":\"consulta_ambigua\",\"sugerencia\":\"<sugerencia concreta en español>\"}",
             fechaHoy, consultaUsuario, ESQUEMA_REPORTES,
-            primerDiaMes, ultimoDiaMes, primerDiaAnio, fechaHoy);
+            // fechas para reglas
+            fechaHoy, fechaHoy,
+            primerDiaMes, ultimoDiaMes,
+            primerDiaAnio, ultimoDiaAnio,
+            inicioTrimActual.toString(), finTrimActual.toString(),
+            inicioTrimAnt.toString(), finTrimAnt.toString(),
+            hace3Meses, fechaHoy,
+            hace6Meses, fechaHoy,
+            hace12Meses, fechaHoy,
+            // fechas para ejemplos
+            hoy.getYear(), primerDiaAnio, ultimoDiaAnio,
+            hace12Meses, fechaHoy,
+            primerDiaMes, ultimoDiaMes);
 
         Map<String, Object> generationConfig = Map.of("responseMimeType", "application/json");
         Map<String, Object> requestBody = Map.of(

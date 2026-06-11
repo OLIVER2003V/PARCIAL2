@@ -22,10 +22,10 @@ public class QueryIntentDTO {
     /** Filtros a aplicar */
     private FiltrosNlpDTO filtros;
 
-    /** Dimensión de agrupación: estado | departamento | proceso | mes | semana | dia | usuario */
+    /** Dimensión de agrupación: estado | departamento | proceso | mes | semana | dia | usuario | anio | trimestre */
     private String agrupacion;
 
-    /** Métrica: count | promedioDias */
+    /** Métrica: count (default) | promedioDias (tiempo medio de resolución en días) */
     private String metrica;
 
     /** Orden de resultados: asc | desc */

@@ -454,13 +454,22 @@ class _DetalleTramiteScreenState extends State<DetalleTramiteScreen>
     final uri = Uri.parse(
       url.startsWith('http') ? url : ApiConfig.archivoVer(url),
     );
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    } else {
+    try {
+      // inAppBrowserView usa Chrome Custom Tabs en Android, que soporta PDF,
+      // imágenes y web sin necesitar una app externa instalada.
+      final ok = await launchUrl(uri, mode: LaunchMode.inAppBrowserView);
+      if (!ok && mounted) {
+        // Último recurso: intenta abrir en app externa
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      }
+    } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('No se pudo abrir el archivo'),
-            backgroundColor: AppTheme.estadoRojo));
+          const SnackBar(
+            content: Text('No se pudo abrir el archivo'),
+            backgroundColor: AppTheme.estadoRojo,
+          ),
+        );
       }
     }
   }
